@@ -1,4 +1,4 @@
-# cedille-developments
+# Cedille Developments
 A showcase of interesting code and proof developments in [Cedille](https://github.com/cedille/cedille).
 
 ## [Generic derivation of induction for impredicative encodings in Cedille](impred-ind)
