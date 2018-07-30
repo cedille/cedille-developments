@@ -1,11 +1,10 @@
 # cedille-developments
-A showcase of interesting code and proof developments in Cedille
+A showcase of interesting code and proof developments in [Cedille](https://github.com/cedille/cedille).
 
-## Generic derivation of induction for impredicative encodings in Cedille
+## [Generic derivation of induction for impredicative encodings in Cedille](impred-ind)
 * Authors: Denis Firsov and Aaron Stump
 * Venue: CPP'18
 * Paper: http://firsov.ee/impred-ind/impred-ind.pdf
-* Code: http://firsov.ee/impred-ind/impred-ind.zip
 
 ## [Efficient Mendler-Style Lambda-Encodings in Cedille](efficient-mendler)
 * Authors: Denis Firsov, Richard Blair, and Aaron Stump

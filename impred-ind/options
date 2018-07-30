@@ -1,0 +1,10 @@
+import-directories 
+ "YOUR-PATH/Mendler"
+ "YOUR-PATH/Mendler/examples"  
+ "YOUR-PATH/Church"
+ "YOUR-PATH/Church/examples"
+ "YOUR-PATH/Utilities".
+
+no-cede-files.
+
+
