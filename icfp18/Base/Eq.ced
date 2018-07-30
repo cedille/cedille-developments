@@ -1,0 +1,12 @@
+module Eq.
+
+Eq ◂ Π A : ★. A ➔ A ➔ ★ = λ A : ★. λ x : A. λ y : A. {x ≃ y}.
+HEq ◂ Π A : ★. Π B : ★. A ➔ B ➔ ★ = λ A : ★. λ B : ★. λ x : A. λ y : B. {x ≃ y}.
+
+trans ◂ ∀ A : ★. ∀ B : ★. ∀ C : ★. ∀ x : A. ∀ y : B. ∀ z : C. {x ≃ y} ➔ {y ≃ z} ➔ {x ≃ z}
+ = Λ A. Λ B. Λ C. Λ x. Λ y. Λ z. λ p1. λ p2. ρ p1 - p2.
+
+subst ◂ ∀ X : ★. ∀ Y : ★. ∀ x : X. Π y : Y. { x ≃ y } ➾ X 
+ = Λ X. Λ Y. Λ x. λ y. Λ eq. (φ eq - x {y}) .
+
+

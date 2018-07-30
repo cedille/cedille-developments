@@ -1,0 +1,60 @@
+module Mem.
+
+import List.
+import Product.
+import Sigma.
+import Id.
+import IIdMapping.
+import IFixIndM.
+import IInductionM.
+import MemF.
+import Nat.
+
+Mem ◂ Π A : ★. Π x : A. List · A ➔ ★ =
+  λ A : ★. λ x : A. IFixIndM · (List · A) · (MemF · A x) (imapMem · A -x).
+here ◂ ∀ A : ★. ∀ x : A. ∀ xs : List · A. Mem · A x (consL · A x xs)
+  = Λ A. Λ x. Λ xs. iinFixIndM · (List · A) · (MemF · A x)
+  -(imapMem · A -x) -(consL · A x xs)
+  (hereF · A -x · (Mem · A x) -xs).
+there ◂ ∀ A : ★. ∀ x : A. ∀ y : A. ∀ xs : List · A. Mem · A x xs ➔ Mem · A x (consL · A y xs)
+  = Λ A. Λ x. Λ y. Λ xs. λ i. iinFixIndM · (List · A) · (MemF · A x)
+  -(imapMem · A -x) -(consL · A y xs)
+  (thereF · A -x · (Mem · A x) -y -xs i).
+
+elimMem ◂ ∀ A : ★. ∀ x : A. ∀ P : Π xs : List · A. Mem · A x xs ➔ ★.
+  Π pH : ∀ xs : List · A. P (consL · A x xs) (here · A -x -xs).
+  Π pT : ∀ y : A. ∀ xs : List · A. Π i : Mem · A x xs.
+    P xs i ➔ P (consL · A y xs) (there · A -x -y -xs i).
+  ∀ xs : List · A. Π i : Mem · A x xs. P xs i
+  = Λ A. Λ x. Λ P. λ pH. λ pT. iindFixIndM
+  · (List · A) · (MemF · A x) -(imapMem · A -x) · P
+  (Λ R. Λ c. λ ih. elimMemF · A -x · R
+    · (λ xs : List · A. λ s : MemF · A x · R xs. P xs
+      (iinFixIndM · (List · A) · (MemF · A x) -(imapMem · A -x) -xs
+        (elimId · (MemF · A x · R xs) · (MemF · A x · (Mem · A x) xs)
+          (imapMem · A -x · R · (Mem · A x) c -xs) s)
+      ))
+    pH
+    (Λ y. Λ xs. λ i. pT -y -xs (elimId~ · (R xs) · (Mem · A x xs) -(c -xs) i) (ih -xs i))
+  ).
+
+invThereSuc ◂ ∀ A : ★. ∀ x : A. ∀ xs : List · A. Π i : Mem · A x xs. Π n : Nat. {there i ≃ suc n} ➔ {i ≃ n}
+  = Λ A. Λ x. Λ xs. λ i. λ n. λ q. χ {pred (suc i) ≃ pred (suc n)} - ρ q - β.
+
+ExEq ◂ Π A : ★. A ➔ ★ = λ A : ★. λ x : A. Sigma · A · (λ x' : A. {x' ≃ x}).
+pairExEq ◂ ∀ A : ★. ∀ x : A. Π x' : A. {x' ≃ x} ➔ ExEq · A x = Λ A. Λ x. pair · A · (λ x' : A. {x' ≃ x}).
+projExEq1 ◂ ∀ A : ★. ∀ x : A. ExEq · A x ➔ A = Λ A. Λ x. proj1 · A · (λ x' : A. {x' ≃ x}).
+projExEq2 ◂ ∀ A : ★. ∀ x : A. Π s : ExEq · A x. {projExEq1 s ≃ x} = Λ A. Λ x. proj2 · A · (λ x' : A. {x' ≃ x}).
+
+inferMem ◂ ∀ A : ★. Π xs : List · A. ∀ x : A. Mem · A x xs ➔ ExEq · A x
+  = Λ A. λ xs. Λ x. λ i. elimMem · A -x
+  · (λ xs : List · A. λ _ : Mem · A x xs. Π xs' : List · A. {xs' ≃ xs} ➾ ExEq · A x)
+  (Λ xs. λ xs'. Λ q. pairExEq · A -x
+    (headL · A -x -xs xs' (ρ q - β))
+    (ρ q - β)
+  )
+  (Λ y. Λ xs. λ i. λ ih. λ xs'. Λ q.
+    ih (tailL · A -y -xs xs' (ρ q - β)) -(ρ q - β)
+  )
+  -xs i xs -β
+.

@@ -1,0 +1,5 @@
+module Raws.
+import Raw.
+import List.
+
+Raws ◂ ★ = List · Raw.

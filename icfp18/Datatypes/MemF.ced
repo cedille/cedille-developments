@@ -1,0 +1,65 @@
+module MemF.
+
+import List.
+import Sigma.
+import Product.
+import IIdMapping.
+import Id.
+import IFixIndM.
+
+MemFC ◂ Π A : ★. Π x : A. (List · A ➔ ★) ➔ (List · A ➔ ★) =
+  λ A : ★. λ x : A. λ X : List · A ➔ ★. λ xs : List · A.
+  ∀ C : List · A ➔ ★.
+  Π cH : ∀ xs : List · A. C (consL · A x xs).
+  Π cT : ∀ y : A. ∀ xs : List · A. X xs ➔ C (consL · A y xs).
+  C xs.
+hereFC ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★. ∀ xs : List · A. MemFC · A x · X (consL · A x xs)
+  = Λ A. Λ x. Λ X. Λ xs. Λ C. λ cH. λ cT. cH -xs.
+thereFC ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★. ∀ y : A. ∀ xs : List · A. X xs
+  ➔ MemFC · A x · X (consL · A y xs)
+  = Λ A. Λ x. Λ X. Λ y. Λ xs. λ i. Λ C. λ cH. λ cT. cT -y -xs i.
+
+MemFI ◂ Π A : ★. Π x : A. Π X : List · A ➔ ★. Π xs : List · A. MemFC · A x · X xs ➔ ★ 
+  = λ A : ★. λ x : A. λ X : List · A ➔ ★. λ xs : List · A. λ s : MemFC · A x · X xs.
+  ∀ P : Π xs : List · A. MemFC · A x · X xs ➔ ★. 
+  Π pH : ∀ xs : List · A. P (consL · A x xs) (hereFC · A -x · X -xs).
+  Π pT : ∀ y : A. ∀ xs : List · A. Π i : X xs. P (consL · A y xs) (thereFC · A -x · X -y -xs i).
+  P xs s.
+MemF ◂ Π A : ★. Π x : A. (List · A ➔ ★) ➔ (List · A ➔ ★) =
+  λ A : ★. λ x : A. λ X : List · A ➔ ★. λ xs : List · A.
+  ι s : MemFC · A x · X xs. MemFI · A x · X xs s.
+hereF ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★. ∀ xs : List · A. MemF · A x · X (consL · A x xs)
+  = Λ A. Λ x. Λ X. Λ xs. [hereFC · A -x · X -xs, Λ P. λ pH. λ pT. pH -xs].
+thereF ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★. ∀ y : A. ∀ xs : List · A.
+  X xs ➔ MemF · A x · X (consL · A y xs)
+  = Λ A. Λ x. Λ X. Λ y. Λ xs. λ i. [thereFC · A -x · X -y -xs i, Λ P. λ pH. λ pT. pT -y -xs i].
+
+elimMemF ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★.
+  ∀ P : Π xs : List · A. MemF · A x · X xs ➔ ★.
+  Π pH : ∀ xs : List · A. P (consL · A x xs) (hereF · A -x · X -xs).
+  Π pT : ∀ y : A. ∀ xs : List · A. Π i : X xs. P (consL · A y xs) (thereF · A -x · X -y -xs i).
+  ∀ xs : List · A. Π i : MemF · A x · X xs. P xs i
+  = Λ A. Λ x. Λ X. Λ P. λ pH. λ pT. Λ xs. λ s. s.2 · (λ xs : List · A. λ sC : MemFC · A x · X xs.
+  ∀ C : ★. (Π s' : MemF · A x · X xs . {sC ≃ s'} ➾ P xs s' ➔ C) ➔ C) 
+  (Λ xs. Λ C. λ p. p (hereF · A -x · X -xs) -β (pH -xs))
+  (Λ y. Λ xs. λ i. Λ C. λ p. p (thereF · A -x · X -y -xs i) -β (pT -y -xs i))
+  · (P xs s) (λ s'. Λ q. λ p. ρ q - p).
+
+imapMem ◂ ∀ A : ★. ∀ x : A. IIdMapping · (List · A) · (MemF · A x)
+  = Λ A. Λ x. Λ X. Λ Y. λ c. elimMemF · A -x · X
+  · (λ xs : List · A. λ s : MemF · A x · X xs. IdCod · (MemF · A x · X xs) · (MemF · A x · Y xs) s)
+  (Λ xs. pairId
+    · (MemF · A x · X (consL · A x xs))
+    · (MemF · A x · Y (consL · A x xs))
+    -(hereF · A -x · X -xs)
+    (hereF · A -x · Y -xs)
+    β
+  )
+  (Λ y. Λ xs. λ i. pairId
+    · (MemF · A x · X (consL · A y xs))
+    · (MemF · A x · Y (consL · A y xs))
+    -(thereF · A -x · X -y -xs i)
+    (thereF · A -x · Y -y -xs (elimId · (X xs) · (Y xs) (c -xs) i))
+    β
+  )
+.

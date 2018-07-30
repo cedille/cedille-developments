@@ -1,0 +1,41 @@
+module TpF.
+
+import Id.
+import Sigma.
+import IIdMapping.
+
+TpFC ◂ ★ ➔ ★ = λ X : ★. ∀ C : ★. C ➔ (X ➔ X ➔ C) ➔ C.
+BaseFC ◂ ∀ X : ★. TpFC · X
+ = Λ X. Λ C. λ cB. λ cA. cB.
+ArrFC ◂ ∀ X : ★. X ➔ X ➔ TpFC · X
+ = Λ X. λ x1. λ x2. Λ C. λ cB. λ cA. cA x1 x2 .
+
+TpFI ◂ Π X : ★. TpFC · X ➔ ★ 
+ = λ X : ★. λ s : TpFC · X. ∀ P : TpFC · X ➔ ★. 
+ P (BaseFC · X) ➔ (Π x1 : X. Π x2 : X. P (ArrFC · X x1 x2)) ➔ P s.
+TpF ◂ ★ ➔ ★ = λ X : ★. ι s : TpFC · X. TpFI · X s.
+BaseF ◂ ∀ X : ★. TpF · X
+ = Λ X. [BaseFC · X, Λ P. λ pB. λ pA. pB].
+ArrF ◂ ∀ X : ★. X ➔ X ➔ TpF · X
+ = Λ X. λ x1. λ x2. [ArrFC · X x1 x2, Λ P. λ pB. λ pA. pA x1 x2].
+
+elimTpF ◂ ∀ X : ★. ∀ P : TpF · X ➔ ★.
+ P (BaseF · X) ➔ (Π x1 : X. Π x2 : X. P (ArrF · X x1 x2)) ➔
+ Π s : TpF · X. P s
+ = Λ X. Λ P. λ pB. λ pA. λ s. s.2 · (λ sC : TpFC · X.
+ ∀ C : ★. (Π s' : TpF · X . {sC ≃ s'} ➾ P s' ➔ C) ➔ C) 
+ (Λ C. λ p. p (BaseF · X) -β pB)
+ (λ x1. λ x2. Λ C. λ p. p (ArrF · X x1 x2) -β (pA x1 x2))
+ · (P s) (λ s'. Λ q. λ p. ρ q - p).
+foldTpF ◂ ∀ X : ★. ∀ C : ★.
+ C ➔ (X ➔ X ➔ C) ➔ TpF · X ➔ C
+ = Λ X. Λ C. elimTpF · X · (λ s : TpF · X. C).
+
+imapTp ◂ IdMapping · TpF
+ = Λ X. Λ Y. λ c. elimTpF · X
+ · (λ s : TpF · X. IdCod · (TpF · X) · (TpF · Y) s)
+ (pairId · (TpF · X) · (TpF · Y) -(BaseF · X) (BaseF · Y) β)
+ (λ x1. λ x2. pairId · (TpF · X) · (TpF · Y)
+  -(ArrF · X x1 x2) (ArrF · Y (elimId · X · Y c x1) (elimId · X · Y c x2)) β).
+
+

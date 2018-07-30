@@ -1,0 +1,94 @@
+module TermRawReuse.
+import Sigma.
+import IIdMapping.
+import Eq.
+import Id.
+import FixIndM.
+import IFixIndM.
+import Aux.
+import FogFix.
+import EnrFix.
+import NatF.
+import Nat.
+import List.
+import MemF.
+import Mem.
+import Ctx.
+import Tp.
+import RawF.
+import Raw.
+import TermF.
+import Term.
+import All.
+import Raws.
+import Env.
+import AllListReuse.
+
+------------------------------------------------------------------------------------------
+
+if2nf ◂ ∀ A : ★. ∀ x : A. ∀ X : List · A ➔ ★. ∀ Y : ★.
+  Π c : ∀ xs : List · A. Id · (X xs) · Y.
+  ∀ xs : List · A. Id · (MemF · A x · X xs) · (NatF · Y)
+  = Λ A. Λ x. Λ X. Λ Y. λ c. elimMemF · A -x · X
+  · (λ xs : List · A. IdCod · (MemF · A x · X xs) · (NatF · Y))
+  (Λ xs. pairId · (MemF · A x · X (consL · A x xs)) · (NatF · Y)
+    -(hereF · A -x · X -xs)
+    (zeroF · Y)
+    β
+  )
+  (Λ y. Λ xs. λ i. pairId · (MemF · A x · X (consL · A y xs)) · (NatF · Y)
+    -(thereF · A -x · X -y -xs i)
+    (sucF · Y (elimId · (X xs) · Y (c -xs) i))
+    β
+  )
+.
+
+i2n ◂ ∀ A : ★. ∀ x : A. ∀ xs : List · A. Id · (Mem · A x xs) · Nat 
+  = Λ A. Λ x. ifix2fix · (List · A) · (MemF · A x) · NatF
+  (imapMem · A -x) imapN (if2nf · A -x).
+i2n! ◂ ∀ A : ★. ∀ x : A. ∀ xs : List · A. Mem · A x xs ➔ Nat 
+  = Λ A. Λ x. Λ xs. elimId · (Mem · A x xs) · Nat (i2n · A -x -xs).
+
+------------------------------------------------------------------------------------------
+
+tf2rf ◂ ∀ X : CtxTp ➔ ★. ∀ Y : ★.
+  Π c : ∀ GA : CtxTp. Id · (X GA) · Y.
+  ∀ GA : CtxTp. Id · (TermF · X GA) · (RawF · Y)
+  = Λ X. Λ Y. λ c. elimTermF · X
+  · (λ GA : CtxTp. IdCod · (TermF · X GA) · (RawF · Y))
+  (Λ G. Λ A. λ i. pairId · (TermF · X (pairCtxTp G A)) · (RawF · Y)
+    -(ivarF · X -G -A i)
+    (varF · Y (i2n! · Tp -A -G i))
+    β
+  )
+  (Λ G. λ A. Λ B. λ b. pairId · (TermF · X (pairCtxTp G (Arr A B))) · (RawF · Y)
+    -(ilamF · X -G A -B b)
+    (lamF · Y A (elimId · (X (pairCtxTp (ext G A) B)) · Y (c -(pairCtxTp (ext G A) B)) b))
+    β
+  )
+  (Λ G. Λ A. Λ B. λ f. λ a. pairId · (TermF · X (pairCtxTp G B)) · (RawF · Y)
+    -(iappF · X -G -A -B f a)
+    (appF · Y
+      (elimId · (X (pairCtxTp G (Arr A B))) · Y (c -(pairCtxTp G (Arr A B))) f)
+      (elimId · (X (pairCtxTp G A)) · Y (c -(pairCtxTp G A)) a)
+    )
+    β
+  )
+.
+
+t2r ◂ ∀ GA : CtxTp. Id · (Term GA) · Raw
+  = ifix2fix · CtxTp · TermF · RawF imapTerm imapRaw tf2rf.
+t2r! ◂ ∀ GA : CtxTp. Term GA ➔ Raw
+  = Λ GA. elimId · (Term GA) · Raw (t2r -GA).
+
+------------------------------------------------------------------------------------------
+
+ts2rs ◂ ∀ GD : Ctx2. Id · (Env GD) · Raws
+  = Λ GD. a2l · Tp · (λ A : Tp. Term (pairCtxTp (projCtx2 GD) A)) · Raw
+  (Λ A. t2r -(pairCtxTp (projCtx2 GD) A)) -(projCtx1 GD).
+ts2rs! ◂ ∀ GD : Ctx2. Env GD ➔ Raws
+  = Λ GD. elimId · (Env GD) · Raws (ts2rs -GD).
+
+------------------------------------------------------------------------------------------
+
+

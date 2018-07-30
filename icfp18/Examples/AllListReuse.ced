@@ -1,0 +1,35 @@
+module AllListReuse.
+import Unit.
+import Sigma.
+import IIdMapping.
+import Eq.
+import Id.
+import FixIndM.
+import IFixIndM.
+import FogFix.
+import EnrFix.
+import Nat.
+import ListF.
+import List.
+import AllF.
+import All.
+
+af2lf ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ B : ★.
+  Π c1 : ∀ x : A. Id · (Q x) · B.
+  ∀ X : List · A ➔ ★. ∀ Y :  ★. 
+  Π c2 : ∀ xs : List · A. Id · (X xs) · Y.
+  ∀ xs : List · A. Id · (AllF · A · Q · X xs) · (ListF · B · Y)
+  = Λ A. Λ Q. Λ B. λ c1. Λ X. Λ Y. λ c2. elimAllF · A · Q · X
+  · (λ xs : List · A. IdCod · (AllF · A · Q · X xs) · (ListF · B · Y))
+  (pairId · (AllF · A · Q · X (nilL · A)) · (ListF · B · Y) -(doneF · A · Q · X) (nilLF · B · Y) β)
+  (Λ x. Λ xs. λ q. λ qs. pairId · (AllF · A · Q · X (consL · A x xs)) · (ListF · B · Y)
+    -(nextF · A · Q · X -x -xs q qs) (consLF · B · Y (elimId · (Q x) · B (c1 -x) q) (elimId · (X xs) · Y (c2 -xs) qs)) β).
+
+a2l ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ B : ★. Π c : ∀ x : A. Id · (Q x) · B.
+  ∀ xs : List · A. Id · (All · A · Q xs) · (List · B)
+  = Λ A. Λ Q. Λ B. λ c. Λ xs. ifix2fix · (List · A) · (AllF · A · Q) · (ListF · B)
+  (imapA · A · Q) (imapL · B) (af2lf · A · Q · B c) -xs.
+a2l! ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ B : ★. Π c : ∀ x : A. Id · (Q x) · B.
+  ∀ xs : List · A. All · A · Q xs ➔ List · B
+  = Λ A. Λ Q. Λ B. λ c. Λ xs. elimId · (All · A · Q xs) · (List · B) (a2l · A · Q · B c -xs).
+

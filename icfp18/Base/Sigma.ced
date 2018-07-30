@@ -1,0 +1,48 @@
+module Sigma.
+
+SigmaC ◂ Π A : ★. (A ➔ ★) ➔ ★ = λ A : ★. λ B : A ➔ ★.
+  ∀ C : ★. (Π a : A. B a ➔ C) ➔ C.
+pairC ◂ ∀ A : ★. ∀ B : A ➔ ★. Π a : A. B a ➔ SigmaC · A · B =
+ Λ A. Λ B. λ a. λ b. Λ C. λ c. c a b.
+
+SigmaI ◂ Π A : ★. Π B : A ➔ ★. SigmaC · A · B ➔ ★ =
+  λ A : ★. λ B : A ➔ ★. λ s : SigmaC · A · B.
+  ∀ P : SigmaC · A · B ➔ ★. (Π a : A. Π b : B a. P (pairC · A · B a b)) ➔ P s.
+Sigma ◂ Π A : ★. (A ➔ ★) ➔ ★ = λ A : ★. λ B : A ➔ ★.
+  ι s : SigmaC · A · B. SigmaI · A · B s.
+pair ◂ ∀ A : ★. ∀ B : A ➔ ★. Π a : A. Π b : B a. Sigma · A · B
+  = Λ A. Λ B. λ a. λ b. [pairC · A · B a b, Λ P. λ p. p a b].
+
+elimSigma ◂ ∀ A : ★. ∀ B : A ➔ ★. ∀ P : Sigma · A · B ➔ ★.
+  (Π a : A. Π b : B a. P (pair · A · B a b)) ➔ Π s : Sigma · A · B. P s
+  = Λ A. Λ B. Λ P. λ p. λ s. (s.2 · (λ sC : SigmaC · A · B.
+    ∀ C : ★. (Π s' : Sigma · A · B. {sC ≃ s'} ➾ P s' ➔ C) ➔ C))
+  (λ a. λ b. Λ C. λ c. c (pair · A · B a b) -β (p a b))
+  · (P s) (λ s'. Λ q. λ p. ρ q - p).
+foldSigma ◂ ∀ A : ★. ∀ B : A ➔ ★. ∀ C : ★.
+  (Π a : A. B a ➔ C) ➔ Sigma · A · B ➔ C
+  = Λ A. Λ B. Λ C. elimSigma · A · B · (λ s : Sigma · A · B. C).
+
+proj1 ◂ ∀ A : ★. ∀ B : A ➔ ★. Sigma · A · B  ➔  A 
+ = Λ A. Λ B. λ s. s.1 · A (λ a. λ _. a).
+proj2 ◂ ∀ A : ★. ∀ B : A ➔ ★. Π s : Sigma · A · B. B (proj1 · A · B s) 
+ = Λ A. Λ B. λ s. elimSigma · A · B
+ · (λ s' : Sigma · A · B. B (proj1 · A · B s')) (λ a. λ b. b) s.
+
+etaSigma ◂ ∀ A : ★. ∀ B : A ➔ ★. Π xs : Sigma · A · B.
+  { xs ≃ pair (proj1 xs) (proj2 xs) } =
+  Λ A. Λ B. elimSigma · A · B
+  · (λ xs : Sigma · A · B. { xs ≃ pair (proj1 xs) (proj2 xs) })
+  (λ a. λ b. β).
+
+invPair1 ◂ ∀ A : ★. ∀ B : ★. ∀ a : A. ∀ a' : A. ∀ b : B. ∀ b' : B.
+  {pair a b ≃ pair a' b'} ➔ {a ≃ a'}
+  = Λ A. Λ B. Λ a. Λ a'. Λ b. Λ b'. λ q.
+  χ {proj1 (pair a b) ≃ proj1 (pair a' b')} -
+  ρ q - β.
+
+invPair2 ◂ ∀ A : ★. ∀ B : ★. ∀ a : A. ∀ a' : A. ∀ b : B. ∀ b' : B.
+  {pair a b ≃ pair a' b'} ➔ {b ≃ b'}
+  = Λ A. Λ B. Λ a. Λ a'. Λ b. Λ b'. λ q.
+  χ {proj2 (pair a b) ≃ proj2 (pair a' b')} -
+  ρ q - β.

@@ -1,0 +1,123 @@
+import Ctx.
+import Tp.
+import Nat.
+import Raw.
+import Term.
+import Id.
+import Sigma.
+import Product.
+import TermRawReuse.
+import Lookup.
+import List.
+import Mem.
+module Typed.
+
+Typed ◂ CtxTp ➔ Raw ➔ ★
+  = λ GA : CtxTp. λ t : Raw.
+  Sigma · (Term GA) · (λ t' : Term GA. {t' ≃ t}).
+
+termTyped' ◂ ∀ GA : CtxTp. Π t : Term GA. Typed GA (elimId · (Term GA) · Raw (t2r -GA) t)
+  = Λ GA. λ t. pair · (Term GA) · (λ t' : Term GA. {t' ≃ t}) t β.
+termTyped ◂ Π GA : CtxTp. Π t : Term GA. Typed GA (elimId · (Term GA) · Raw (t2r -GA) t)
+  = λ GA. termTyped' -GA.
+
+invVarLookup ◂ Π G : Ctx. Π A : Tp. Π n : Nat. Typed (pairCtxTp G A) (var n) ➔ Lookup · Tp A G n
+  = λ G. λ A. λ n. foldSigma · (Term (pairCtxTp G A)) · (λ t : Term (pairCtxTp G A). {t ≃ var n}) · (Lookup · Tp A G n)
+  (λ t. elimTerm · (λ GA : CtxTp. λ t : Term GA . { t ≃ var n } ➔ Lookup · Tp (projTp GA) (projCtx GA) n)
+    (Λ G. Λ A. λ i. λ q. pair · (Mem · Tp A G) · (λ i : Mem · Tp A G. {i ≃ n}) i (invIVarVar -A -G i n q))
+    (Λ G. λ A. Λ B. λ b. λ _. λ q. δ - χ {notVar (ilam A b) ≃ notVar (var n)} - ρ q - β)
+    (Λ G. Λ A. Λ B. λ f. λ _. λ a. λ _. λ q. δ - χ {notVar (iapp f a) ≃ notVar (var n)} - ρ q - β)
+    -(pairCtxTp G A) t
+  )
+.
+
+invLamCod ◂ Π GC : CtxTp. Π A : Tp. Π b : Raw. Typed GC (lam A b) ➔ Tp
+  = λ GC. λ A. λ b. foldSigma · (Term GC) · (λ t : Term GC. {t ≃ lam A b}) · Tp
+  (λ t. elimTerm · (λ GC : CtxTp. λ t : Term GC . Π GC' : CtxTp. {GC' ≃ GC} ➔ { t ≃ lam A b } ➔ Tp)
+    (Λ G'. Λ A'. λ i. λ GC'. λ q1. λ q2. δ - χ {notLam (ivar i) ≃ notLam (lam A b)} - ρ q2 - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ GC'. λ q1. λ q2. projPairCod -G' -A' -B' GC' q1)
+    (Λ G'. Λ A'. Λ B'. λ f. λ _. λ a. λ _. λ GC'. λ q1. λ q2. δ - χ {notLam (iapp f a) ≃ notLam (lam A b)} - ρ q2 - β)
+    -GC t GC β
+  )
+.
+
+invLamEq ◂ Π GC : CtxTp. Π A : Tp. Π b : Raw. Π p : Typed GC (lam A b).
+  {projTp GC ≃ Arr A (invLamCod GC A b p)}
+  = λ GC. λ A. λ b. elimSigma · (Term GC) · (λ t : Term GC. {t ≃ lam A b})
+  · (λ p : Typed GC (lam A b). {projTp GC ≃ Arr A (invLamCod GC A b p)})
+  (elimTerm · (λ GC : CtxTp. λ t : Term GC . Π q : { t ≃ lam A b }. { projTp GC ≃ Arr A (invLamCod GC A b (pair t q)) })
+    (Λ G'. Λ A'. λ i. λ q. δ - χ {notLam (ivar i) ≃ notLam (lam A b)} - ρ q - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ q. ρ (invILamLam1 -G' -A' -B' b' A b q) - β)
+    (Λ G'. Λ A'. Λ B'. λ f. λ _. λ a. λ _. λ q. δ - χ {notLam (iapp f a) ≃ notLam (lam A b)} - ρ q - β)
+    -GC
+  )
+.
+
+invLamBod ◂ Π GC : CtxTp. Π A : Tp. Π b : Raw. Π p : Typed GC (lam A b).
+  Typed (pairCtxTp (ext (projCtx GC) A) (invLamCod GC A b p)) b
+  = λ GC. λ A. λ b. elimSigma · (Term GC) · (λ t : Term GC. {t ≃ lam A b})
+  · (λ p : Typed GC (lam A b). Typed (pairCtxTp (ext (projCtx GC) A) (invLamCod GC A b p)) b)
+  (elimTerm · (λ GC : CtxTp. λ t : Term GC . Π q : { t ≃ lam A b }.
+    Typed (pairCtxTp (ext (projCtx GC) A) (invLamCod GC A b (pair · (Term GC) · (λ t : Term GC. { t ≃ lam A b }) t q))) b)
+    (Λ G'. Λ A'. λ i. λ q. δ - χ {notLam (ivar i) ≃ notLam (lam A b)} - ρ q - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ q.
+      ρ ς (invILamLam1 -G' -A' -B' b' A b q) -
+      ρ ς (invILamLam2 -G' -A' -B' b' A b q) -
+      (termTyped' -(pairCtxTp (ext G' A') B') b')
+    )
+    (Λ G'. Λ A'. Λ B'. λ f. λ _. λ a. λ _. λ q. δ - χ {notLam (iapp f a) ≃ notLam (lam A b)} - ρ q - β)
+    -GC
+  )
+.
+
+invAppDom ◂ Π GB : CtxTp. Π f : Raw. Π a : Raw. Typed GB (app f a) ➔ Tp
+  = λ GB. λ f. λ a. foldSigma · (Term GB) · (λ t : Term GB. {t ≃ app f a}) · Tp
+  (λ t. elimTerm · (λ GB : CtxTp. λ t : Term GB . Π GB' : CtxTp. {GB' ≃ GB} ➔ { t ≃ app f a } ➔ Tp)
+    (Λ G'. Λ A'. λ i. λ GB'. λ q1. λ q2. δ - χ {notApp (ivar i) ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ GB'. λ q1. λ q2. δ - χ {notApp (ilam A' b') ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. Λ A'. Λ B'. λ f'. λ _. λ a'. λ _. λ GB'. λ q1. λ q2.
+      projTpEq1 -A' (inferTerm (projCtx GB') -A' (ρ (invCtxTp1 -GB' -G' -B' q1) - a'))
+    )
+    -GB t GB β
+  )
+.
+
+invAppFun ◂ Π GB : CtxTp. Π f : Raw. Π a : Raw. Π p : Typed GB (app f a).
+  Typed (pairCtxTp (projCtx GB) (Arr (invAppDom GB f a p) (projTp GB))) f
+  = λ GB. λ f. λ a. elimSigma · (Term GB) · (λ t : Term GB. {t ≃ app f a})
+  · (λ p : Typed GB (app f a). Typed (pairCtxTp (projCtx GB) (Arr (invAppDom GB f a p) (projTp GB))) f)
+  (λ t. elimTerm · (λ GB : CtxTp. λ t : Term GB. Π GB' : CtxTp. {GB' ≃ GB} ➔ Π q : { t ≃ app f a }.
+    Typed (pairCtxTp (projCtx GB) (Arr (invAppDom GB f a (pair · (Term GB) · (λ t : Term GB. { t ≃ app f a }) t q)) (projTp GB))) f)
+    (Λ G'. Λ A'. λ i. λ GB'. λ q1. λ q2. δ - χ {notApp (ivar i) ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ GB'. λ q1. λ q2. δ - χ {notApp (ilam A' b') ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. Λ A'. Λ B'. λ f'. λ _. λ a'. λ _. λ GB'. λ q1. λ q2.
+      ρ ς (invIAppApp1 -G' -A' -B' f' a' f a q2) -
+      ρ ς (invCtxTp1 -GB' -G' -B' q1) -
+      ρ (projTpEq2 -A' (inferTerm (projCtx GB') -A' (ρ (invCtxTp1 -GB' -G' -B' q1) - a'))) -
+      ρ (invCtxTp1 -GB' -G' -B' q1) -
+      (termTyped' -(pairCtxTp G' (Arr A' B')) f')
+    )
+    -GB t GB β
+  )
+.
+
+invAppArg ◂ Π GB : CtxTp. Π f : Raw. Π a : Raw. Π p : Typed GB (app f a).
+  Typed (pairCtxTp (projCtx GB) (invAppDom GB f a p)) a
+  = λ GB. λ f. λ a. elimSigma · (Term GB) · (λ t : Term GB. {t ≃ app f a})
+  · (λ p : Typed GB (app f a). Typed (pairCtxTp (projCtx GB) (invAppDom GB f a p)) a)
+  (λ t. elimTerm · (λ GB : CtxTp. λ t : Term GB. Π GB' : CtxTp. {GB' ≃ GB} ➔ Π q : { t ≃ app f a }.
+    Typed (pairCtxTp (projCtx GB) (invAppDom GB f a (pair · (Term GB) · (λ t : Term GB. { t ≃ app f a }) t q))) a)
+    (Λ G'. Λ A'. λ i. λ GB'. λ q1. λ q2. δ - χ {notApp (ivar i) ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. λ A'. Λ B'. λ b'. λ _. λ GB'. λ q1. λ q2. δ - χ {notApp (ilam A' b') ≃ notApp (app f a)} - ρ q2 - β)
+    (Λ G'. Λ A'. Λ B'. λ f'. λ _. λ a'. λ _. λ GB'. λ q1. λ q2.
+      ρ ς (invIAppApp2 -G' -A' -B' f' a' f a q2) -
+      ρ ς (invCtxTp1 -GB' -G' -B' q1) -
+      ρ (projTpEq2 -A' (inferTerm (projCtx GB') -A' (ρ (invCtxTp1 -GB' -G' -B' q1) - a'))) -
+      ρ (invCtxTp1 -GB' -G' -B' q1) -
+      (termTyped' -(pairCtxTp G' A') a')
+    )
+    -GB t GB β
+  )
+.
+
+

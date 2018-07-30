@@ -1,0 +1,64 @@
+module List.
+
+import Id.
+import IIdMapping.
+import FixIndM.
+import ListF.
+import Nat.
+import IFixM.
+import Sigma.
+import Eq.
+import Bool.
+
+List ◂ ★ ➔ ★ = λ A : ★. FixIndM · (ListF · A) (imapL · A).
+inL ◂ ∀ A : ★. ListF · A · (List · A)  ➔ List · A
+  = Λ A. inFixIndM · (ListF · A) -(imapL · A).
+nilL ◂ ∀ A : ★. List · A
+  = Λ A. inFixIndM · (ListF · A) -(imapL · A)
+  (nilLF · A · (List · A)).
+consL ◂ ∀ A : ★. A ➔ List · A ➔ List · A
+  = Λ A. λ a. λ xs. inFixIndM · (ListF · A) -(imapL · A)
+  (consLF · A · (List · A) a xs).
+
+elimList ◂ ∀ A : ★. ∀ P : List · A ➔ ★.
+  P (nilL · A) ➔
+  (Π a : A. Π xs : List · A. P xs ➔ P (consL · A a xs)) ➔
+  Π xs : List · A. P xs
+  = Λ A. Λ P. λ pN. λ pC. indFixIndM · (ListF · A) -(imapL · A) · P
+  (Λ R. Λ c. λ ih. elimListF · A · R
+    · (λ s : ListF · A · R. P (inFixIndM · (ListF · A) -(imapL · A)
+        (elimId · (ListF · A · R) · (ListF · A · (List · A))
+        (imapL · A · R · (List · A) c) s)
+      ))
+    pN
+    (λ a. λ r. pC a (elimId~ · R · (List · A) -c r) (ih r))
+  ).
+foldList ◂ ∀ A : ★. ∀ C : ★. C ➔ (A ➔ List · A ➔ C ➔ C) ➔ List · A ➔ C
+  = Λ A. Λ C. elimList · A · (λ xs : List · A. C).
+
+lenAlgM ◂ ∀ A : ★. AlgM · (ListF · A) · Nat 
+ = Λ A. Λ R. λ rec. λ s. foldListF · A · R · Nat zero (λ a. λ r. suc (rec r)) s.
+len ◂ ∀ A : ★. List · A ➔ Nat 
+ = Λ A. foldFixIndM · (ListF · A) -(imapL · A) · Nat (lenAlgM · A).
+
+NonEmpty ◂ Π A : ★. List · A ➔ ★ = λ A : ★. λ xs : List · A.
+  Sigma · Nat · (λ n : Nat. Eq · Nat (suc n) (len · A xs)).
+
+lenPred ◂ ∀ A : ★. Π xs : List · A. NonEmpty · A xs ➔ Nat
+  = Λ A. λ xs. proj1 · Nat · (λ n : Nat. Eq · Nat (suc n) (len · A xs)).
+
+isNilL ◂ ∀ A : ★. List · A ➔ Bool
+  = Λ A. foldList · A · Bool true (λ x. λ xs. λ ih. false).
+
+headL ◂ ∀ A : ★. ∀ y : A. ∀ ys : List · A. Π xs : List · A. {xs ≃ consL y ys} ➔ A
+  = Λ A. Λ y. Λ ys. elimList · A · (λ xs : List · A. {xs ≃ consL y ys} ➔ A)
+  (λ q. δ - χ {isNilL nilL ≃ isNilL (consL y ys)} - ρ q - β)
+  (λ x'. λ xs'. λ ih. λ q. x')
+.
+
+tailL ◂ ∀ A : ★. ∀ y : A. ∀ ys : List · A. Π xs : List · A. {xs ≃ consL y ys} ➔ List · A
+  = Λ A. Λ y. Λ ys. elimList · A · (λ xs : List · A. {xs ≃ consL y ys} ➔ List · A)
+  (λ q. δ - χ {isNilL nilL ≃ isNilL (consL y ys)} - ρ q - β)
+  (λ x'. λ xs'. λ ih. λ q. xs')
+.
+

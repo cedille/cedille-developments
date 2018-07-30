@@ -1,0 +1,87 @@
+module Raw.
+import Id.
+import IIdMapping.
+import FixIndM.
+import RawF.
+import Nat.
+import Tp.
+import IFixM.
+import Bool.
+
+Raw ◂ ★ = FixIndM · RawF imapRaw.
+inRaw ◂ RawF · Raw ➔ Raw
+  = inFixIndM · RawF -imapRaw.
+var ◂ Nat ➔ Raw = λ n. inRaw (varF · Raw n).
+lam ◂ Tp ➔ Raw ➔ Raw = λ A. λ b. inRaw (lamF · Raw A b).
+app ◂ Raw ➔ Raw ➔ Raw = λ f. λ a. inRaw (appF · Raw f a).
+
+elimRaw ◂ ∀ P : Raw ➔ ★.
+  Π pV : Π n : Nat. P (var n).
+  Π pL : Π A : Tp. Π b : Raw. P b ➔ P (lam A b).
+  Π pA : Π f : Raw. P f ➔ Π a : Raw. P a ➔ P (app f a).
+  Π t : Raw. P t
+  = Λ P. λ pV. λ pL. λ pA. indFixIndM · RawF -imapRaw · P
+  (Λ R. Λ c. λ ih. elimRawF · R
+    · (λ s : RawF · R. P (inRaw (elimId · (RawF · R) · (RawF · Raw)
+      (imapRaw · R · Raw c) s)))
+    pV
+    (λ A. λ r. pL A (elimId~ · R · Raw -c r) (ih r))
+    (λ r1. λ r2. pA (elimId~ · R · Raw -c r1) (ih r1) (elimId~ · R · Raw -c r2) (ih r2))
+  ).
+foldRaw ◂ ∀ C : ★. (Nat ➔ C) ➔ (Tp ➔ Raw ➔ C ➔ C) ➔ (Raw ➔ C ➔ Raw ➔ C ➔ C) ➔ Raw ➔ C
+  = Λ C. elimRaw · (λ n : Raw. C).
+
+isVar ◂ Raw ➔ Bool
+  = foldRaw · Bool (λ n. true) (λ A. λ b. λ ih. false) (λ f. λ ihf. λ a. λ iha. false).
+notVar ◂ Raw ➔ Bool
+  = λ t. not (isVar t).
+isLam ◂ Raw ➔ Bool
+  = foldRaw · Bool (λ n. false) (λ A. λ b. λ ih. true) (λ f. λ ihf. λ a. λ iha. false).
+notLam ◂ Raw ➔ Bool
+  = λ t. not (isLam t).
+isApp ◂ Raw ➔ Bool
+  = foldRaw · Bool (λ n. false) (λ A. λ b. λ ih. false) (λ f. λ ihf. λ a. λ iha. true).
+notApp ◂ Raw ➔ Bool
+  = λ t. not (isApp t).
+
+projVar ◂ ∀ n : Nat. Π t : Raw. {t ≃ var n} ➔ Nat
+  = Λ n. elimRaw · (λ t : Raw. {t ≃ var n} ➔ Nat)
+  (λ n'. λ q. n')
+  (λ A. λ b. λ ih. λ q. δ - χ {notVar (lam A b) ≃ notVar (var n)} - ρ q - β)
+  (λ f. λ ihf. λ a. λ iha. λ q. δ - χ {notVar (app f a) ≃ notVar (var n)} - ρ q - β)
+.
+
+projVar' ◂ Nat ➔ Raw ➔ Nat
+  = λ n. foldRaw · Nat
+  (λ n'. n')
+  (λ A. λ b. λ ih. n)
+  (λ f. λ ihf. λ a. λ iha. n)
+.
+
+projDom ◂ ∀ A : Tp. ∀ b : Raw. Π t : Raw. {t ≃ lam A b} ➾ Tp
+  = Λ A. Λ b. elimRaw · (λ t : Raw. {t ≃ lam A b} ➾ Tp)
+  (λ n. Λ q. δ - χ {notLam (var n) ≃ notLam (lam A b)} - ρ q - β)
+  (λ A. λ b. λ ih. Λ q. A)
+  (λ f. λ ihf. λ a. λ iha. Λ q. δ - χ {notLam (app f a) ≃ notLam (lam A b)} - ρ q - β)
+.
+
+projBod ◂ ∀ A : Tp. ∀ b : Raw. Π t : Raw. {t ≃ lam A b} ➾ Raw
+  = Λ A. Λ b. elimRaw · (λ t : Raw. {t ≃ lam A b} ➾ Raw)
+  (λ n. Λ q. δ - χ {notLam (var n) ≃ notLam (lam A b)} - ρ q - β)
+  (λ A. λ b. λ ih. Λ q. b)
+  (λ f. λ ihf. λ a. λ iha. Λ q. δ - χ {notLam (app f a) ≃ notLam (lam A b)} - ρ q - β)
+.
+
+projFun ◂ ∀ f : Raw. ∀ a : Raw. Π t : Raw. {t ≃ app f a} ➾ Raw
+  = Λ f. Λ a. elimRaw · (λ t : Raw. {t ≃ app f a} ➾ Raw)
+  (λ n. Λ q. δ - χ {notApp (var n) ≃ notApp (app f a)} - ρ q - β)
+  (λ A. λ b. λ ih. Λ q. δ - χ {notApp (lam A b) ≃ notApp (app f a)} - ρ q - β)
+  (λ f. λ ihf. λ a. λ iha. Λ q. f)
+.
+
+projArg ◂ ∀ f : Raw. ∀ a : Raw. Π t : Raw. {t ≃ app f a} ➾ Raw
+  = Λ f. Λ a. elimRaw · (λ t : Raw. {t ≃ app f a} ➾ Raw)
+  (λ n. Λ q. δ - χ {notApp (var n) ≃ notApp (app f a)} - ρ q - β)
+  (λ A. λ b. λ ih. Λ q. δ - χ {notApp (lam A b) ≃ notApp (app f a)} - ρ q - β)
+  (λ f. λ ihf. λ a. λ iha. Λ q. a)
+.

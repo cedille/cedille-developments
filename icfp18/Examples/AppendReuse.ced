@@ -1,0 +1,132 @@
+import Id.
+import Aux.
+import FogFun.
+import EnrFun.
+import Nat.
+import List.
+import Vec.
+import VecListReuse.
+import ListVecReuse.
+module AppendReuse.
+
+AppL3 ◂ ★ ➔ ★ = λ A : ★ . List · A.
+AppL2 ◂ ★ ➔ ★ = λ A : ★ . List · A ➔ AppL3 · A.
+AppL1 ◂ ★ ➔ ★ = λ A : ★ . List · A ➔ AppL2 · A.
+AppL ◂ ★ = ∀ A : ★ . AppL1 · A.
+
+AppV3 ◂ ★ ➔ Nat ➔ Nat ➔ ★ = λ A : ★ . λ n : Nat. λ m : Nat . Vec · A (add n m).
+AppV2 ◂ ★ ➔ Nat ➔ ★ = λ A : ★ . λ n : Nat. ∀ m : Nat . Vec · A m ➔ AppV3 · A n m.
+AppV1 ◂ ★ ➔ ★ = λ A : ★ . ∀ n : Nat . Vec · A n ➔ AppV2 · A n.
+AppV ◂ ★ = ∀ A : ★ . AppV1 · A.
+
+appV2appL ◂ Id · AppV · AppL
+  = copyType
+  · AppV1 · AppL1
+  (Λ A. allArr2arr
+  · Nat · (Vec · A) · (AppV2 · A)
+  · (List · A) · (AppL2 · A)
+  (len · A) (l2v · A)
+  (λ xs. allArr2arr
+  · Nat · (Vec · A) · (AppV3 · A (len · A xs))
+  · (List · A) · (AppL3 · A)
+  (len · A) (l2v · A)
+  (λ ys. v2l · A -(add (len · A xs) (len · A ys))
+  ))).
+appV2appL! ◂ AppV ➔ AppL = elimId · AppV · AppL appV2appL.
+
+
+AssocL4 ◂ AppL ➔ Π A : ★. List · A ➔ List · A ➔ List · A ➔ ★ =
+  λ appL : AppL. λ A : ★. λ xs : List · A. λ ys : List · A. λ zs : List · A.
+  {appL (appL xs ys) zs ≃ appL xs (appL ys zs)}.
+AssocL3 ◂ AppL ➔ Π A : ★. List · A ➔ List · A ➔ ★ =
+  λ appL : AppL. λ A : ★. λ xs : List · A. λ ys : List · A.
+  Π zs : List · A. AssocL4 appL · A xs ys zs.
+AssocL2 ◂ AppL ➔ Π A : ★. List · A ➔ ★ =
+  λ appL : AppL. λ A : ★. λ xs : List · A.
+  Π ys : List · A. AssocL3 appL · A xs ys.
+AssocL1 ◂ AppL ➔ ★ ➔ ★ = λ appL : AppL. λ A : ★.
+  Π xs : List · A. AssocL2 appL · A xs.
+AssocL ◂ AppL ➔ ★ = λ appL : AppL. ∀ A : ★. AssocL1 appL · A.
+
+AssocV4 ◂ AppV ➔ Π A : ★. Π n : Nat. Vec · A n ➔ Π m : Nat. Vec · A m ➔ Π o : Nat. Vec · A o ➔ ★ =
+  λ appV : AppV. λ A : ★. λ n : Nat. λ xs : Vec · A n.
+  λ m : Nat. λ ys : Vec · A m. λ o : Nat. λ zs : Vec · A o.
+  {appV (appV xs ys) zs ≃ appV xs (appV ys zs)}.
+AssocV3 ◂ AppV ➔ Π A : ★. Π n : Nat. Vec · A n ➔ Π m : Nat. Vec · A m ➔ ★ =
+  λ appV : AppV. λ A : ★. λ n : Nat. λ xs : Vec · A n. λ m : Nat. λ ys : Vec · A m.
+  ∀ o : Nat. Π zs : Vec · A o. AssocV4 appV · A n xs m ys o zs.
+AssocV2 ◂ AppV ➔ Π A : ★. Π n : Nat. Vec · A n ➔ ★ =
+  λ appV : AppV. λ A : ★. λ n : Nat. λ xs : Vec · A n.
+  ∀ m : Nat. Π ys : Vec · A m. AssocV3 appV · A n xs m ys.
+AssocV1 ◂ AppV ➔ ★ ➔ ★ = λ appV : AppV. λ A : ★.
+  ∀ n : Nat. Π xs : Vec · A n. AssocV2 appV · A n xs.
+AssocV ◂ AppV ➔ ★ = λ appV : AppV. ∀ A : ★. AssocV1 appV · A.
+
+assocV2assocL ◂ ∀ appV : AppV. Id · (AssocV appV) · (AssocL (appV2appL! appV))
+  = Λ appV. copyType
+  · (AssocV1 appV) · (AssocL1 (appV2appL! appV))
+  (Λ A. allPi2pi
+  · Nat · (Vec · A) · (AssocV2 appV · A)
+  · (List · A) · (AssocL2 (appV2appL! appV) · A)
+  (len · A) (l2v · A)
+  (λ xs. allPi2pi
+  · Nat · (Vec · A) · (AssocV3 appV · A (len · A xs) (l2v! · A xs))
+  · (List · A) · (AssocL3 (appV2appL! appV) · A xs)
+  (len · A) (l2v · A)
+  (λ ys. allPi2pi
+  · Nat · (Vec · A) · (AssocV4 appV · A (len · A xs) (l2v! · A xs) (len · A ys) (l2v! · A ys))
+  · (List · A) · (AssocL4 (appV2appL! appV) · A xs ys)
+  (len · A) (l2v · A)
+  (λ zs. id · (AssocV4 appV · A (len · A xs) (l2v! · A xs) (len · A ys) (l2v! · A ys) (len · A zs) (l2v! · A zs))
+  )))).
+assocV2assocL! ◂ ∀ appV : AppV. AssocV appV ➔ AssocL (appV2appL! appV)
+  = Λ appV. elimId · (AssocV appV) · (AssocL (appV2appL! appV)) (assocV2assocL -appV).
+
+DistL3 ◂ Π A : ★. List · A ➔ List · A ➔ AppL3 · A ➔ ★ = λ A : ★.
+  λ xs : List · A. λ ys : List · A. λ zs : AppL3 · A.
+  {len zs ≃ add (len xs) (len ys)}.
+DistL2 ◂ Π A : ★. List · A ➔ AppL2 · A ➔ ★ = λ A : ★. λ xs : List · A. λ appL2 : AppL2 · A.
+  Π ys : List · A. DistL3 · A xs ys (appL2 ys).
+DistL1 ◂ Π A : ★. AppL1 · A ➔ ★ = λ A : ★. λ appL1 : AppL1 · A.
+  Π xs : List · A. DistL2 · A xs (appL1 xs).
+DistL ◂ AppL ➔ ★ = λ appL : AppL. ∀ A : ★. DistL1 · A (appL · A).
+AppVP ◂ AppL ➔ ★ = λ appL : AppL. DistL appL ➾ AppV.
+
+appL2appV ◂ IdDep · AppL · AppVP
+  = copyTypeP
+  · AppL1 · DistL1 · AppV1
+  (Λ A. arr2allArrP
+  · (List · A) · (AppL2 · A)
+  · (DistL2 · A)
+  · Nat · (Vec · A) · (AppV2 · A)
+  (len · A) (v2l · A) (v2lPres · A)
+  (Λ n. λ xs. arr2allArrP
+  · (List · A) · (AppL3 · A)
+  · (DistL3 · A (v2l! · A -n xs))
+  · Nat · (Vec · A) · (AppV3 · A (len · A (v2l! · A -n xs)))
+  (len · A) (v2l · A) (v2lPres · A)
+  (Λ m. λ ys. l2vP · A -(add (len · A (v2l! · A -n xs)) (len · A (v2l! · A -m ys)))
+  ))).
+appL2appV! ◂ Π appL : AppL. AppVP appL = elimIdDep · AppL · AppVP appL2appV.
+
+
+assocL2assocV ◂ ∀ appL : AppL. ∀ distL : DistL appL. Id · (AssocL appL) · (AssocV (appL2appV! appL -distL))
+  = Λ appL. Λ distL. copyType
+  · (AssocL1 appL) · (AssocV1 (appL2appV! appL -distL))
+  (Λ A. pi2allPi
+  · (List · A) · (AssocL2 appL · A)
+  · Nat · (Vec · A) · (AssocV2 (appL2appV! appL -distL) · A)
+  (len · A) (v2l · A) (v2lPres · A)
+  (Λ n. λ xs. pi2allPi
+  · (List · A) · (AssocL3 appL · A (v2l! · A -n xs))
+  · Nat · (Vec · A)
+  · (AssocV3 (appL2appV! appL -distL) · A (len · A (v2l! · A -n xs)) (ρ ς (v2lPres · A -n xs) - xs))
+  (len · A) (v2l · A) (v2lPres · A)
+  (Λ m. λ ys. pi2allPi
+  · (List · A) · (AssocL4 appL · A (v2l! · A -n xs) (v2l! · A -m ys))
+  · Nat · (Vec · A)
+  · (AssocV4 (appL2appV! appL -distL) · A (len · A (v2l! · A -n xs)) (ρ ς (v2lPres · A -n xs) - xs)
+    (len · A (v2l! · A -m ys)) (ρ ς (v2lPres · A -m ys) - ys))
+  (len · A) (v2l · A) (v2lPres · A)
+  (Λ o. λ zs. id · (AssocL4 appL · A (v2l! · A -n xs) (v2l! · A -m ys) (v2l! · A -o zs))
+  )))).

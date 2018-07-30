@@ -1,0 +1,27 @@
+module Ctx.
+import Tp.
+import List.
+import Sigma.
+import Product.
+
+Ctx ◂ ★ = List · Tp.
+emp ◂ Ctx = nilL · Tp.
+ext ◂ Ctx ➔ Tp ➔ Ctx = λ G. λ A. consL · Tp A G.
+
+CtxTp ◂ ★ = Product · Ctx · Tp.
+pairCtxTp ◂ Ctx ➔ Tp ➔ CtxTp = pairProd · Ctx · Tp.
+projCtx ◂ CtxTp ➔ Ctx = projProd1 · Ctx · Tp.
+projTp ◂ CtxTp ➔ Tp = projProd2 · Ctx · Tp.
+
+etaCtxTp ◂ Π GA : CtxTp. { GA ≃ pairCtxTp (projCtx GA) (projTp GA) }
+  = etaSigma · Ctx · (λ _ : Ctx. Tp).
+
+invCtxTp1 ◂ ∀ GA : CtxTp. ∀ G' : Ctx. ∀ A' : Tp.
+  {GA ≃ pairCtxTp G' A'} ➔ {projCtx GA ≃ G'}
+  = Λ GA. Λ G'. Λ A'. λ q. ρ q - β.
+
+projPairCod ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Π GC : CtxTp. {GC ≃ pair G (Arr A B)} ➔ Tp
+  = Λ G. Λ A. Λ B. elimProd · Ctx · Tp · (λ GC : CtxTp. {GC ≃ pair G (Arr A B)} ➔ Tp)
+  (λ G'. λ C. λ q. projArrCod -A -B C (invPair2 · Ctx · Tp -G' -G -C -(Arr A B) q)
+  )
+.

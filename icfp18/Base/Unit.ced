@@ -1,0 +1,20 @@
+module Unit.
+
+UnitC ◂ ★ = ∀ C : ★. C ➔ C.
+unitC ◂ UnitC = Λ C. λ c. c.
+
+UnitI ◂ UnitC ➔ ★ = λ uC : UnitC. ∀ P : UnitC ➔ ★. P unitC ➔ P uC.
+Unit ◂ ★ = ι u : UnitC. UnitI u.
+unit ◂ Unit = [unitC, Λ P. λ p. p].
+
+elimUnit ◂ ∀ P : Unit ➔ ★. P unit ➔ Π u : Unit. P u
+  = Λ P. λ p. λ u. (u.2 · (λ uC : UnitC.
+    ∀ C : ★. (Π u' : Unit. {uC ≃ u'} ➾ P u' ➔ C) ➔ C))
+  (Λ C. λ c. c unit -β p)
+  · (P u) (λ u'. Λ q. λ p. ρ q - p).
+foldUnit ◂ ∀ C : ★. C ➔ Unit ➔ C
+  = Λ C. elimUnit · (λ u : Unit. C).
+
+etaUnit ◂ Π u : Unit. { u ≃ unit } =
+  elimUnit · (λ u : Unit. { u ≃ unit }) β.
+

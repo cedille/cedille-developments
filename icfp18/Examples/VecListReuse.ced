@@ -1,0 +1,31 @@
+module VecListReuse.
+import Unit.
+import Sigma.
+import IIdMapping.
+import Id.
+import FixIndM.
+import IFixIndM.
+import FogFix.
+import EnrFix.
+import Nat.
+import ListF.
+import List.
+import VecF.
+import Vec.
+import Aux.
+
+vf2lf ◂ ∀ A : ★. ∀ X : Nat ➔ ★. ∀ Y :  ★. 
+  Π c : ∀ n : Nat. Id · (X n) · Y.
+  ∀ n : Nat. Id · (VecF · A · X n) · (ListF · A · Y) 
+  = Λ A. Λ X. Λ Y. λ c. elimVecF · A · X
+  · (λ n : Nat. IdCod · (VecF · A · X n) · (ListF · A · Y))
+  (pairId · (VecF · A · X zero) · (ListF · A · Y) -(nilVF · A · X) (nilLF · A · Y) β)
+  (Λ m. λ a. λ x. pairId · (VecF · A · X (suc m)) · (ListF · A · Y)
+    -(consVF · A · X -m a x) (consLF · A · Y a (elimId · (X m) · Y (c -m) x)) β).
+
+v2l ◂ ∀ A : ★. ∀ n : Nat. Id · (Vec · A n) · (List · A)
+  = Λ A. Λ n. ifix2fix · Nat · (VecF · A) · (ListF · A)
+  (imapV · A) (imapL · A) (vf2lf · A) -n.
+v2l! ◂ ∀ A : ★. ∀ n : Nat. Vec · A n ➔ List · A
+  = Λ A. Λ n. elimId · (Vec · A n) · (List · A) (v2l · A -n).
+

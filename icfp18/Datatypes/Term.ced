@@ -1,0 +1,91 @@
+module Term.
+import Id.
+import IIdMapping.
+import IFixIndM.
+import IInductionM.
+import TermF.
+import Ctx.
+import Tp.
+import Nat.
+import Mem.
+import IFixM.
+import Raw.
+
+Term ◂ CtxTp ➔ ★ = IFixIndM · CtxTp · TermF imapTerm.
+ivar ◂ ∀ G : Ctx. ∀ A : Tp. Mem · Tp A G ➔ Term (pairCtxTp G A)
+  = Λ G. Λ A. λ i. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G A)
+  (ivarF · Term -G -A i).
+ilam ◂ ∀ G : Ctx. Π A : Tp. ∀ B : Tp. Term (pairCtxTp (ext G A) B) ➔ Term (pairCtxTp G (Arr A B))
+  = Λ G. λ A. Λ B. λ b. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G (Arr A B))
+  (ilamF · Term -G A -B b).
+iapp ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Term (pairCtxTp G (Arr A B)) ➔ Term (pairCtxTp G A) ➔ Term (pairCtxTp G B)
+  = Λ G. Λ A. Λ B. λ f. λ a. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G B)
+  (iappF · Term -G -A -B f a).
+
+elimTerm ◂ ∀ P : Π GA : CtxTp. Term GA ➔ ★.
+  Π pV : ∀ G : Ctx. ∀ A : Tp. Π i : Mem · Tp A G. P (pairCtxTp G A) (ivar -G -A i).
+  Π pL : ∀ G : Ctx. Π A : Tp. ∀ B : Tp.
+    Π b : Term (pairCtxTp (ext G A) B). P (pairCtxTp (ext G A) B) b ➔
+    P (pairCtxTp G (Arr A B)) (ilam -G A -B b).
+  Π pA : ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp.
+    Π f : Term (pairCtxTp G (Arr A B)). P (pairCtxTp G (Arr A B)) f ➔
+    Π a : Term (pairCtxTp G A). P (pairCtxTp G A) a ➔
+    P (pairCtxTp G B) (iapp -G -A -B f a).
+  ∀ GA : CtxTp. Π t : Term GA. P GA t
+  = Λ P. λ pV. λ pL. λ pA. iindFixIndM · CtxTp · TermF -imapTerm · P
+  (Λ R. Λ c. λ ih. elimTermF · R
+    · (λ GA : CtxTp. λ s : TermF · R GA. P GA (iinFixIndM · CtxTp · TermF -imapTerm -GA
+        (elimId · (TermF · R GA) · (TermF · Term GA)
+          (imapTerm · R · Term c -GA) s)
+      ))
+    pV
+    (Λ G. λ A. Λ B. λ r. pL -G A -B
+      (elimId~ · (R (pairCtxTp (ext G A) B)) · (Term (pairCtxTp (ext G A) B)) -(c -(pairCtxTp (ext G A) B)) r) (ih -(pairCtxTp (ext G A) B) r)
+    )
+    (Λ G. Λ A. Λ B. λ r1. λ r2. pA -G -A -B
+      (elimId~ · (R (pairCtxTp G (Arr A B))) · (Term (pairCtxTp G (Arr A B))) -(c -(pairCtxTp G (Arr A B))) r1) (ih -(pairCtxTp G (Arr A B)) r1)
+      (elimId~ · (R (pairCtxTp G A)) · (Term (pairCtxTp G A)) -(c -(pairCtxTp G A)) r2) (ih -(pairCtxTp G A) r2)
+    )
+    
+  ).
+
+invIVarVar ◂ ∀ A : Tp. ∀ G : Ctx. Π i : Mem · Tp A G. Π n : Nat. {ivar i ≃ var n} ➔ {i ≃ n}
+  = Λ A. Λ G. λ i. λ n. λ q. χ {projVar' n (ivar i) ≃ projVar' n (var n)} - ρ q - β.
+
+invILamLam1 ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Π b : Term (pairCtxTp (ext G A) B). Π A' : Tp. Π b' : Raw. {ilam A b ≃ lam A' b'} ➔ {A ≃ A'}
+  = Λ G. Λ A. Λ B. λ b. λ A'. λ b'. λ q. χ {projDom (ilam A b) ≃ projDom (lam A' b')} - ρ q - β.
+
+invILamLam2 ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Π b : Term (pairCtxTp (ext G A) B). Π A' : Tp. Π b' : Raw. {ilam A b ≃ lam A' b'} ➔ {b ≃ b'}
+  = Λ G. Λ A. Λ B. λ b. λ A'. λ b'. λ q. χ {projBod (ilam A b) ≃ projBod (lam A' b')} - ρ q - β.
+
+invIAppApp1 ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp.
+  Π f : Term (pairCtxTp G (Arr A B)). Π a : Term (pairCtxTp G A).
+  Π f' : Raw. Π a' : Raw. {iapp f a ≃ app f' a'} ➔ {f ≃ f'}
+  = Λ G. Λ A. Λ B. λ f. λ a. λ f'. λ a'. λ q. χ {projFun (iapp f a) ≃ projFun (app f' a')} - ρ q - β.
+
+invIAppApp2 ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp.
+  Π f : Term (pairCtxTp G (Arr A B)). Π a : Term (pairCtxTp G A).
+  Π f' : Raw. Π a' : Raw. {iapp f a ≃ app f' a'} ➔ {a ≃ a'}
+  = Λ G. Λ A. Λ B. λ f. λ a. λ f'. λ a'. λ q. χ {projArg (iapp f a) ≃ projArg (app f' a')} - ρ q - β.
+
+TpEq ◂ Tp ➔ ★ = ExEq · Tp.
+pairTpEq ◂ ∀ A : Tp. Π A' : Tp. {A' ≃ A} ➔ TpEq A = pairExEq · Tp.
+projTpEq1 ◂ ∀ A : Tp. TpEq A ➔ Tp = projExEq1 · Tp.
+projTpEq2 ◂ ∀ A : Tp. Π s : TpEq A. {projTpEq1 s ≃ A} = projExEq2 · Tp.
+
+inferTerm ◂ Π G : Ctx. ∀ A : Tp. Term (pairCtxTp G A) ➔ TpEq A
+  = λ G. Λ A. λ t. elimTerm
+  · (λ GA : CtxTp. λ _ : Term GA. Π G' : Ctx. {G' ≃ projCtx GA} ➾ TpEq (projTp GA))
+  (Λ G. Λ A. λ i. λ G'. Λ q. ρ ς q - inferMem · Tp G' -A (ρ q - i))
+  (Λ G. λ A. Λ B. λ b. λ ih. λ G'. Λ q. pairTpEq -(Arr A B)
+    (Arr A
+      (projTpEq1 -B (ih (ext G' A) -(ρ q - β)))
+    )
+    (ρ (projTpEq2 -B (ih (ext G' A) -(ρ q - β))) - β)
+  )
+  (Λ G. Λ A. Λ B. λ f. λ ihf. λ a. λ iha. λ G'. Λ q. pairTpEq -B
+    (projPairCod -G -A -B (pairCtxTp G' (projTpEq1 -(Arr A B) (ihf G' -q))) (ρ (projTpEq2 -(Arr A B) (ihf G' -q)) - ρ q - β))
+    (ρ (projTpEq2 -(Arr A B) (ihf G' -q)) - β)
+  )
+  -(pairCtxTp G A) t G -β
+.

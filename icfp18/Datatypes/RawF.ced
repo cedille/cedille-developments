@@ -1,0 +1,54 @@
+module RawF.
+import Id.
+import Sigma.
+import IIdMapping.
+import Nat.
+import Tp.
+
+RawFC ◂ ★ ➔ ★ = λ X : ★. ∀ C : ★. (Nat ➔ C) ➔ (Tp ➔ X ➔ C) ➔ (X ➔ X ➔ C) ➔ C.
+varFC ◂ ∀ X : ★. Nat ➔ RawFC · X
+ = Λ X. λ n. Λ C. λ cV. λ cL. λ cA. cV n.
+lamFC ◂ ∀ X : ★. Tp ➔ X ➔ RawFC · X
+ = Λ X. λ A. λ x. Λ C. λ cV. λ cL. λ cA. cL A x .
+appFC ◂ ∀ X : ★. X ➔ X ➔ RawFC · X
+ = Λ X. λ x1. λ x2. Λ C. λ cV. λ cL. λ cA. cA x1 x2 .
+
+RawFI ◂ Π X : ★. RawFC · X ➔ ★ 
+ = λ X : ★. λ s : RawFC · X. ∀ P : RawFC · X ➔ ★. 
+ (Π n : Nat. P (varFC · X n))
+ ➔ (Π A : Tp. Π x : X. P (lamFC · X A x))
+ ➔ (Π x1 : X. Π x2 : X. P (appFC · X x1 x2))
+ ➔ P s.
+RawF ◂ ★ ➔ ★ = λ X : ★. ι s : RawFC · X. RawFI · X s.
+varF ◂ ∀ X : ★. Nat ➔ RawF · X
+ = Λ X. λ n. [varFC · X n, Λ P. λ pV. λ pL. λ pA. pV n].
+lamF ◂ ∀ X : ★. Tp ➔ X ➔ RawF · X
+ = Λ X. λ A. λ x. [lamFC · X A x, Λ P. λ pV. λ pL. λ pA. pL A x].
+appF ◂ ∀ X : ★. X ➔ X ➔ RawF · X
+ = Λ X. λ x1. λ x2. [appFC · X x1 x2, Λ P. λ pV. λ pL. λ pA. pA x1 x2].
+
+elimRawF ◂ ∀ X : ★. ∀ P : RawF · X ➔ ★.
+ (Π n : Nat. P (varF · X n)) ➔
+ (Π A : Tp. Π x : X. P (lamF · X A x)) ➔
+ (Π x1 : X. Π x2 : X. P (appF · X x1 x2)) ➔
+ Π s : RawF · X. P s
+ = Λ X. Λ P. λ pV. λ pL. λ pA. λ s. s.2 · (λ sC : RawFC · X.
+ ∀ C : ★. (Π s' : RawF · X . {sC ≃ s'} ➾ P s' ➔ C) ➔ C) 
+ (λ n. Λ C. λ p. p (varF · X n) -β (pV n))
+ (λ A. λ x. Λ C. λ p. p (lamF · X A x) -β (pL A x))
+ (λ x1. λ x2. Λ C. λ p. p (appF · X x1 x2) -β (pA x1 x2))
+ · (P s) (λ s'. Λ q. λ p. ρ q - p).
+foldRawF ◂ ∀ X : ★. ∀ C : ★.
+ (Nat ➔ C) ➔ (Tp ➔ X ➔ C) ➔ (X ➔ X ➔ C) ➔ RawF · X ➔ C
+ = Λ X. Λ C. elimRawF · X · (λ s : RawF · X. C).
+
+imapRaw ◂ IdMapping · RawF
+ = Λ X. Λ Y. λ c. elimRawF · X
+ · (λ s : RawF · X. IdCod · (RawF · X) · (RawF · Y) s)
+ (λ n. pairId · (RawF · X) · (RawF · Y) -(varF · X n) (varF · Y n) β)
+ (λ A. λ x. pairId · (RawF · X) · (RawF · Y)
+  -(lamF · X A x) (lamF · Y A (elimId · X · Y c x)) β)
+ (λ x1. λ x2. pairId · (RawF · X) · (RawF · Y)
+  -(appF · X x1 x2) (appF · Y (elimId · X · Y c x1) (elimId · X · Y c x2)) β).
+
+

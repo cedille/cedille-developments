@@ -12,8 +12,7 @@ A showcase of interesting code and proof developments in Cedille
 * Venue: ITP'18
 * Paper: https://arxiv.org/abs/1803.02473
 
-## Generic Zero-Cost Reuse for Dependent Types
+## [Generic Zero-Cost Reuse for Dependent Types](code/icfp18)
 * Authors: Larry Diehl, Denis Firsov, and Aaron Stump
 * Venue: ICFP'18
 * Paper: https://arxiv.org/abs/1803.08150
-* Code: https://github.com/larrytheliquid/generic-reuse

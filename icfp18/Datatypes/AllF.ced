@@ -1,0 +1,65 @@
+module AllF.
+
+import List.
+import Sigma.
+import Product.
+import IIdMapping.
+import Id.
+import IFixIndM.
+
+AllFC ◂ Π A : ★. Π Q : A ➔ ★. (List · A ➔ ★) ➔ (List · A ➔ ★) =
+  λ A : ★. λ Q : A ➔ ★. λ X : List · A ➔ ★. λ xs : List · A.
+  ∀ C : List · A ➔ ★.
+  Π cD : C (nilL · A).
+  Π cN : ∀ x : A. ∀ xs : List · A. Q x ➔ X xs ➔ C (consL · A x xs).
+  C xs.
+doneFC ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ X : List · A ➔ ★. AllFC · A · Q · X (nilL · A)
+  = Λ A. Λ P. Λ X. Λ C. λ cD. λ cN. cD.
+nextFC ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ X : List · A ➔ ★. ∀ x : A. ∀ xs : List · A.
+  Q x ➔ X xs ➔ AllFC · A · Q · X (consL · A x xs)
+  = Λ A. Λ P. Λ X. Λ x. Λ xs. λ q. λ qs. Λ C. λ cD. λ cN. cN -x -xs q qs.
+
+AllFI ◂ Π A : ★. Π Q : A ➔ ★. Π X : List · A ➔ ★. Π xs : List · A. AllFC · A · Q · X xs ➔ ★ 
+  = λ A : ★. λ Q : A ➔ ★. λ X : List · A ➔ ★. λ xs : List · A. λ s : AllFC · A · Q · X xs.
+  ∀ P : Π xs : List · A. AllFC · A · Q · X xs ➔ ★. 
+  Π pD : P (nilL · A) (doneFC · A · Q · X).
+  Π pN : ∀ x : A. ∀ xs : List · A. Π q : Q x. Π qs : X xs. P (consL · A x xs) (nextFC · A · Q · X -x -xs q qs).
+  P xs s.
+AllF ◂ Π A : ★. Π Q : A ➔ ★. (List · A ➔ ★) ➔ (List · A ➔ ★) =
+  λ A : ★. λ Q : A ➔ ★. λ X : List · A ➔ ★. λ xs : List · A.
+  ι s : AllFC · A · Q · X xs. AllFI · A · Q · X xs s.
+doneF ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ X : List · A ➔ ★. AllF · A · Q · X (nilL · A)
+  = Λ A. Λ Q. Λ X. [doneFC · A · Q · X, Λ P. λ pD. λ pN. pD].
+nextF ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ X : List · A ➔ ★. ∀ x : A. ∀ xs : List · A.
+  Q x ➔ X xs ➔ AllF · A · Q · X (consL · A x xs)
+  = Λ A. Λ Q. Λ X. Λ x. Λ xs. λ q. λ qs. [nextFC · A · Q · X -x -xs q qs, Λ P. λ pD. λ pN. pN -x -xs q qs].
+
+elimAllF ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ X : List · A ➔ ★.
+  ∀ P : Π xs : List · A. AllF · A · Q · X xs ➔ ★.
+  Π pD : P (nilL · A) (doneF · A · Q · X).
+  Π pN : ∀ x : A. ∀ xs : List · A. Π q : Q x. Π qs : X xs. P (consL · A x xs) (nextF · A · Q · X -x -xs q qs).
+  ∀ xs : List · A. Π qs : AllF · A · Q · X xs. P xs qs
+  = Λ A. Λ Q. Λ X. Λ P. λ pD. λ pN. Λ xs. λ s. s.2 · (λ xs : List · A. λ sC : AllFC · A · Q · X xs.
+  ∀ C : ★. (Π s' : AllF · A · Q · X xs . {sC ≃ s'} ➾ P xs s' ➔ C) ➔ C) 
+  (Λ C. λ p. p (doneF · A · Q · X) -β pD)
+  (Λ x. Λ xs. λ q. λ qs. Λ C. λ p. p (nextF · A · Q · X -x -xs q qs) -β (pN -x -xs q qs))
+  · (P xs s) (λ s'. Λ q. λ p. ρ q - p).
+
+imapA ◂ ∀ A : ★. ∀ Q : A ➔ ★. IIdMapping · (List · A) · (AllF · A · Q)
+  = Λ A. Λ Q. Λ X. Λ Y. λ c. elimAllF · A · Q · X
+  · (λ xs : List · A. λ s : AllF · A · Q · X xs. IdCod · (AllF · A · Q · X xs) · (AllF · A · Q · Y xs) s)
+  (pairId
+    · (AllF · A · Q · X (nilL · A))
+    · (AllF · A · Q · Y (nilL · A))
+    -(doneF · A · Q · X)
+    (doneF · A · Q · Y)
+    β
+  )
+  (Λ y. Λ xs. λ q. λ qs. pairId
+    · (AllF · A · Q · X (consL · A y xs))
+    · (AllF · A · Q · Y (consL · A y xs))
+    -(nextF · A · Q · X -y -xs q qs)
+    (nextF · A · Q · Y -y -xs q (elimId · (X xs) · (Y xs) (c -xs) qs))
+    β
+  )
+.

@@ -1,0 +1,71 @@
+module Lookup.
+import List.
+import Nat.
+import Mem.
+import Sigma.
+
+Lookup ◂ Π A : ★. A ➔ List · A ➔ Nat ➔ ★
+  = λ A : ★. λ x : A. λ xs : List · A. λ n : Nat.
+  Sigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ n}).
+
+invZeroTail ◂ ∀ A : ★. Π x : A. Π xs : List · A. Lookup · A x xs zero ➔ List · A
+  = Λ A. λ x. λ xs. foldSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ zero}) · (List · A)
+  (λ i. elimMem · A -x · (λ xs : List · A. λ i : Mem · A x xs. Π xs' : List · A. {xs' ≃ xs} ➔ { i ≃ zero } ➔ List · A)
+    (Λ xs. λ xs'. λ q1. λ q2. tailL · A -x -xs xs' q1)
+    (Λ y. Λ xs. λ i. λ ih. λ xs'. λ q1. λ q2. δ - χ {isSuc (there i) ≃ isSuc zero} - ρ q2 - β)
+    -xs i xs β
+  )
+.
+
+invZeroEq ◂ ∀ A : ★. Π x : A. Π xs : List · A. Π i : Lookup · A x xs zero. {xs ≃ consL x (invZeroTail x xs i)}
+  = Λ A. λ x. λ xs. elimSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ zero})
+  · (λ i : Lookup · A x xs zero. {xs ≃ consL x (invZeroTail x xs i)})
+  (λ i. elimMem · A -x
+    · (λ xs : List · A. λ i : Mem · A x xs. Π q : { i ≃ zero }. { xs ≃ consL x (invZeroTail x xs (pair i q)) })
+    (Λ xs. λ q. β)
+    (Λ y. Λ xs. λ i. λ ih. λ q. δ - χ {isSuc (there i) ≃ isSuc zero} - ρ q - β)
+    -xs i
+  )
+.
+
+invSucHead ◂ ∀ A : ★. Π x : A. Π xs : List · A. Π n : Nat. Lookup · A x xs (suc n) ➔ A
+  = Λ A. λ x. λ xs. λ n. foldSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ suc n}) · A
+  (λ i. elimMem · A -x · (λ xs : List · A. λ i : Mem · A x xs. Π xs' : List · A. {xs' ≃ xs} ➔ { i ≃ suc n } ➔ A)
+    (Λ xs. λ xs'. λ q1. λ q2. δ - χ {isZero here ≃ isZero (suc n)} - ρ q2 - β)
+    (Λ y. Λ xs. λ i. λ ih. λ xs'. λ q1. λ q2. headL · A -y -xs xs' q1)
+    -xs i xs β
+  )
+.
+
+invSucTail ◂ ∀ A : ★. Π x : A. Π xs : List · A. Π n : Nat. Lookup · A x xs (suc n) ➔ List · A
+  = Λ A. λ x. λ xs. λ n. foldSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ suc n}) · (List · A)
+  (λ i. elimMem · A -x · (λ xs : List · A. λ i : Mem · A x xs. Π xs' : List · A. {xs' ≃ xs} ➔ { i ≃ suc n } ➔ List · A)
+    (Λ xs. λ xs'. λ q1. λ q2. δ - χ {isZero here ≃ isZero (suc n)} - ρ q2 - β)
+    (Λ y. Λ xs. λ i. λ ih. λ xs'. λ q1. λ q2. tailL · A -y -xs xs' q1)
+    -xs i xs β
+  )
+.
+
+invSucEq ◂ ∀ A : ★. Π x : A. Π xs : List · A. Π n : Nat. Π i : Lookup · A x xs (suc n).
+  {xs ≃ consL (invSucHead x xs n i) (invSucTail x xs n i)}
+  = Λ A. λ x. λ xs. λ n. elimSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ suc n})
+  · (λ i : Lookup · A x xs (suc n). {xs ≃ consL (invSucHead x xs n i) (invSucTail x xs n i)})
+  (λ i. elimMem · A -x · (λ xs : List · A. λ i : Mem · A x xs.
+      Π q : { i ≃ suc n }. { xs ≃ consL (invSucHead x xs n (pair i q)) (invSucTail x xs n (pair i q)) })
+    (Λ xs. λ q. δ - χ {isZero here ≃ isZero (suc n)} - ρ q - β)
+    (Λ y. Λ ys. λ i'. λ ih. λ q. β)
+    -xs i
+  )
+.
+
+invSucPred ◂ ∀ A : ★. Π x : A. Π xs : List · A. Π n : Nat. Π i : Lookup · A x xs (suc n).
+  Lookup · A x (invSucTail · A x xs n i) n
+  = Λ A. λ x. λ xs. λ n. elimSigma · (Mem · A x xs) · (λ i : Mem · A x xs. {i ≃ suc n})
+  · (λ i : Lookup · A x xs (suc n). Lookup · A x (invSucTail · A x xs n i) n)
+  (λ i. elimMem · A -x · (λ xs : List · A. λ i : Mem · A x xs.
+      Π q : { i ≃ suc n }. Lookup · A x (invSucTail · A x xs n (pair · (Mem · A x xs) · (λ i : Mem · A x xs. { i ≃ suc n }) i q)) n)
+    (Λ xs. λ q. δ - χ {isZero here ≃ isZero (suc n)} - ρ q - β)
+    (Λ y. Λ ys. λ i'. λ _. λ q. (pair · (Mem · A x ys) · (λ i : Mem · A x ys. { i ≃ n }) i' (invThereSuc · A -x -ys i' n q)))
+    -xs i
+  )
+.

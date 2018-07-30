@@ -1,0 +1,13 @@
+import-directories  =
+ "./Base"
+ "./Datatypes"
+ "./Examples"
+ "./GenericReuse"
+ "./IndexedMendlerInduction"
+ .
+
+
+use-cede-files = false.
+make-rkt-files = false.
+generate-logs = false.
+show-qualified-vars = false.

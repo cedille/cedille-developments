@@ -1,0 +1,6 @@
+module Bool.
+
+Bool ◂ ★ = ∀ C : ★. C ➔ C ➔ C.
+true ◂ Bool = Λ c. λ tt. λ ff. tt.
+false ◂ Bool = Λ c. λ tt. λ ff. ff.
+not ◂ Bool ➔ Bool = λ b. b · Bool false true.

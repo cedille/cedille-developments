@@ -1,0 +1,34 @@
+module Tp.
+
+import Id.
+import IIdMapping.
+import FixIndM.
+import TpF.
+import IFixM.
+import Unit.
+import Bool.
+
+Tp ◂ ★ = FixIndM · TpF imapTp.
+Base ◂ Tp = inFixIndM · TpF -imapTp (BaseF · Tp).
+Arr ◂ Tp ➔ Tp ➔ Tp = λ A. λ B. inFixIndM · TpF -imapTp (ArrF · Tp A B).
+
+elimTp ◂ ∀ P : Tp ➔ ★. P Base ➔ (Π A : Tp. P A ➔ Π B : Tp. P B ➔ P (Arr A B)) ➔ Π A : Tp. P A
+  = Λ P. λ pB. λ pA. indFixIndM · TpF -imapTp · P
+  (Λ R. Λ c. λ ih. elimTpF · R
+    · (λ s : TpF · R. P (inFixIndM · TpF -imapTp (elimId · (TpF · R) · (TpF · Tp)
+      (imapTp · R · Tp c) s)))
+    pB
+    (λ r1. λ r2. pA (elimId~ · R · Tp -c r1) (ih r1) (elimId~ · R · Tp -c r2) (ih r2))
+  ).
+foldTp ◂ ∀ C : ★. C ➔ (Tp ➔ C ➔ Tp ➔ C ➔ C) ➔ Tp ➔ C
+  = Λ C. elimTp · (λ n : Tp. C).
+
+isArr ◂ Tp ➔ Bool
+  = foldTp · Bool false (λ A. λ ihA. λ B. λ ihB. true).
+notArr ◂ Tp ➔ Bool = λ A. not (isArr A).
+
+projArrCod ◂ ∀ A : Tp. ∀ B : Tp. Π C : Tp. {C ≃ Arr A B} ➔ Tp
+  = Λ A. Λ B. elimTp · (λ C : Tp. {C ≃ Arr A B} ➔ Tp)
+  (λ q. δ - χ {notArr Base ≃ notArr (Arr A B)} - ρ q - β)
+  (λ A'. λ ihA. λ B'. λ ihB. λ q. B')
+.
