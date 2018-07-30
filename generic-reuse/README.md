@@ -4,6 +4,8 @@ Generic Zero-Cost Reuse for Dependent Types
 Cedille code accompanying the paper draft
 ([available on arXiv](https://arxiv.org/abs/1803.08150)) 
 authored by Larry Diehl, Denis Firsov, and Aaron Stump.
+The main repository for this development is
+[here](https://github.com/larrytheliquid/generic-reuse).
 
 This is the generic version of our
 previous [manual reuse](https://github.com/larrytheliquid/zero-cost-coercions)
