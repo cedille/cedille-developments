@@ -7,11 +7,10 @@ A showcase of interesting code and proof developments in Cedille
 * Paper: http://firsov.ee/impred-ind/impred-ind.pdf
 * Code: http://firsov.ee/impred-ind/impred-ind.zip
 
-## Efficient Mendler-Style Lambda-Encodings in Cedille
+## [Efficient Mendler-Style Lambda-Encodings in Cedille](itp18)
 * Authors: Denis Firsov, Richard Blair, and Aaron Stump
 * Venue: ITP'18
 * Paper: https://arxiv.org/abs/1803.02473
-* Code: http://firsov.ee/efficient-lambda/itp2018-code.zip
 
 ## Generic Zero-Cost Reuse for Dependent Types
 * Authors: Larry Diehl, Denis Firsov, and Aaron Stump

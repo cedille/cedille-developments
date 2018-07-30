@@ -1,0 +1,52 @@
+
+import IdMapping.
+
+module ConstantTimeDestructor (F : ★ ➔ ★)(imap : IdMapping · F).
+
+import Id.
+
+import FixIndM · F imap.
+import InductionM · F imap.
+
+
+-- Computationally induction is iteration:  "induction p (inFixIndM fr) ≃ p (induction p) fr"
+-- This equation holds by reflexivity---there is only
+-- constant-number of beta-reductions from left-hand side of equation
+-- to the right-hand side.
+inductionIteration ◂ ∀ Q : FixIndM ➔ ★. 
+ Π p : PrfAlgM · FixIndM · Q inFixIndM. 
+ Π fr : F · (FixIndM).
+ {induction p (inFixIndM fr) ≃ p -idf (induction · Q p) fr}
+  = Λ Q. λ p. λ fr. β.
+
+
+-- Next, we define a proof algebra for constant predicate (λ _. F · (FixIndM))
+outAlgM ◂ PrfAlgM · FixIndM · (λ _: FixIndM. F · FixIndM) inFixIndM 
+ = Λ R. Λ c. λ x. λ y. elimId · (F · R) · (F · FixIndM) -(imap · R · FixIndM -c) y.
+
+
+-- Observe, that "outAlgM" erases to "λ x. λ y. y"
+outFunLemma ◂ {outAlgM ≃ (λ x. λ y. y)} = β.
+
+
+-- Hence, outAlgM induces a constant-time inverse of inFixIndM!
+outFixIndM ◂ FixIndM ➔ F · FixIndM
+ = λ e. induction · (λ _: (FixIndM). F · FixIndM) outAlgM e.
+
+
+-- outFixInd (inFixIndM fr) 
+--  ==<def> induction outAlgM (inFixIndM fr)
+--  ==<constant number of β reduction> outAlgM (induction outAlgM) fr
+--  ==<by erasure of outAlgM>  (λ x. λ y. y) (induction outAlgM) fr  
+--  ==<by beta reduction> fr
+-- Hence outFixIndM is constant-time under call-by-name reduction 
+-- and the proof that outFixIndM is inverse of inFixIndM holds by reflexivity!
+lambek1 ◂ Π v:  F · FixIndM. {outFixIndM (inFixIndM v) ≃ v} = λ v. β.
+
+
+-- Also, inFixIndM is an inverse of outFixIndM (this direction requires
+-- pattern-matching on the argument)
+lambek2 ◂ Π v: FixIndM.
+ {inFixIndM (outFixIndM v) ≃ v} =  λ v. θ<v> induction
+ (Λ R. Λ c. λ ih. λ fr. β) v.
+

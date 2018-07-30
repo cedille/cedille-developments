@@ -1,0 +1,71 @@
+import IdMapping.
+
+module Everything (F : ★ ➔ ★)(imap : IdMapping · F).
+
+-- Generic development
+
+-- Introduce "Id X Y" as a set of all functions from X to Y which erase
+-- to term "λ x. x"
+
+import Id.
+
+
+-- Introduce schemes with "identity mappings". F-identity mapping is a
+-- function "imap : ∀ X Y : ★. Id X Y ➔ Id (F X) (F Y)"
+
+import IdMapping.
+
+
+-- Basic definitions of Mendler-style encoding which are well-defined
+-- for any unrestricted parameterized scheme F : ★ ➔ ★. 
+
+import FixM · F.
+
+
+-- Given a scheme F with identity mapping "imap" we define the datatype
+-- "FixIndM F imap" as a subset of "FixM F" carved out by inductivity
+-- predicate "IsIndFixM". The subset is defined as a dependent
+-- intersection type of FixM and IsIndFixM
+
+import FixIndM · F imap.
+
+
+-- Derivation of induction principle for FixIndM in terms of proof-algebras
+-- parameterized by collection of constructors of FixIndM represented by
+-- conventional algeba "inFixIndM : F FixIndM ➔ FixIndM". 
+
+import InductionM · F imap.
+
+
+-- Using previously derived induction principle to develop a
+-- constant-time destructor of FixIndM.  Consequently, inFixIndM and
+-- outFixIndM are mutual inverses and therefore FixIndM is a least
+-- fixed point of F.
+
+import ConstantTimeDestructor · F imap.
+
+
+
+
+-- Examples
+
+-- Lambda-encoded natural numbers with induction and constant-time
+-- predecessor
+
+import Nat.
+
+
+-- Infinitary trees
+
+import ITree.
+
+
+-- Positive, but not strictly positive infinitary trees
+
+import PTree.
+
+
+-- Unbalanced tree which arises as a least fixed point of a covariant
+-- scheme which is not a functor.
+
+import UTree.

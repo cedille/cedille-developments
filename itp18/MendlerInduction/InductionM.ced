@@ -1,0 +1,56 @@
+
+import IdMapping. 
+
+module InductionM (F : ★ ➔ ★)(imap : IdMapping · F).
+
+import Top.
+import Utils.
+import SubstComp.
+import Id.
+
+import FixM · F.
+import FixIndM · F imap.
+import LiftPred · F imap.
+
+
+-- conversion of proof algebra PrfAlgM FixIndM Q inFixIndM
+-- to PrfAlgM FixM Y by exploiting the logical equivalence
+-- of Q and Y
+convIH ◂  
+ ∀ Q : FixIndM ➔ ★. 
+ ∀ Y : FixM ➔ ★.     
+ Π Yprop1 : ∀ e : FixIndM. Y e.1 ➔ Q e.
+ Π Yprop2 : Π e : FixIndM. Q e ➔ Y e.1.
+ Π Yprop3 : ∀ e : FixM. Y e ➔ FixIndM.
+ Π Yprop4 : ∀ e : FixM. ∀ p : Y e. {Yprop3 p ≃ e}.
+ PrfAlgM · (FixIndM) · Q inFixIndM ➔
+ PrfAlgM · (FixM) · Y (inFixM) = Λ Q. Λ Y. λ qp3. λ qp4. λ qp1. λ qp2. λ q. 
+  Λ R. Λ cst.  λ ih. λ gr.   (qp4 (inFixIndM
+   (elimId · (F · R)  · (F · (FixIndM)) -(imap · R · (FixIndM) 
+   -(intrId · R · (FixIndM) (λ r. subst · (FixIndM) · R -(qp1 -(elimId · R · (FixM) -cst r) (ih r)) r 
+   -(ρ (rew -β{qp1 (ih r)} -β{r} -β{r} (qp2 -(elimId · R · (FixM) -cst r) -(ih r)) β) - β)) (λ _. β))) gr))
+  (q · R
+   -(intrId · R · (FixIndM) (λ r. subst · (FixIndM) · R -(qp1 -(elimId · R · (FixM) -cst r) (ih r)) r 
+   -(ρ (rew -β{qp1 (ih r)} -β{r} -β{r} (qp2 -(elimId · R · (FixM) -cst r) -(ih r)) β) - β)) (λ _. β))
+   (λ r.  qp3 -((elimId · R · (FixIndM) -(intrId · R · (FixIndM) (λ r. subst · (FixIndM) · R 
+    -(qp1 -(elimId · R · (FixM) -cst r) (ih r)) r
+    -(ρ (rew -β{qp1 (ih r)} -β{r} -β{r} (qp2 -(elimId · R · (FixM) -cst r) -(ih r)) β) - β)) 
+    (λ _. β))) r) (ih r)) gr)).
+
+
+-- Predicate Q on FixIndM is converted to the predicate "Lift F
+-- imap Q" on FixM.  Since "Lift F imap Q" satisfies the
+-- properties required by convIH above then the induction rule is
+-- derived by using inductivity of FixIndM:
+induction ◂ ∀ Q : FixIndM ➔ ★. 
+ PrfAlgM · FixIndM · Q inFixIndM ➔
+ Π e : FixIndM.  Q e 
+ = Λ Q. λ q. λ e. 
+ (LiftProp1  · Q) -e
+  (e.2 · (Lift · Q) 
+   (convIH · Q · (Lift · Q) 
+    (LiftProp1 · Q)
+    (LiftProp2 · Q) 
+    (LiftProp3 · Q) 
+    (LiftProp4 · Q) q)).
+

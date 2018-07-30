@@ -1,0 +1,40 @@
+module ITree.
+
+import Unit.
+import Sum.
+import Sigma.
+import Id.
+import Nat.
+import NF.
+import IF.
+
+import FixIndM · IF ifimap.
+import InductionM · IF ifimap.
+import ConstantTimeDestructor · IF ifimap.
+
+
+-- infinitary tree and its constructor
+ITree ◂ ★ = FixIndM.
+
+inode ◂ (Nat ➔ Sum · Unit · ITree) ➔ ITree = λ f. inFixIndM f.
+
+
+-- destructor of ITree
+destrITree ◂ ITree ➔ (Nat ➔ Sum · Unit · ITree) = outFixIndM.
+
+
+-- empty tree which acts as a base case for specialized "flat" induction principle
+empty ◂ ITree = inFixIndM (λ n. in1 · Unit · ITree unit).
+
+-- projects a tree from the disjoint sum (in case of unit returns empty tree)
+projTree ◂ Sum · Unit · ITree ➔ ITree = λ o. o.1 · ITree (λ _. empty) (λ t. t).
+
+-- "flat" induction for infinitary tree ITree 
+inductionITree ◂ ∀ P : ITree ➔ ★. 
+ (Π v : IF · ITree. (Π n : Nat. P (projTree (v n))) ➔ P (inode v)) ➔ P empty ➔ Π t : ITree. P t 
+ = Λ P. λ ih. λ em. λ t. induction · P  
+  (Λ R. Λ c. λ ih2. λ gr. ih (elimId · (IF · R) · (IF · ITree) -(ifimap · R · ITree -c) gr)
+    (λ n. indSum · Unit · R (gr n) · (λ q : Sum · Unit · R. P (projTree (elimId · (Sum · Unit · R) 
+                                             · (Sum · Unit · ITree) -(nfimap · R · ITree -c)  q)))
+     (λ _ . em)
+     (λ b. ih2 b))) t.

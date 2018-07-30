@@ -1,0 +1,19 @@
+
+module NF.
+
+import Unit.
+import Sum.
+import Id.
+import IdMapping.
+import SubstComp.
+
+
+NF ◂ ★ ➔ ★ = λ X : ★. Sum · Unit · X.
+
+
+-- direct implementation of identity mapping for NF
+nfimap ◂ IdMapping · NF = Λ X. Λ Y. Λ c. intrId · (NF · X) · (NF · Y)
+  (λ u. subst · (NF · Y) · (NF · X) 
+   -(case · Unit · X · (NF · Y) u (in1 · Unit · Y) 
+                                  (λ x. in2 · Unit · Y (elimId · X · Y -c x))) u -u.2.1)
+   (λ _. β).

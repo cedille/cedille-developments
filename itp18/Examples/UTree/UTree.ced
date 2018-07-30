@@ -1,0 +1,41 @@
+module UTree.
+
+import Unit.
+import Sum.
+import Sigma.
+import Id.
+import Bool.
+import UF.
+import FixIndM · UF ufimap.
+import InductionM · UF ufimap.
+import ConstantTimeDestructor · UF ufimap.
+
+
+
+-- unbalanced trees datatype and its constructors
+UTree ◂ ★ =  FixIndM.
+
+uleaf ◂ Bool ➔ UTree = λ b. inFixIndM
+ (in1 · Bool · (Sigma · UTree · (λ x1 : UTree . Sigma · UTree · (λ x2 : UTree. NotEq · UTree x1 x2))) b).
+
+unode ◂ Π t1 : UTree. Π t2 : UTree. NotEq · UTree t1 t2 ➔ UTree = λ t1. λ t2. λ neq. 
+ inFixIndM (in2 · Bool · (Sigma · UTree · (λ x1 : UTree . Sigma · UTree · (λ x2 : UTree. NotEq · UTree x1 x2))) 
+   (pair · UTree · (λ x1 : UTree . (Sigma · UTree · (λ x2 : UTree . (NotEq · UTree x1 x2)))) t1
+     (pair · UTree · (λ x2 : UTree . (NotEq · UTree t1 x2))  t2 neq))).
+
+
+-- destructor of UTree
+destrITree ◂ UTree ➔ UF · UTree = outFixIndM.
+
+
+-- "flat" induction for UTree from the generic induction by "pattern-matching" on UF
+inductionUTree ◂ ∀ P : UTree ➔ ★. (Π t1 : UTree. Π t2 : UTree. Π neq : NotEq · UTree t1 t2. 
+  P t1 ➔ P t2 ➔ P (unode t1 t2 neq)) ➔ (Π b : Bool. P (uleaf b)) ➔ Π t : UTree. P t = 
+  Λ P. λ s. λ b. λ t. induction · P 
+   (Λ R. Λ c. λ ih. λ ufr. 
+     θ<ufr> (indSum · Bool · (Sigma · R · (λ x1 : R . Sigma · R · (λ x2 : R. NotEq · R x1 x2)))  ufr)
+        (λ a. b a) 
+        (λ b. θ<b> (indSigma · R · (λ x1 : R . Sigma · R · (λ x2 : R. NotEq · R x1 x2)) b)
+                (λ a. λ b'. θ<b'> (indSigma · R · (λ x2 : R . (NotEq · R a x2)) b')
+                 (λ a'. λ b. (s (elimId · R · UTree -c a) (elimId · R · UTree -c a') b (ih a) (ih a')))))) 
+    t.

@@ -1,0 +1,41 @@
+module Nat.
+
+import NF.
+import Unit.
+import Sum.
+import Id.
+import FixIndM · NF nfimap.
+import InductionM · NF nfimap.
+import ConstantTimeDestructor · NF nfimap.
+
+
+
+-- datatype for natural numbers
+Nat ◂ ★ = FixIndM.
+
+
+-- constructors of Nat
+zero ◂ Nat        =      inFixIndM (in1 · Unit · Nat unit).
+suc  ◂ Nat ➔ Nat = λ n. inFixIndM (in2 · Unit · Nat n).
+
+
+-- constant-time predecessor
+pred ◂ Nat ➔ Nat = λ n. 
+ case · Unit · Nat · Nat (outFixIndM n) 
+   (λ _. zero) 
+   (λ m. m).
+
+
+-- predecessor properties hold by β-reduction
+predSuc  ◂ Π n : Nat. {pred (suc n) ≃ n} = λ n. β.
+predZero ◂ {pred zero ≃ zero} = β.
+
+
+-- specialized "flat" induction for Nat from generic induction
+inductionNat ◂ ∀ P : Nat ➔ ★. (Π n : Nat. P n ➔ P (suc n)) ➔ P zero ➔ Π n : Nat. P n = 
+ Λ P. λ s. λ z. λ n. induction · P 
+   (Λ R. Λ c. λ ih. λ natfr. 
+     θ<natfr> (indSum · Unit · R natfr)
+        (λ a. ρ (etaUnit a) - z) 
+        (λ b. s (elimId · R · Nat -c b) (ih b))) 
+    n.

@@ -1,0 +1,11 @@
+module Functor.
+
+-- type of "Fmap · F" is a type of morphism lifting for functor F
+Fmap ◂ (★ ➔ ★) ➔ ★ =
+  λ F : ★ ➔ ★. ∀ X : ★. ∀ Y : ★. (X ➔ Y) ➔ F · X ➔ F · Y.
+
+-- FmapIdLaw · F fmap is a specification of identity law for "fmap"
+-- function of "F : ★ ➔ ★"
+FmapIdLaw ◂ Π F : ★ ➔ ★. Fmap · F ➔ ★
+ = λ F : ★ ➔ ★. λ fmap : Fmap · F.
+ ∀ X : ★. Π x : F · X. {fmap (λ x. x) x ≃ x}.

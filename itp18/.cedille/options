@@ -1,0 +1,17 @@
+import-directories =
+ "./MendlerInduction"
+ "./Utilities"
+ "./Examples"
+ "./Examples/Nat"
+ "./Examples/ITree"
+ "./Examples/PTree"
+ "./Examples/UTree"
+ .
+
+
+use-cede-files = false.
+make-rkt-files = false.
+generate-logs = false.
+show-qualified-vars = false.
+
+

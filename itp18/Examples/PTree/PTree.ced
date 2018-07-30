@@ -1,0 +1,38 @@
+module PTree.
+
+import Unit.
+import Bool.
+import Sum.
+import Sigma.
+import Id.
+
+import PF.
+import NF.
+
+import FixIndM · PF pfimap.
+import InductionM · PF pfimap.
+
+
+--  nonstrictly positive infinitary tree and its constructor
+PTree ◂ ★ = FixIndM.
+
+pnode ◂ ((PTree ➔ Bool) ➔ Sum · Unit · PTree) ➔ PTree = λ f. inFixIndM f.
+
+
+-- empty tree which acts as a base case for "flat" induction principle
+pempty ◂ PTree = inFixIndM (λ n. in1 · Unit · PTree unit).
+
+
+-- projects a tree from the disjoint sum (in case of unit returns empty tree)
+projPTree ◂ Sum · Unit · PTree ➔ PTree = λ o. o.1 · PTree (λ _. pempty) (λ t. t).
+
+
+-- "flat" induction for PTree 
+inductionPTree ◂ ∀ P : PTree ➔ ★. 
+ (Π v : PF · PTree. (Π n : (PTree ➔ Bool). P (projPTree (v n))) ➔ P (pnode v)) ➔ P pempty ➔ Π t : PTree. P t 
+ = Λ P. λ ih. λ em. λ t. induction · P  
+  (Λ R. Λ c. λ ih2. λ gr. ih (elimId · (PF · R) · (PF · PTree) -(pfimap · R · PTree -c) gr)
+    (λ n. indSum · Unit · R (gr (λ r. n (elimId · R · PTree -c r) )) · 
+           (λ q : Sum · Unit · R. P (projPTree (elimId · (Sum · Unit · R) · (Sum · Unit · PTree) -(nfimap · R · PTree -c)  q)))
+      (λ _ . em)
+      (λ b. ih2 b))) t.

@@ -1,0 +1,7 @@
+To typecheck this development with Cedille:
+
+1. After installing the Cedille open any *.ced file and hit
+   "Meta-s" to typecheck it.
+
+2. The file "Everything.ced" contains the descriptions of main results
+   of this development (processing it may take a few moments).

@@ -1,0 +1,48 @@
+
+module FixM (F : ★ ➔ ★). 
+
+import Empty.
+
+
+-- Mendler-style algebra
+AlgM ◂ ★ ➔ ★ = λ A : ★. 
+ ∀ R : ★. (R ➔ A) ➔ F · R ➔ A.
+
+
+-- least fixed point of F
+FixM ◂ ★ = ∀ A : ★. AlgM · A ➔ A.
+
+
+-- weak initiality of FixM F
+foldM ◂ ∀ A : ★. AlgM · A ➔ FixM ➔ A
+ =  Λ A. λ alg. λ fix. fix · A alg.
+
+
+-- constructor of FixM which is well-defined for any unrestricted 
+-- F : ★ ➔ ★!
+inFixM ◂ F · FixM ➔ FixM
+ =  λ fexp. Λ A. λ alg. alg · FixM (foldM · A alg) fexp.
+
+
+-- if alg is AlgM A then "foldM alg" is an algebra homomorphism between
+-- the carrier of initial algebra (FixM F) and A.
+foldMHom ◂ ∀ A : ★. Π alg : AlgM · A. Π fr : F · FixM.
+ { foldM · A alg (inFixM · F fr) ≃ alg · A (foldM · A alg) fr }
+ = Λ A. λ alg. λ fr. β.
+
+{-
+-- We prove that the inverse of inFixM (for unrestricted F : ★ ➔ ★)
+-- implies inconsistency. We start by defining the type of inverse of inFixM
+OutFixM ◂ ★ = ∀ F : ★ ➔ ★. FixM · F ➔ F · (FixM · F).
+
+NegF ◂ ★ ➔ ★ = λ X: ★. ∀ Y : ★. X ➔ Y.
+
+T ◂ ★ = FixM · NegF.
+
+f ◂ OutFixM ➔ ∀ Y : ★. T ➔ Y = λ outFixM. Λ Y. λ t. outFixM · NegF t · Y t.
+
+t ◂ OutFixM ➔ T = λ outFixM. f outFixM · T (inFixM · NegF (f outFixM)).
+
+-- existence of function with type OutFixM implies inconsistency
+unsound ◂ OutFixM ➔ Empty = λ outFixM. Λ X. f outFixM · X (t outFixM).
+-}

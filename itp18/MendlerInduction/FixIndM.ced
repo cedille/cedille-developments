@@ -1,0 +1,47 @@
+
+
+import IdMapping.
+
+module FixIndM (F : ★ ➔ ★)(imap : IdMapping · F).
+
+import Id.
+import FixM · F.
+
+
+-- dependently typed analog of AlgM
+PrfAlgM ◂ Π X : ★. (X ➔ ★) 
+ ➔ (F · X ➔ X) ➔ ★ = λ X : ★. 
+ λ Q : X ➔ ★. λ alg : (F · X ➔ X). 
+ ∀ R : ★. ∀ c : Id · R · X. 
+ (Π r : R. Q (elimId · R · X -c r)) ➔
+ Π gr : F · R.  Q (alg (elimId · (F · R) · (F · X) -(imap · R · X -c) gr)).
+
+
+-- inductivitiy predicate on FixM in terms of proof algebras
+IsIndFixM ◂ FixM ➔ ★
+ = λ x : FixM. ∀ Q : FixM ➔ ★.
+ PrfAlgM · FixM · Q inFixM ➔ Q x.
+
+
+-- FixIndM is an inductive subset of FixM carved out by inductivity
+-- predicate IsIndFixM
+FixIndM ◂ ★ = ι x : FixM. IsIndFixM x.
+
+
+-- the constructors of FixIndM are expressed via function inFixIndM
+tc1 ◂ F · FixIndM ➔ FixM
+ =  λ v. inFixM
+  (elimId · (F · FixIndM) · (F · FixM) 
+   -(imap · FixIndM · FixM 
+   -(intrId · FixIndM · FixM (λ x. x.1) (λ _. β))) v).
+
+
+-- every "tc1 v" is inductive
+tc2 ◂ Π v : F · FixIndM.
+ IsIndFixM (tc1 v) = λ v. (Λ Q. λ q. 
+  (q · FixIndM 
+  -(intrId · FixIndM · FixM (λ x. x.1) (λ z. β)) (λ r. r.2 · Q q) v)).
+
+
+-- collection of constructors of FixIndM expressed as conventional F-algebra
+inFixIndM ◂ F · FixIndM ➔ FixIndM = λ v. [ tc1 v, tc2 v ].

@@ -1,0 +1,27 @@
+module ITree.
+
+import Sum.
+import Unit.
+import Sigma.
+import IdMapping.
+import Id.
+import Nat.
+import NF.
+
+IF ◂ ★ ➔ ★ = λ X : ★. Nat ➔ Sum · Unit · X.
+
+-- it is not possible to prove functorial laws for this definition of
+-- imap without functional extensionality
+ifmap ◂ ∀ X : ★. ∀ Y : ★. (X ➔ Y) ➔ (IF · X ➔ IF · Y) 
+ = Λ X. Λ Y. λ f. λ v. λ n. 
+ case · Unit · X · (Sum · Unit · Y) (v n) (λ u . in1 · Unit · Y u) (λ x. in2 · Unit · Y (f x)).
+
+
+-- IdMapping · IF is implemented by relying on eta law
+ifimap ◂ IdMapping · IF = Λ X. Λ Y. Λ c. pair · (IF · X ➔ IF · Y) · (λ f : (IF · X ➔ IF · Y) .  {f ≃ id})  
+  (λ v. λ n. elimId · (Sum · Unit · X) · (Sum · Unit · Y) -(nfimap · X · Y -c) (v n)) β.
+
+
+
+
+

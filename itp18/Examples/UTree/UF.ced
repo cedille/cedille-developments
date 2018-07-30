@@ -1,0 +1,42 @@
+module UF.
+
+import Empty.
+import Unit.
+import Bool.
+import Sum.
+import Sigma.
+import Id.
+import IdMapping.
+
+
+NotEq ◂ Π X : ★. X ➔ X ➔ ★ 
+ = λ X : ★. λ x1 : X. λ x2 : X. {x1 ≃ x2} ➔ Empty.
+
+
+-- UF is a covariant non-functorial scheme
+UF ◂ ★ ➔ ★ = λ X : ★. Sum · Bool · (Sigma · X · (λ x1 : X . Sigma · X · (λ x2 : X. NotEq · X x1 x2))).
+
+
+-- First, we implement a function UF X ➔ UF Y from Id X Y
+ufimap' ◂ ∀ X : ★. ∀ Y : ★. Id · X · Y ➾ (UF · X) ➔ (UF · Y) = Λ X. Λ Y. Λ id. 
+  λ w. w.1 · (UF · Y) 
+   (λ u. in1 · Bool · (Sigma · Y · (λ x1 : Y . Sigma · Y · (λ x2 : Y. NotEq · Y x1 x2))) u ) 
+   (λ u. u.1 · (UF · Y) (λ a. λ u'. u'.1 ·  (UF · Y) (λ a'. λ nep. 
+       in2 · Bool ·   (Sigma · Y · (λ x1 : Y . Sigma · Y · (λ x2 : Y. NotEq · Y x1 x2))) 
+    (pair · Y · (λ x1 : Y . (Sigma · Y · (λ x2 : Y . (NotEq · Y x1 x2)))) (elimId · X · Y -id a)
+    (pair · Y · (λ x2 : Y . (NotEq · Y (elimId · X · Y -id a) x2)) (elimId · X · Y -id a') (λ ep. nep ep)))))).
+
+
+-- Second, we show that "ufimap' -c" extensionally acts as an identity
+ufimapLaw' ◂ ∀ X : ★. ∀ Y : ★. ∀ c : Id · X · Y. Π z : UF · X. {ufimap' -c z ≃ z}
+  = Λ X . Λ Y. Λ c. λ w. θ<w> (indSum · Bool · (Sigma · X · (λ x1 : X . Sigma · X · (λ x2 : X. NotEq · X x1 x2))) w)
+  (λ a. β ) 
+  (λ z. θ<z> (indSigma · X · (λ x1 : X . Sigma · X · (λ x2 : X. NotEq · X x1 x2)) z) 
+  (λ a. λ b. θ<b> (indSigma · X · (λ x2 : X . (NotEq · X a x2)) b)
+  (λ a'. λ b' . β))).
+
+
+-- finally, we implmement identity mapping of UF by using the
+-- introduction rule of identity functions
+ufimap ◂  IdMapping · UF = Λ X. Λ Y. Λ c. 
+ intrId · (UF · X) · (UF · Y) (ufimap' · X · Y -c) (ufimapLaw' · X · Y -c).

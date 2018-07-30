@@ -1,0 +1,57 @@
+
+import IdMapping.
+
+module LiftPred (F : ★ ➔ ★)(imap : IdMapping · F).
+
+import Sigma.
+import Product.
+
+import FixM · F.
+import FixIndM · F imap.
+
+
+WithWitness ◂ Π X : ★. Π Y : ★.  
+ (X ➔ ★) ➔ (X ➔ Y) ➔ Y ➔ ★ 
+ = λ X : ★. λ Y : ★. λ Q : X ➔ ★. 
+   λ cast : X ➔ Y. λ y : Y.
+   Sigma · X · (λ x : X. Product · {y ≃ cast x} · (Q x)).
+
+
+-- conversion of predicate on FixIndM to logically
+-- equivalent predicate on Fix
+Lift ◂ (FixIndM ➔ ★) ➔ FixM ➔ ★ 
+ = λ Q : FixIndM ➔ ★. λ e : FixM.
+ WithWitness · FixIndM · (FixM) · Q (λ x. x.1) e.
+
+
+LiftProp1 ◂ ∀ Q : FixIndM ➔ ★. ∀ e : FixIndM. (Lift · Q e.1) ➔ Q e 
+ =  Λ Q. Λ e. λ pr. 
+ ρ (projProd1 · {e ≃ (proj1 · FixIndM · 
+   (λ x' : FixIndM. Product · {e ≃ x'.1} · (Q x')) pr)} · 
+   (Q (proj1 · FixIndM · (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr)) 
+   (proj2 · FixIndM · (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr)) -   
+   (projProd2 · {e ≃ (proj1 pr)} · 
+   (Q (proj1 · FixIndM · (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr)) 
+   (proj2 · FixIndM · (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr)).
+
+
+LiftProp2 ◂
+ ∀ Q : FixIndM  ➔ ★.
+ Π e : FixIndM . Q e ➔ (Lift · Q e.1) 
+ = Λ Q. λ e. λ pr. pair · FixIndM · 
+ (λ x' : FixIndM. 
+ Product · {e ≃ x'} · (Q x')) e (pairProd · {e ≃ e} · (Q e) β pr).
+
+
+LiftProp3 ◂ ∀ Q : FixIndM ➔ ★.
+ ∀ e : FixM. Lift · Q e ➔ FixIndM
+ =  Λ Q. Λ e. λ pr. proj1 · FixIndM · 
+ (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr. 
+
+
+LiftProp4 ◂ ∀ Q : FixIndM ➔ ★. ∀ e : FixM. ∀ p : Lift · Q e. 
+ {LiftProp3 · Q p ≃ e} = Λ Q. Λ e. Λ pr. 
+ ρ (projProd1 · {e ≃ (proj1 pr)} · 
+    (Q (proj1 · FixIndM · (λ x' : FixIndM. 
+      Product · {e ≃ x'} · (Q x')) pr)) (proj2 · FixIndM · 
+  (λ x' : FixIndM. Product · {e ≃ x'} · (Q x')) pr)) - β.

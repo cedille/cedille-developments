@@ -1,0 +1,20 @@
+module PF.
+
+import Unit.
+import Bool.
+import Sum.
+import Sigma.
+import Id.
+import IdMapping.
+import NF.
+
+
+-- non-strictly positive scheme 
+PF ◂ ★ ➔ ★ = λ X : ★. (X ➔ Bool) ➔ Sum · Unit · X.
+
+
+-- As in case of IF, the implementation of identity mapping for PF
+-- relies on eta law.
+pfimap ◂ IdMapping · PF = Λ X. Λ Y. Λ c. pair · (PF · X ➔ PF · Y) · (λ f : PF · X ➔ PF · Y. {f ≃ id})  
+  (λ v. λ n. elimId · (Sum · Unit · X) · (Sum · Unit · Y) -(nfimap · X · Y -c) 
+                (v (λ x. n (elimId · X · Y -c x)))) β.

@@ -1,0 +1,7 @@
+
+module Bool.
+
+Bool ◂ ★ = ∀ X : ★. X ➔ X ➔ X.
+
+tt ◂ Bool = Λ X. λ a. λ b. a.
+ff ◂ Bool = Λ X. λ a. λ b. b.
