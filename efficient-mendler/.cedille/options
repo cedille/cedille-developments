@@ -1,11 +1,11 @@
 import-directories =
- "./MendlerInduction"
- "./Utilities"
- "./Examples"
- "./Examples/Nat"
- "./Examples/ITree"
- "./Examples/PTree"
- "./Examples/UTree"
+ "MendlerInduction"
+ "Utilities"
+ "Examples"
+ "Examples/Nat"
+ "Examples/ITree"
+ "Examples/PTree"
+ "Examples/UTree"
  .
 
 

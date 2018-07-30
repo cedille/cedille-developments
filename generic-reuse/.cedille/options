@@ -1,9 +1,9 @@
 import-directories  =
- "./Base"
- "./Datatypes"
- "./Examples"
- "./GenericReuse"
- "./IndexedMendlerInduction"
+ "Base"
+ "Datatypes"
+ "Examples"
+ "GenericReuse"
+ "IndexedMendlerInduction"
  .
 
 
