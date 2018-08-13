@@ -16,10 +16,10 @@ import RawTermReuse
   · Lookup invZeroTail invZeroEq invSucHead invSucTail invSucEq invSucPred
   · Typed invVarLookup invLamCod invLamEq invLamBod invAppDom invAppFun invAppArg
 .
-import StepReuse
+import StepReuse as StepReuse
   · Typed t2r termTyped r2tP'
 .
-import SubReuse
+import SubReuse as SubReuse
   · Typed t2r termTyped r2tP'
   · Taking ts2rs envTaking
 .
