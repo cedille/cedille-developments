@@ -1,0 +1,4 @@
+module Top.
+
+Top ◂ ★ =  {λ x . x ≃ λ x . x} .
+

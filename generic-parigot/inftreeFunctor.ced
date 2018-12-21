@@ -1,0 +1,26 @@
+module InftreeFunctor.
+
+import functor.
+import cast.
+import public sum.
+import public unit.
+import public nat.
+
+InftreeF ◂ ★ ➔ ★ = λ X : ★ . Sum · Unit · (Nat ➔ X) .
+
+InftreeFmap ◂ Fmap · InftreeF =
+  Λ X . Λ Y . λ f . λ d .
+    rec-Sum d (λ u . in1 u) (λ x . in2 (λ n . f (x n))).
+
+InftreeFmapId ◂ FmapId · InftreeF InftreeFmap =
+  Λ X . Λ Y . Λ c . Λ ci . λ x .
+    θ<x> (ind-Sum x) (λ a . β) (λ b . ε ●).
+
+InftreeFmapMono ◂ ∀ X : ★ . ∀ Y : ★ . Cast · X · Y ➾ Cast · (InftreeF · X) · (InftreeF · Y) =
+  Λ X . Λ Y . Λ c . caste (λ x . rec-Sum x (λ a . in1 a) (λ b . in2 (λ n . cast -c (b n))))
+                      -(λ x . θ<x> (ind-Sum x) (λ a . β) (λ b . β)) .
+
+
+InftreeFmapCompose ◂ FmapCompose · InftreeF InftreeFmap =
+  Λ X . Λ Y . Λ Z . Λ f . Λ g . λ x .
+    θ<x> (ind-Sum x) (λ _ . β) (λ b . β).

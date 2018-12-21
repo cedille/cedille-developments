@@ -1,0 +1,60 @@
+{- In Cedille 1.1 (not released yet as of this writing), you can work
+   directly with constructors and (shallow) pattern-matching recursion
+   as in systems like Coq or Agda.  Here, we see how to derive these
+   things and related proof principles from the development in
+   parigot.ced.  Cedille 1.1 uses derivations like the ones below
+   when it elaborates the datatype notations down to Cedille Core. -}
+
+import natFunctor.
+
+module Nat.
+
+import parigot as P · NatF NatFmap -NatFmapId -NatFmapCompose .
+
+opaque Nat ◂ ★ = P.C.
+
+opaque Z ◂ Nat = open Nat - P.in (in1 unit).
+
+opaque S ◂ Nat ➔ Nat = λ x . open Nat - P.in (in2 x).
+
+opaque NatRecursion ◂ Nat ➔ ∀ X : ★ . X ➔ (Nat ➔ X ➔ X) ➔ X =
+  open Nat - 
+  λ n . Λ X . λ z . λ s .
+    P.Recursion n (λ d . rec-Sum d (λ _ . z) (λ p . s (P.fst p) (P.snd p))).
+
+opaque NatRecursionZ ◂ ∀ X : ★ . ∀ z : X . ∀ s : Nat ➔ X ➔ X .
+                       { NatRecursion Z z s ≃ z } =
+    open NatRecursion -
+    open Z -
+    Λ X . Λ z . Λ s . β.
+
+opaque NatRecursionS ◂ ∀ n : Nat . ∀ X : ★ . ∀ z : X . ∀ s : Nat ➔ X ➔ X .
+                       { NatRecursion (S n) z s ≃ s n (NatRecursion n z s) } =
+    open NatRecursion -
+    open S -
+    Λ n . Λ X . Λ z . Λ s . β.
+
+opaque NatInduction ◂ Π n : Nat . ∀ P : Nat ➔ ★ . P Z ➔ (Π n : Nat. P n ➔ P (S n)) ➔ P n =
+  open Nat -
+  open Z -
+  open S - 
+  λ n . Λ P . λ z . λ s .
+    P.Induction n · P (λ d . ind-Sum d · (λ x : NatF · (P.Sigma · Nat · P). P (P.in (NatFmap (P.proj1 · Nat · P) x)))
+       (λ a . ρ (eta-Unit a) - z)
+       (λ b . P.ind-sigma b · (λ b : P.Sigma · Nat · P. P (P.in (NatFmap (P.proj1 · Nat · P) (in2 b)))) s)).
+
+add ◂ Nat ➔ Nat ➔ Nat =
+  λ x . λ y .
+    NatRecursion x y (λ p . S).
+
+addZ ◂ ∀ y : Nat . { add Z y ≃ y } =
+  Λ y . NatRecursionZ -y -(λ p . S) .
+
+addS ◂ ∀ x : Nat . ∀ y : Nat . { add (S x) y ≃ S (add x y) } =
+  Λ x . Λ y . NatRecursionS -x -y -(λ p . S) .
+
+addZ2 ◂ Π n : Nat . { add n Z ≃ n } =
+  λ n .
+  θ<n> (NatInduction n)
+    (ρ (addZ -Z) - β)
+    (λ p . λ ih . ρ (addS -p -Z) - ρ ih - β).

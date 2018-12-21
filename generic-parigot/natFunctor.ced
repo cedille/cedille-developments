@@ -1,0 +1,20 @@
+module natfunctor.
+
+import functor.
+import public sum.
+import public unit.
+
+NatF ◂ ★ ➔ ★ = λ X : ★ . Sum · Unit · X.
+
+NatFmap ◂ Fmap · NatF =
+  Λ X . Λ Y . λ f . λ d .
+  rec-Sum d (λ u . in1 u) (λ x . in2 (f x)).
+
+NatFmapId ◂ FmapId · NatF NatFmap =
+  Λ X . Λ Y . Λ c . Λ ci . λ x .
+    θ<x> (ind-Sum x) (λ a . β) (λ b . ρ+ (ci -b) - β).
+
+NatFmapCompose ◂ FmapCompose · NatF NatFmap =
+  Λ X . Λ Y . Λ Z . Λ f . Λ g . λ x .
+    θ<x> (ind-Sum x) (λ _ . β) (λ b . β).
+    
