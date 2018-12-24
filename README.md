@@ -15,3 +15,7 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Authors: Larry Diehl, Denis Firsov, and Aaron Stump
 * Venue: [ICFP'18](https://conf.researchr.org/home/icfp-2018)
 * Paper: https://arxiv.org/abs/1803.08150
+
+## [Generic Parigot encoding](generic-parigot)
+* Author: Aaron Stump
+* Not written up yet, but see the [README](generic-parigot/README.txt)
