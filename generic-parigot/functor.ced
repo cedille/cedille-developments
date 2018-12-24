@@ -10,9 +10,3 @@ FmapCompose ◂ Fmap ➔ ★ =
   λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . ∀ Z : ★ . ∀ f : Y ➔ Z . ∀ g : X ➔ Y . Π x : F · X .
     { fmap f (fmap g x) ≃ fmap (λ x . f (g x)) x } .
               
-{-
-FmapExt ◂ Fmap ➔ ★ =
-  λ fmap : Fmap .
-  ∀ X : ★ . ∀ Y : ★ . ∀ f : X ➔ Y . ∀ g : X ➔ Y .
-  (∀ x : X . { f x ≃ g x }) ➔
-  ∀ x : F · X . {fmap f x ≃ fmap g x }.

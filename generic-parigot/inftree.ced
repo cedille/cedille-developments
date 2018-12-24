@@ -1,7 +1,0 @@
-{- infinitely branching trees where each branch is finite depth.
-
-   The point is to see if infinitary types can fit into our encoding. -}
-
-
-
-module Inftree.
