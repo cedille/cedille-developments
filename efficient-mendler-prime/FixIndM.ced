@@ -1,0 +1,45 @@
+import Id.
+module FixIndM (F : ★ ➔ ★) {imap : IdMapping · F}.
+import FixM · F.
+import IdPlus.
+import Sigma.
+
+PrfAlgM ◂ Π X : ★. (X ➔ ★) 
+ ➔ (F · X ➔ X) ➔ ★ = λ X : ★. 
+ λ P : X ➔ ★. λ alg : F · X ➔ X. 
+ ∀ R : ★. ∀ c : Id · R · X. 
+ Π ih : Π r : R. P (elimId -c r).
+ Π rs : F · R. P (alg (elimId -(imap -c) rs)).
+
+InductiveM ◂ FixM ➔ ★ = λ x : FixM.
+  ∀ P : FixM ➔ ★. PrfAlgM · FixM · P inM ➔ P x.
+
+FixIndM ◂ ★ = ι x : FixM. InductiveM x.
+
+inIndM1 ◂ F · FixIndM  ➔ FixM
+  = λ xs. inM (elimId -(imap · FixIndM · FixM -(λ x. pair x.1 β)) xs). 
+
+inIndM2 ◂ Π xs : F · FixIndM. InductiveM (inIndM1 xs)
+  = λ xs. Λ P. λ c.
+  c · FixIndM -(λ x. pair x.1 β) (λ x. x.2 c) xs.
+
+inIndM ◂ F · FixIndM ➔ FixIndM = λ xs. [ inIndM1 xs, inIndM2 xs ].
+
+lowerPrfAlg ◂ ∀ P : FixIndM ➔ ★.
+  PrfAlgM · FixIndM · P inIndM ➔
+  PrfAlgM · FixM · (IdPlusCod · FixM · FixIndM · P) inM
+  = Λ P. λ alg. Λ R. Λ c. λ ih. λ rs.
+  pair (inIndM (elimId -(imap -(elimIdPlusId -c ih)) rs))
+    (pair β (alg -(elimIdPlusId -c ih) (elimIdPlusIH -c ih) rs)).
+
+indIndM ◂ ∀ P : FixIndM ➔ ★. PrfAlgM · FixIndM · P inIndM ➔ Π x : FixIndM. P x
+  = Λ P. λ alg. λ x. proj2 (proj2 (x.2 · (IdPlusCod · FixM · FixIndM · P)
+  (Λ R. Λ c. λ ih. λ rs. lowerPrfAlg alg -c ih rs))).
+
+outIndM ◂ FixIndM ➔ F · FixIndM =
+  λ x. θ<x> indIndM (Λ R. Λ c. λ ih. λ rs. elimId -(imap -c) rs) x.
+
+lambek1 ◂ Π xs : F · FixIndM. {outIndM (inIndM xs) ≃ xs} = λ xs. β.
+
+lambek2 ◂ Π x : FixIndM. {inIndM (outIndM x) ≃ x} =
+  λ x. θ<x> indIndM (Λ R. Λ c. λ ih. λ rs. β) x.

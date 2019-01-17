@@ -1,0 +1,30 @@
+module IdPlus.
+import Sigma.
+import Id.
+
+IdPlusCod ◂ Π A : ★. Π B : ★. Π P : B ➔ ★. A ➔ ★
+  = λ A : ★. λ B : ★. λ P : B ➔ ★. λ a : A.
+  Sigma · B · (λ b : B.
+  Sigma · { b ≃ a } · (λ q : { b ≃ a }.
+  P (φ q - b {a})
+  )).
+
+IdPlus ◂ Π R : ★. Π A : ★. Π B : ★. Π P : B ➔ ★. Π c : Id · R · A. ★
+  = λ R : ★. λ A : ★. λ B : ★. λ P : B ➔ ★. λ c : Id · R · A.
+  Π r : R. IdPlusCod · A · B · P (elimId -c r).
+
+elimIdPlus ◂ ∀ R : ★. ∀ A : ★. ∀ B : ★. ∀ P : B ➔ ★. ∀ c : Id · R · A. 
+  IdPlus · R · A · B · P c ➾ R ➔ B
+  = Λ R. Λ A. Λ B. Λ P. Λ c. Λ ih. λ r.
+  φ (proj1 (proj2 (ih r))) - proj1 (ih r) {r}.
+
+elimIdPlusIH ◂ ∀ R : ★. ∀ A : ★. ∀ B : ★. ∀ P : B ➔ ★. ∀ c : Id · R · A. 
+  Π ih : IdPlus · R · A · B · P c. Π r : R. P (elimIdPlus -c -ih r)
+  = Λ R. Λ A. Λ B. Λ P. Λ c. λ ih. λ r.
+  proj2 (proj2 (ih r)).
+
+elimIdPlusId ◂ ∀ R : ★. ∀ A : ★. ∀ B : ★. ∀ P : B ➔ ★. ∀ c : Id · R · A. 
+  Π ih : IdPlus · R · A · B · P c. Id · R · B
+  = Λ R. Λ A. Λ B. Λ P. Λ c. λ ih. λ r.
+  [ b = proj1 (ih r) ] - [ q = proj1 (proj2 (ih r)) ] -
+  pair b q.

@@ -19,3 +19,8 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 ## [Generic Parigot encoding](generic-parigot)
 * Author: Aaron Stump
 * Not written up yet, but see the [README](generic-parigot/README.txt)
+
+## [Efficient Mendler Prime](efficient-mendler-prime)
+* Author: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
+* Refactored version of the [ITP'18 development](efficient-mendler),
+  see [README](efficient-mendler-prime/README.md)
