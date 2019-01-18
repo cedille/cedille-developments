@@ -11,12 +11,8 @@ initialM ◂ ∀ A : ★. Π alg : AlgM · A. Π algExt : AlgMExt · A alg.
   Π h : FixIndM ➔ A. Π hom : Π xs : F · FixIndM. { h (inIndM xs) ≃ alg h xs }.
   Π x : FixIndM. { h x ≃ foldM alg x.1 }
   = Λ A. λ alg. λ algExt. λ h. λ hom. λ x.
-  θ<x> inductionM
-  (Λ R. Λ c. λ ih. λ rs.
-  χ { h (inM rs) ≃ foldM alg (inM rs) } -
+  θ<x> inductionM (Λ R. Λ c. λ ih. λ rs.
   ρ (hom (elimId -(imap -c) rs)) -
-  χ { alg h rs ≃ foldM alg (inM rs) } -
-  χ { alg h rs ≃ alg (foldM alg) rs } -
   algExt · R
     (λ r. h (elimId -c r))
     (λ r. foldM alg (elimId -c r).1)
