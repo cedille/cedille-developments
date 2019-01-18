@@ -20,8 +20,7 @@ inIndM1 ◂ F · FixIndM  ➔ FixM
   = λ xs. inM (elimId -(imap · FixIndM · FixM -(λ x. pair x.1 β)) xs). 
 
 inIndM2 ◂ Π xs : F · FixIndM. InductiveM (inIndM1 xs)
-  = λ xs. Λ P. λ c.
-  c · FixIndM -(λ x. pair x.1 β) (λ x. x.2 c) xs.
+  = λ xs. Λ P. λ c. c · FixIndM -(λ x. pair x.1 β) (λ x. x.2 c) xs.
 
 inIndM ◂ F · FixIndM ➔ FixIndM = λ xs. [ inIndM1 xs, inIndM2 xs ].
 
