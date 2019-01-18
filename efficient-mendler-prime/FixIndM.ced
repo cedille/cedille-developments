@@ -33,8 +33,7 @@ lowerPrfAlg ◂ ∀ P : FixIndM ➔ ★.
     (pair β (alg -(elimIdPlusId -c ih) (elimIdPlusIH -c ih) rs)).
 
 indIndM ◂ ∀ P : FixIndM ➔ ★. PrfAlgM · FixIndM · P inIndM ➔ Π x : FixIndM. P x
-  = Λ P. λ alg. λ x. proj2 (proj2 (x.2 · (IdPlusCod · FixM · FixIndM · P)
-  (Λ R. Λ c. λ ih. λ rs. lowerPrfAlg alg -c ih rs))).
+  = Λ P. λ alg. λ x. proj2 (proj2 (x.2 (lowerPrfAlg alg))).
 
 outIndM ◂ FixIndM ➔ F · FixIndM =
   λ x. θ<x> indIndM (Λ R. Λ c. λ ih. λ rs. elimId -(imap -c) rs) x.
