@@ -13,4 +13,4 @@ inM ◂ F · FixM ➔ FixM
 
 foldMHom ◂ ∀ A : ★. Π alg : AlgM · A. Π xs : F · FixM.
  { foldM alg (inM xs) ≃ alg (foldM alg) xs }
- = Λ A. λ alg. λ fr. β.
+ = Λ A. λ alg. λ rs. β.
