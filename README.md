@@ -23,4 +23,4 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 ## [Efficient Mendler Prime](efficient-mendler-prime)
 * Author: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
 * Refactored version of the [ITP'18 development](efficient-mendler),
-  see [README](efficient-mendler-prime/README.md)
+  see the [README](efficient-mendler-prime/README.md)
