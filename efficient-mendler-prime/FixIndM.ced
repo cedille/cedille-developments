@@ -4,12 +4,11 @@ import FixM · F.
 import IdPlus.
 import Sigma.
 
-PrfAlgM ◂ Π X : ★. (X ➔ ★) 
- ➔ (F · X ➔ X) ➔ ★ = λ X : ★. 
- λ P : X ➔ ★. λ alg : F · X ➔ X. 
- ∀ R : ★. ∀ c : Id · R · X. 
- Π ih : Π r : R. P (elimId -c r).
- Π rs : F · R. P (alg (elimId -(imap -c) rs)).
+PrfAlgM ◂ Π X : ★. (X ➔ ★) ➔ (F · X ➔ X) ➔ ★
+  = λ X : ★. λ P : X ➔ ★. λ alg : F · X ➔ X. 
+  ∀ R : ★. ∀ c : Id · R · X. 
+  Π ih : Π r : R. P (elimId -c r).
+  Π rs : F · R. P (alg (elimId -(imap -c) rs)).
 
 InductiveM ◂ FixM ➔ ★ = λ x : FixM.
   ∀ P : FixM ➔ ★. PrfAlgM · FixM · P inM ➔ P x.
