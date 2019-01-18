@@ -37,7 +37,7 @@ inductionM ◂ ∀ P : FixIndM ➔ ★. PrfAlgM · FixIndM · P inIndM ➔ Π x 
 outIndM ◂ FixIndM ➔ F · FixIndM =
   λ x. θ<x> inductionM (Λ R. Λ c. λ ih. λ rs. elimId -(imap -c) rs) x.
 
-lambek1 ◂ Π xs : F · FixIndM. {outIndM (inIndM xs) ≃ xs} = λ xs. β.
+lambekM1 ◂ Π xs : F · FixIndM. {outIndM (inIndM xs) ≃ xs} = λ xs. β.
 
-lambek2 ◂ Π x : FixIndM. {inIndM (outIndM x) ≃ x} =
+lambekM2 ◂ Π x : FixIndM. {inIndM (outIndM x) ≃ x} =
   λ x. θ<x> inductionM (Λ R. Λ c. λ ih. λ rs. β) x.
