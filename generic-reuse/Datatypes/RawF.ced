@@ -10,9 +10,9 @@ data RawF (X : ★) : ★ =
   | appF : X ➔ X ➔ RawF.
 
 elimRawF ◂ ∀ X : ★. ∀ P : RawF · X ➔ ★.
-  (Π n : Nat. P (varF · X n)) ➔
-  (Π A : Tp. Π x : X. P (lamF · X A x)) ➔
-  (Π x1 : X. Π x2 : X. P (appF · X x1 x2)) ➔
+  (Π n : Nat. P (varF n)) ➔
+  (Π A : Tp. Π x : X. P (lamF A x)) ➔
+  (Π x1 : X. Π x2 : X. P (appF x1 x2)) ➔
   Π s : RawF · X. P s
   = Λ X. Λ P. λ pV. λ pL. λ pA. λ s.
   μ' s @ P {

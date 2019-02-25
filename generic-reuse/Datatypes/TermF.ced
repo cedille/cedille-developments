@@ -15,8 +15,8 @@ data TermF (X : CtxTp ➔ ★) : CtxTp ➔ ★ =
 
 elimTermF ◂ ∀ X : CtxTp ➔ ★. ∀ P : Π GA : CtxTp. TermF · X GA ➔ ★.
   Π pV : ∀ G : Ctx. ∀ A : Tp. Π i : Mem · Tp A G. P (pairCtxTp G A) (ivarF · X -G -A i).
-  Π pL : ∀ G : Ctx. Π A : Tp. ∀ B : Tp. Π x : X (pairCtxTp (ext G A) B). P (pairCtxTp G (Arr A B)) (ilamF · X -G A -B x).
-  Π pA : ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Π x1 : X (pairCtxTp G (Arr A B)). Π x2 : X (pairCtxTp G A). P (pairCtxTp G B) (iappF · X -G -A -B x1 x2).
+  Π pL : ∀ G : Ctx. Π A : Tp. ∀ B : Tp. Π x : X (pairCtxTp (ext G A) B). P (pairCtxTp G (Arr A B)) (ilamF -G A -B x).
+  Π pA : ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Π x1 : X (pairCtxTp G (Arr A B)). Π x2 : X (pairCtxTp G A). P (pairCtxTp G B) (iappF -G -A -B x1 x2).
   ∀ GA : CtxTp. Π s : TermF · X GA. P GA s
   = Λ X. Λ P. λ pV. λ pL. λ pA. Λ GA. λ s.
   μ' s @ P {
