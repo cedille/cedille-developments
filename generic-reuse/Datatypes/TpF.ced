@@ -2,7 +2,6 @@ module TpF.
 
 import Id.
 import Sigma.
-import IIdMapping.
 
 data TpF (X : ★) : ★ =
   | BaseF : TpF

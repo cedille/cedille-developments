@@ -1,7 +1,6 @@
 module UnitLift.
 
 import Unit.
-import IIdMapping.
 import Sigma.
 import Id.
 

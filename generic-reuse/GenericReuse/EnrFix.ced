@@ -1,10 +1,9 @@
 module EnrFix.
 import Sigma.
 import Id.
-import IIdMapping.
 import IFixM.
 import IFixIndM.
-import IInductionM.
+import AlgM.
 import FixIndM.
 import Unit.
 import UnitLift.
@@ -18,19 +17,19 @@ fix2ifixP ◂ ∀ G : ★ ➔ ★. ∀ I : ★.
     Π c1 : Id · Y · (FixIndM · G imapG).
     Π c2 : IdDep · Y · (λ y : Y. ∀ i : I. P i (elimId · Y · (FixIndM · G imapG) c1 y) ➾ X i).
     IdDep · (G · Y) · (λ ys : G · Y. ∀ i : I.
-      P i (inFixIndM · G -imapG (elimId · (G · Y) · (G · (FixIndM · G imapG)) (imapG · Y · (FixIndM · G imapG) c1) ys))
+      P i (inIndM · G -imapG (elimId · (G · Y) · (G · (FixIndM · G imapG)) (imapG · Y · (FixIndM · G imapG) c1) ys))
       ➾ F · X i).
   IdDep · (FixIndM · G imapG) · (λ y : FixIndM · G imapG. ∀ i : I. P i y ➾ IFixIndM · I · F imapF i)
-  = Λ G. Λ I. Λ F. λ imapG. λ imapF. Λ P. λ c1. indFixIndM · G -imapG
+  = Λ G. Λ I. Λ F. λ imapG. λ imapF. Λ P. λ c1. inductionM · G -imapG
   · (IdDepCod · (FixIndM · G imapG)
     · (λ y : FixIndM · G imapG. ∀ i : I. P i y ➾ IFixIndM · I · F imapF i))
   (Λ R. Λ c2. λ ih. λ rs. pairIdDep
   · (FixIndM · G imapG)
   · (λ y : FixIndM · G imapG. ∀ i : I. P i y ➾ IFixIndM · I · F imapF i)
-  -(inFixIndM · G -imapG
+  -(inIndM · G -imapG
     (elimId · (G · R) · (G · (FixIndM · G imapG)) (imapG · R · (FixIndM · G imapG) c2) rs))
-   (Λ i. Λ p. iinFixIndM · I · F -imapF -i
-    (elimIdDep~ · (G · R) · (λ rs' : G · R. ∀ i' : I. P i' (inFixIndM · G -imapG
+   (Λ i. Λ p. iinIndM · I · F -imapF -i
+    (elimIdDep~ · (G · R) · (λ rs' : G · R. ∀ i' : I. P i' (inIndM · G -imapG
       (elimId · (G · R) · (G · (FixIndM · G imapG)) (imapG · R · (FixIndM · G imapG) c2) rs'))
       ➾ F · (IFixIndM · I · F imapF) i')
       -(c1 · R · (IFixIndM · I · F imapF) c2 ih)
@@ -45,25 +44,25 @@ fix2ifix ◂ ∀ G : ★ ➔ ★. ∀ I : ★. ∀ F : (I ➔ ★) ➔ (I ➔ �
     Π rfun : Y ➔ I.
     Π c : IdDep · Y · (λ y : Y. X (rfun y)).
     IdDep · (G · Y) · (λ ys : G · Y. F · X (ralg · Y rfun ys)).
-  IdDep · (FixIndM · G imapG) · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldFixIndM · G -imapG · I ralg y))
-  = Λ G. Λ I. Λ F. λ imapG. λ imapF. λ ralg. λ c1. indFixIndM · G -imapG
+  IdDep · (FixIndM · G imapG) · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldIndM · G -imapG · I ralg y))
+  = Λ G. Λ I. Λ F. λ imapG. λ imapF. λ ralg. λ c1. inductionM · G -imapG
   · (IdDepCod · (FixIndM · G imapG)
-    · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldFixIndM · G -imapG · I ralg y)))
+    · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldIndM · G -imapG · I ralg y)))
   (Λ R. Λ c2. λ ih. λ rs. pairIdDep
   · (FixIndM · G imapG)
-  · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldFixIndM · G -imapG · I ralg y))
-  -(inFixIndM · G -imapG
+  · (λ y : FixIndM · G imapG. IFixIndM · I · F imapF (foldIndM · G -imapG · I ralg y))
+  -(inIndM · G -imapG
     (elimId · (G · R) · (G · (FixIndM · G imapG)) (imapG · R · (FixIndM · G imapG) c2) rs))
-  (iinFixIndM · I · F -imapF
-    -(foldFixIndM · G -imapG · I ralg (inFixIndM · G -imapG
+  (iinIndM · I · F -imapF
+    -(foldIndM · G -imapG · I ralg (inIndM · G -imapG
       (elimId · (G · R) · (G · (FixIndM · G imapG)) (imapG · R · (FixIndM · G imapG) c2) rs)))
     (elimIdDep · (G · R) · (λ rs' : G · R.
       F · (IFixIndM · I · F imapF)
-        (foldFixIndM · G -imapG · I ralg (inFixIndM · G -imapG
+        (foldIndM · G -imapG · I ralg (inIndM · G -imapG
           (elimId · (G · R) · (G · (FixIndM · G imapG)) (imapG · R · (FixIndM · G imapG) c2) rs')))
       )
       (c1 · R · (IFixIndM · I · F imapF)
-        (λ r. foldFixIndM · G -imapG · I ralg (elimId~ · R · (FixIndM · G imapG) -c2 r))
+        (λ r. foldIndM · G -imapG · I ralg (elimId~ · R · (FixIndM · G imapG) -c2 r))
         ih) rs)
   ) β).
 

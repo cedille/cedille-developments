@@ -1,8 +1,6 @@
 module FogFix.
 import Id.
-import IIdMapping.
 import IFixIndM.
-import IInductionM.
 import Sigma.
 import FixIndM.
 
@@ -11,13 +9,13 @@ ifix2fix ◂ ∀ I : ★. ∀ F : (I ➔ ★) ➔ (I ➔ ★). ∀ G : ★ ➔ �
   Π imapG : IdMapping · G.
   Π c : ∀ X : I ➔ ★.  ∀ Y : ★. (∀ i : I . Id · (X i) · Y) ➔ ∀ i : I. Id · (F · X i) · (G · Y).
   ∀ i : I. Id · (IFixIndM · I · F imapF i) · (FixIndM · G imapG)
-  = Λ I. Λ F. Λ G. λ imapF. λ imapG. λ c1. iindFixIndM · I · F -imapF
+  = Λ I. Λ F. Λ G. λ imapF. λ imapG. λ c1. iinductionM · I · F -imapF
   · (λ i : I. IdCod · (IFixIndM · I · F imapF i) · (FixIndM · G imapG))
   (Λ R. Λ c2. λ ih. Λ i. λ rs. pairId
   · (IFixIndM · I · F imapF i) · (FixIndM · G imapG)
-  -(iinFixIndM · I · F -imapF -i
+  -(iinIndM · I · F -imapF -i
     (elimId · (F · R i) · (F · (IFixIndM · I · F imapF) i) (imapF · R · (IFixIndM · I · F imapF) c2 -i) rs))
-  (inFixIndM · G -imapG
+  (inIndM · G -imapG
     (elimId · (F · R i) · (G · (FixIndM · G imapG))
       (c1 · R · (FixIndM · G imapG) ih -i) rs)
   ) β).

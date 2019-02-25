@@ -4,19 +4,17 @@ import List.
 import Product.
 import Sigma.
 import Id.
-import IIdMapping.
 import IFixIndM.
-import IInductionM.
 import AllF.
 
 All ◂ Π A : ★. Π Q : A ➔ ★. List · A ➔ ★ =
   λ A : ★. λ Q : A ➔ ★. IFixIndM · (List · A) · (AllF · A · Q) (imapA · A · Q).
 done ◂ ∀ A : ★. ∀ Q : A ➔ ★. All · A · Q (nilL · A)
-  = Λ A. Λ Q. iinFixIndM · (List · A) · (AllF · A · Q)
+  = Λ A. Λ Q. iinIndM · (List · A) · (AllF · A · Q)
   -(imapA · A · Q) -(nilL · A)
   (doneF · A · Q · (All · A · Q)).
 next ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ x : A. ∀ xs : List · A. Q x ➔ All · A · Q xs ➔ All · A · Q (consL · A x xs)
-  = Λ A. Λ Q. Λ x. Λ xs. λ q. λ qs. iinFixIndM · (List · A) · (AllF · A · Q)
+  = Λ A. Λ Q. Λ x. Λ xs. λ q. λ qs. iinIndM · (List · A) · (AllF · A · Q)
   -(imapA · A · Q) -(consL · A x xs)
   (nextF · A · Q · (All · A · Q) -x -xs q qs).
 
@@ -25,11 +23,11 @@ elimAll ◂ ∀ A : ★. ∀ Q : A ➔ ★. ∀ P : Π xs : List · A. All · A 
   Π pN : ∀ x : A. ∀ xs : List · A. Π q : Q x. Π qs : All · A · Q xs.
     P xs qs ➔ P (consL · A x xs) (next · A · Q -x -xs q qs).
   ∀ xs : List · A. Π qs : All · A · Q xs. P xs qs
-  = Λ A. Λ Q. Λ P. λ pD. λ pN. iindFixIndM
+  = Λ A. Λ Q. Λ P. λ pD. λ pN. iinductionM
   · (List · A) · (AllF · A · Q) -(imapA · A · Q) · P
   (Λ R. Λ c. λ ih. elimAllF · A · Q · R
     · (λ xs : List · A. λ s : AllF · A · Q · R xs. P xs
-      (iinFixIndM · (List · A) · (AllF · A · Q) -(imapA · A · Q) -xs
+      (iinIndM · (List · A) · (AllF · A · Q) -(imapA · A · Q) -xs
         (elimId · (AllF · A · Q · R xs) · (AllF · A · Q · (All · A · Q) xs)
           (imapA · A · Q · R · (All · A · Q) c -xs) s)
       ))

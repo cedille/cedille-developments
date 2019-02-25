@@ -1,7 +1,7 @@
 module Nat.
 
 import Id.
-import IIdMapping.
+import AlgM.
 import FixIndM.
 import NatF.
 import IFixM.
@@ -9,14 +9,14 @@ import Unit.
 import Bool.
 
 Nat ◂ ★ = FixIndM · NatF imapN.
-inNat ◂ NatF · Nat ➔ Nat = inFixIndM · NatF -imapN.
-zero ◂ Nat = inFixIndM · NatF -imapN (zeroF · Nat).
-suc ◂ Nat ➔ Nat = λ n. inFixIndM · NatF -imapN (sucF · Nat n).
+inNat ◂ NatF · Nat ➔ Nat = inIndM · NatF -imapN.
+zero ◂ Nat = inIndM · NatF -imapN (zeroF · Nat).
+suc ◂ Nat ➔ Nat = λ n. inIndM · NatF -imapN (sucF · Nat n).
 
 elimNat ◂ ∀ P : Nat ➔ ★. P zero ➔ (Π n : Nat. P n ➔ P (suc n)) ➔ Π n : Nat. P n
-  = Λ P. λ pZ. λ pS. indFixIndM · NatF -imapN · P
+  = Λ P. λ pZ. λ pS. inductionM · NatF -imapN · P
   (Λ R. Λ c. λ ih. elimNatF · R
-    · (λ s : NatF · R. P (inFixIndM · NatF -imapN (elimId · (NatF · R) · (NatF · Nat)
+    · (λ s : NatF · R. P (inIndM · NatF -imapN (elimId · (NatF · R) · (NatF · Nat)
       (imapN · R · Nat c) s)))
     pZ
     (λ r. pS (elimId~ · R · Nat -c r) (ih r))
@@ -26,7 +26,7 @@ foldNat ◂ ∀ C : ★. C ➔ (Nat ➔ C ➔ C) ➔ Nat ➔ C
 
 addAlgM ◂ AlgM · NatF · (Nat ➔ Nat)
   = Λ R. λ rec. λ s. λ m . foldNatF · R · Nat m (λ r. suc (rec r m)) s.
-add ◂ Nat ➔ Nat ➔ Nat = foldFixIndM · NatF -imapN · (Nat ➔ Nat) addAlgM.
+add ◂ Nat ➔ Nat ➔ Nat = foldIndM · NatF -imapN · (Nat ➔ Nat) addAlgM.
 
 isZero ◂ Nat ➔ Bool
   = foldNat · Bool true (λ n. λ ih. false).

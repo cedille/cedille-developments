@@ -1,7 +1,6 @@
 module TermF.
 import Id.
 import Sigma.
-import IIdMapping.
 import Nat.
 import Ctx.
 import Tp.

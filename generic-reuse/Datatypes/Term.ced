@@ -1,8 +1,6 @@
 module Term.
 import Id.
-import IIdMapping.
 import IFixIndM.
-import IInductionM.
 import TermF.
 import Ctx.
 import Tp.
@@ -13,13 +11,13 @@ import Raw.
 
 Term ◂ CtxTp ➔ ★ = IFixIndM · CtxTp · TermF imapTerm.
 ivar ◂ ∀ G : Ctx. ∀ A : Tp. Mem · Tp A G ➔ Term (pairCtxTp G A)
-  = Λ G. Λ A. λ i. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G A)
+  = Λ G. Λ A. λ i. iinIndM · CtxTp · TermF -imapTerm -(pairCtxTp G A)
   (ivarF · Term -G -A i).
 ilam ◂ ∀ G : Ctx. Π A : Tp. ∀ B : Tp. Term (pairCtxTp (ext G A) B) ➔ Term (pairCtxTp G (Arr A B))
-  = Λ G. λ A. Λ B. λ b. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G (Arr A B))
+  = Λ G. λ A. Λ B. λ b. iinIndM · CtxTp · TermF -imapTerm -(pairCtxTp G (Arr A B))
   (ilamF · Term -G A -B b).
 iapp ◂ ∀ G : Ctx. ∀ A : Tp. ∀ B : Tp. Term (pairCtxTp G (Arr A B)) ➔ Term (pairCtxTp G A) ➔ Term (pairCtxTp G B)
-  = Λ G. Λ A. Λ B. λ f. λ a. iinFixIndM · CtxTp · TermF -imapTerm -(pairCtxTp G B)
+  = Λ G. Λ A. Λ B. λ f. λ a. iinIndM · CtxTp · TermF -imapTerm -(pairCtxTp G B)
   (iappF · Term -G -A -B f a).
 
 elimTerm ◂ ∀ P : Π GA : CtxTp. Term GA ➔ ★.
@@ -32,9 +30,9 @@ elimTerm ◂ ∀ P : Π GA : CtxTp. Term GA ➔ ★.
     Π a : Term (pairCtxTp G A). P (pairCtxTp G A) a ➔
     P (pairCtxTp G B) (iapp -G -A -B f a).
   ∀ GA : CtxTp. Π t : Term GA. P GA t
-  = Λ P. λ pV. λ pL. λ pA. iindFixIndM · CtxTp · TermF -imapTerm · P
+  = Λ P. λ pV. λ pL. λ pA. iinductionM · CtxTp · TermF -imapTerm · P
   (Λ R. Λ c. λ ih. elimTermF · R
-    · (λ GA : CtxTp. λ s : TermF · R GA. P GA (iinFixIndM · CtxTp · TermF -imapTerm -GA
+    · (λ GA : CtxTp. λ s : TermF · R GA. P GA (iinIndM · CtxTp · TermF -imapTerm -GA
         (elimId · (TermF · R GA) · (TermF · Term GA)
           (imapTerm · R · Term c -GA) s)
       ))

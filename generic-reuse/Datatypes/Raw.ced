@@ -1,6 +1,5 @@
 module Raw.
 import Id.
-import IIdMapping.
 import FixIndM.
 import RawF.
 import Nat.
@@ -10,7 +9,7 @@ import Bool.
 
 Raw ◂ ★ = FixIndM · RawF imapRaw.
 inRaw ◂ RawF · Raw ➔ Raw
-  = inFixIndM · RawF -imapRaw.
+  = inIndM · RawF -imapRaw.
 var ◂ Nat ➔ Raw = λ n. inRaw (varF · Raw n).
 lam ◂ Tp ➔ Raw ➔ Raw = λ A. λ b. inRaw (lamF · Raw A b).
 app ◂ Raw ➔ Raw ➔ Raw = λ f. λ a. inRaw (appF · Raw f a).
@@ -20,7 +19,7 @@ elimRaw ◂ ∀ P : Raw ➔ ★.
   Π pL : Π A : Tp. Π b : Raw. P b ➔ P (lam A b).
   Π pA : Π f : Raw. P f ➔ Π a : Raw. P a ➔ P (app f a).
   Π t : Raw. P t
-  = Λ P. λ pV. λ pL. λ pA. indFixIndM · RawF -imapRaw · P
+  = Λ P. λ pV. λ pL. λ pA. inductionM · RawF -imapRaw · P
   (Λ R. Λ c. λ ih. elimRawF · R
     · (λ s : RawF · R. P (inRaw (elimId · (RawF · R) · (RawF · Raw)
       (imapRaw · R · Raw c) s)))

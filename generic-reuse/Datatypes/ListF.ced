@@ -2,7 +2,6 @@ module ListF.
 
 import Id.
 import Sigma.
-import IIdMapping.
 
 data ListF (A : ★) (X : ★) : ★ =
   | nilLF : ListF

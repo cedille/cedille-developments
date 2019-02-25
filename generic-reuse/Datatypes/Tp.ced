@@ -1,7 +1,6 @@
 module Tp.
 
 import Id.
-import IIdMapping.
 import FixIndM.
 import TpF.
 import IFixM.
@@ -9,13 +8,13 @@ import Unit.
 import Bool.
 
 Tp ◂ ★ = FixIndM · TpF imapTp.
-Base ◂ Tp = inFixIndM · TpF -imapTp (BaseF · Tp).
-Arr ◂ Tp ➔ Tp ➔ Tp = λ A. λ B. inFixIndM · TpF -imapTp (ArrF · Tp A B).
+Base ◂ Tp = inIndM · TpF -imapTp (BaseF · Tp).
+Arr ◂ Tp ➔ Tp ➔ Tp = λ A. λ B. inIndM · TpF -imapTp (ArrF · Tp A B).
 
 elimTp ◂ ∀ P : Tp ➔ ★. P Base ➔ (Π A : Tp. P A ➔ Π B : Tp. P B ➔ P (Arr A B)) ➔ Π A : Tp. P A
-  = Λ P. λ pB. λ pA. indFixIndM · TpF -imapTp · P
+  = Λ P. λ pB. λ pA. inductionM · TpF -imapTp · P
   (Λ R. Λ c. λ ih. elimTpF · R
-    · (λ s : TpF · R. P (inFixIndM · TpF -imapTp (elimId · (TpF · R) · (TpF · Tp)
+    · (λ s : TpF · R. P (inIndM · TpF -imapTp (elimId · (TpF · R) · (TpF · Tp)
       (imapTp · R · Tp c) s)))
     pB
     (λ r1. λ r2. pA (elimId~ · R · Tp -c r1) (ih r1) (elimId~ · R · Tp -c r2) (ih r2))

@@ -2,27 +2,25 @@ module Vec.
 
 import Nat.
 import Id.
-import IIdMapping.
 import IFixIndM.
-import IInductionM.
 import VecF.
 import List.
 
 Vec ◂ ★ ➔ Nat ➔ ★ = λ A : ★. λ n : Nat. IFixIndM · Nat · (VecF · A) (imapV · A) n.
 nilV ◂ ∀ A : ★. Vec · A zero
-  = Λ A. iinFixIndM · Nat · (VecF · A) -(imapV · A) -zero
+  = Λ A. iinIndM · Nat · (VecF · A) -(imapV · A) -zero
   (nilVF · A · (Vec · A)).
 consV ◂ ∀ A : ★. ∀ n : Nat. A ➔ Vec · A n ➔ Vec · A (suc n)
-  = Λ A. Λ n. λ a. λ xs. iinFixIndM · Nat · (VecF · A) -(imapV · A) -(suc n)
+  = Λ A. Λ n. λ a. λ xs. iinIndM · Nat · (VecF · A) -(imapV · A) -(suc n)
   (consVF · A · (Vec · A) -n a xs).
 
 elimVec ◂ ∀ A : ★. ∀ P : Π n : Nat. Vec · A n ➔ ★.
   P zero (nilV · A) ➔
   (∀ n : Nat. Π a : A. Π xs : Vec · A n. P n xs ➔ P (suc n) (consV · A -n a xs)) ➔
   ∀ n : Nat. Π xs : Vec · A n. P n xs
-  = Λ A. Λ P. λ pN. λ pC. iindFixIndM · Nat · (VecF · A) -(imapV · A) · P
+  = Λ A. Λ P. λ pN. λ pC. iinductionM · Nat · (VecF · A) -(imapV · A) · P
   (Λ R. Λ c. λ ih. elimVecF · A · R
-    · (λ n : Nat. λ s : VecF · A · R n. P n (iinFixIndM · Nat · (VecF · A) -(imapV · A) -n
+    · (λ n : Nat. λ s : VecF · A · R n. P n (iinIndM · Nat · (VecF · A) -(imapV · A) -n
         (elimId · (VecF · A · R n) · (VecF · A · (Vec · A) n)
           (imapV · A · R · (Vec · A) c -n) s)
       ))

@@ -2,7 +2,6 @@ module VecF.
 
 import Nat.
 import Sigma.
-import IIdMapping.
 import Id.
 import IFixIndM.
 

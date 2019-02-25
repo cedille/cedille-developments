@@ -1,7 +1,6 @@
 module RawF.
 import Id.
 import Sigma.
-import IIdMapping.
 import Nat.
 import Tp.
 

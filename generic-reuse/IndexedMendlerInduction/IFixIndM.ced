@@ -1,62 +1,47 @@
-module IFixIndM.
-
 import Id.
-import IIdMapping.
-import IFixM.
-import Empty.
+module IFixIndM (I : ★) (F : (I ➔ ★) ➔ I ➔ ★) {imap : IIdMapping · I · F}.
+import Sigma.
+import IIdPlus · I.
+import IFixM · I · F.
 
+IPrfAlgM ◂ Π X : I ➔ ★. Π P : Π i : I. X i ➔ ★. Π alg : ∀ i : I. F · X i ➔ X i. ★
+  = λ X : I ➔ ★. λ P : Π i : I. X i ➔ ★. λ alg : ∀ i : I. F · X i ➔ X i.
+  ∀ R : I ➔ ★. ∀ c : ∀ i : I. Id · (R i) · (X i). 
+  Π ih : ∀ i : I. Π r : R i. P i (elimId (c -i) r).
+  ∀ i : I. Π rs : F · R i. P i (alg -i (elimId (imap c -i) rs)).
 
-IPrfAlgM ◂ Π I : ★. Π F : ((I ➔ ★) ➔ (I ➔ ★)). Π imap : IIdMapping · I · F. Π X : I ➔ ★. (Π i : I. X i ➔ ★) ➔
-   (∀ i : I. F · X i ➔ X i) ➔ ★ = 
-  λ I : ★. 
-  λ F : (I ➔ ★) ➔ (I ➔ ★).
-  λ imap : IIdMapping · I · F.
-  λ X : I ➔ ★.
-  λ Q : Π i : I. X i ➔ ★.
-  λ alg : ∀ i : I. F · X i ➔ X i. 
- ∀ R : I ➔ ★. ∀ c : ∀ i : I. Id · (R i) · (X i). 
- (∀ i : I. Π r : R i. Q i (elimId~ · (R i) · (X i) -(c -i) r)) ➔
- ∀ i : I. Π gr : F · R i.  Q i (alg -i (elimId~ · (F · R i) · (F · X i) -(imap · R · X  c -i) gr) ). 
+IInductiveM ◂ Π i : I. IFixM i ➔ ★ = λ i : I. λ x : IFixM i.
+  ∀ P : Π i : I. IFixM i ➔ ★.
+  IPrfAlgM · IFixM · P iinM ➔ P i x.
 
+IFixIndM ◂ I ➔ ★ = λ i : I. ι x : IFixM i. IInductiveM i x.
 
-IsIndFixM ◂ Π I : ★. Π F : ((I ➔ ★) ➔ (I ➔ ★)). Π imap : IIdMapping · I · F. Π i : I. IFixM · I · F i ➔ ★
- = λ I : ★. λ F : ((I ➔ ★) ➔ (I ➔ ★)). λ imap : IIdMapping · I · F. λ i : I. λ v : IFixM · I · F i. 
-  ∀ Q : Π i : I. IFixM · I · F i ➔ ★. IPrfAlgM · I · F imap · (IFixM · I · F) · Q (iinFixM · I · F) ➔ Q i v.
+iidDown ◂ ∀ i : I. Id · (IFixIndM i) · (IFixM i)
+  = Λ i. λ x. pair x.1 β.
+iimapDown ◂ ∀ i : I. Id · (F · IFixIndM i) · (F · IFixM i)
+  = Λ i. imap iidDown -i.
 
+iinIndM1 ◂ ∀ i : I. F · IFixIndM i  ➔ IFixM i
+  = Λ i. λ xs. iinM -i (elimId (iimapDown -i) xs).
+iinIndM2 ◂ ∀ i : I. Π xs : F · IFixIndM i. IInductiveM i (iinIndM1 -i xs)
+  = Λ i. λ xs. Λ P. λ c. c -iidDown (Λ i. λ x. x.2 c) -i xs.
 
-IFixIndM ◂ Π I : ★. Π F : ((I ➔ ★) ➔ (I ➔ ★)). Π imap : IIdMapping · I · F. I ➔ ★
- = λ I : ★. λ F : ((I ➔ ★) ➔ (I ➔ ★)). λ imap : IIdMapping · I · F. λ i : I.
- ι x : IFixM · I · F i. IsIndFixM · I · F imap i x.
+iinIndM ◂ ∀ i : I. F · IFixIndM i ➔ IFixIndM i
+  = Λ i. λ xs. [ iinIndM1 -i xs, iinIndM2 -i xs ].
 
+ilowerPrfAlg ◂ ∀ P : Π i : I. IFixIndM i ➔ ★.
+  IPrfAlgM · IFixIndM · P iinIndM ➔
+  IPrfAlgM · IFixM · (IIdPlusCod · IFixM · IFixIndM · P) iinM
+  = Λ P. λ alg. Λ R. Λ c. λ ih. Λ i. λ rs.
+  pair (iinIndM -i (elimId (imap (elimIIdPlusId -c ih) -i) rs))
+    (pair β (alg -(elimIIdPlusId -c ih) (elimIIdPlusIH -c ih) -i rs)).
 
-tc1 ◂ ∀ I : ★. ∀ F : ((I ➔ ★) ➔ (I ➔ ★)). ∀ imap : IIdMapping · I · F. 
- ∀ i : I. F · (IFixIndM · I · F imap) i  ➔ IFixM · I · F i
- = Λ I. Λ F. Λ imap. Λ i. λ v. iinFixM · I · F 
-  -i (elimId~ · (F · (IFixIndM · I · F imap) i) · (F · (IFixM · I · F) i) 
-   -(imap · (IFixIndM · I · F imap) · (IFixM · I · F) 
-   (Λ i. intrId · (IFixIndM · I · F imap i) · (IFixM · I · F i) (λ x. x.1) (λ _. β)) -i)  v)  .
+iinductionM ◂ ∀ P : Π i : I. IFixIndM i ➔ ★.
+  IPrfAlgM · IFixIndM · P iinIndM ➔
+  ∀ i : I. Π x : IFixIndM i. P i x
+  = Λ P. λ alg. Λ i. λ x.
+  proj2 (proj2 (x.2 (ilowerPrfAlg alg))).
 
-
-tc2 ◂ ∀ I : ★. ∀ F : ((I ➔ ★) ➔ (I ➔ ★)). ∀ imap : IIdMapping · I · F. 
- ∀ i : I. Π v : F · (IFixIndM · I · F imap) i.  IsIndFixM · I · F imap i (tc1 · I · F -imap -i v) = 
-  Λ I. Λ F. Λ imap. Λ i. λ v. 
- (Λ Q. λ q. 
-  (q · (IFixIndM · I · F imap) 
-  -(Λ i. intrId · (IFixIndM · I · F imap i) · (IFixM · I · F i)  (λ x. x.1) (λ z. β)) 
-   (Λ i. λ r. r.2 · Q q) -i v)).
-
-
--- the inverse is defined in IInduction.ced
-iinFixIndM ◂ ∀ I : ★. ∀ F : ((I ➔ ★) ➔ (I ➔ ★)). ∀ imap : IIdMapping · I · F. ∀ i : I.
- F · (IFixIndM · I · F imap) i ➔ IFixIndM · I · F imap i =
- Λ I. Λ F. Λ imap. Λ i. λ v. 
- [ tc1 · I · F -imap -i v, tc2 · I · F -imap -i v ].
-
-
-ifoldFixIndM ◂ ∀ I : ★. ∀ F : ((I ➔ ★) ➔ (I ➔ ★)). ∀ imap : IIdMapping · I · F.
-  ∀ C : I ➔ ★. IAlgM · I · F · C ➔ ∀ i : I. IFixIndM · I · F imap i ➔ C i
-  = Λ I. Λ F. Λ imap. Λ C. λ alg. Λ i. λ x.
-  ifoldFixM · I · F · C alg -i x.1.
-
-
-
+ifoldIndM ◂ ∀ C : I ➔ ★. IAlgM · C ➔ ∀ i : I. IFixIndM i ➔ C i
+  = Λ C. λ alg. Λ i. λ x.
+  ifoldM alg -i x.1.

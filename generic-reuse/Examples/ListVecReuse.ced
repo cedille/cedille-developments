@@ -1,7 +1,6 @@
 module ListVecReuse.
 import Unit.
 import Sigma.
-import IIdMapping.
 import Id.
 import FixIndM.
 import IFixIndM.

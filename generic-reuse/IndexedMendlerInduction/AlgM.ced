@@ -1,0 +1,6 @@
+import Id.
+module AlgM (F : ★ ➔ ★).
+
+AlgM ◂ ★ ➔ ★ = λ A : ★.
+  ∀ R : ★. (R ➔ A) ➔ F · R ➔ A.
+

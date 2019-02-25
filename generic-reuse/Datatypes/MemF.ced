@@ -3,7 +3,6 @@ module MemF.
 import List.
 import Sigma.
 import Product.
-import IIdMapping.
 import Id.
 import IFixIndM.
 

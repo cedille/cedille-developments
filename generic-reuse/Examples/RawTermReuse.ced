@@ -1,5 +1,4 @@
 import Sigma.
-import IIdMapping.
 import Eq as Q.
 import Id.
 import FixIndM.

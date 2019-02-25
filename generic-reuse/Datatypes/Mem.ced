@@ -3,21 +3,19 @@ module Mem.
 import List.
 import Product.
 import Sigma.
-import Id.
-import IIdMapping.
 import IFixIndM.
-import IInductionM.
+import Id.
 import MemF.
 import Nat.
 
 Mem ◂ Π A : ★. Π x : A. List · A ➔ ★ =
   λ A : ★. λ x : A. IFixIndM · (List · A) · (MemF · A x) (imapMem · A -x).
 here ◂ ∀ A : ★. ∀ x : A. ∀ xs : List · A. Mem · A x (consL · A x xs)
-  = Λ A. Λ x. Λ xs. iinFixIndM · (List · A) · (MemF · A x)
+  = Λ A. Λ x. Λ xs. iinIndM · (List · A) · (MemF · A x)
   -(imapMem · A -x) -(consL · A x xs)
   (hereF · A -x · (Mem · A x) -xs).
 there ◂ ∀ A : ★. ∀ x : A. ∀ y : A. ∀ xs : List · A. Mem · A x xs ➔ Mem · A x (consL · A y xs)
-  = Λ A. Λ x. Λ y. Λ xs. λ i. iinFixIndM · (List · A) · (MemF · A x)
+  = Λ A. Λ x. Λ y. Λ xs. λ i. iinIndM · (List · A) · (MemF · A x)
   -(imapMem · A -x) -(consL · A y xs)
   (thereF · A -x · (Mem · A x) -y -xs i).
 
@@ -26,11 +24,11 @@ elimMem ◂ ∀ A : ★. ∀ x : A. ∀ P : Π xs : List · A. Mem · A x xs ➔
   Π pT : ∀ y : A. ∀ xs : List · A. Π i : Mem · A x xs.
     P xs i ➔ P (consL · A y xs) (there · A -x -y -xs i).
   ∀ xs : List · A. Π i : Mem · A x xs. P xs i
-  = Λ A. Λ x. Λ P. λ pH. λ pT. iindFixIndM
+  = Λ A. Λ x. Λ P. λ pH. λ pT. iinductionM
   · (List · A) · (MemF · A x) -(imapMem · A -x) · P
   (Λ R. Λ c. λ ih. elimMemF · A -x · R
     · (λ xs : List · A. λ s : MemF · A x · R xs. P xs
-      (iinFixIndM · (List · A) · (MemF · A x) -(imapMem · A -x) -xs
+      (iinIndM · (List · A) · (MemF · A x) -(imapMem · A -x) -xs
         (elimId · (MemF · A x · R xs) · (MemF · A x · (Mem · A x) xs)
           (imapMem · A -x · R · (Mem · A x) c -xs) s)
       ))

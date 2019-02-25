@@ -44,3 +44,12 @@ intrId ◂ ∀ X : ★. ∀ Y : ★. Π f : X ➔ Y. (Π z : X. {f z ≃ z}) ➔
 pairId ◂ ∀ A : ★. ∀ B : ★. ∀ a : A.
   Π b : B. { b ≃ a } ➔ IdCod · A · B a
   = Λ A. Λ B. pairIdDep · A · (λ a : A. B) .
+
+IdMapping ◂ (★ ➔ ★) ➔ ★ = λ F : ★ ➔ ★.
+  ∀ X : ★. ∀ Y : ★. Id · X · Y ➔ Id · (F · X) · (F · Y).
+
+IIdMapping ◂ Π I : ★. Π F : (I ➔ ★) ➔ I ➔ ★. ★ =
+  λ I : ★. λ F : (I ➔ ★) ➔ I ➔ ★.
+  ∀ X : I ➔ ★. ∀ Y : I ➔ ★.
+  (∀ i : I. Id · (X i) · (Y i)) ➔
+  ∀ i : I. Id · (F · X i) · (F · Y i).

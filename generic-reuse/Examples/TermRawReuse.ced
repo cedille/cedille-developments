@@ -1,6 +1,5 @@
 module TermRawReuse.
 import Sigma.
-import IIdMapping.
 import Id.
 import FixIndM.
 import IFixIndM.

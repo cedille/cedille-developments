@@ -2,7 +2,6 @@ module NatF.
 
 import Id.
 import Sigma.
-import IIdMapping.
 
 data NatF (X : ★) : ★ =
   | zeroF : NatF
