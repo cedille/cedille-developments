@@ -4,29 +4,15 @@ import Id.
 import Sigma.
 import IIdMapping.
 
-ListFC ◂ ★ ➔ ★ ➔ ★ = λ A : ★. λ X : ★.  ∀ C : ★. C ➔ (A ➔ X ➔ C) ➔ C.
-nilLFC ◂ ∀ A : ★. ∀ X : ★. ListFC · A · X
-  = Λ A. Λ X. Λ C. λ cN. λ cC. cN.
-consLFC ◂ ∀ A : ★. ∀ X : ★. A ➔ X ➔ ListFC · A · X
-  = Λ A. Λ X. λ a. λ x. Λ C. λ cN. λ cC. cC a x .
-
-ListFI ◂ Π A : ★. Π X : ★. ListFC · A · X ➔ ★ 
-  = λ A : ★. λ X :  ★. λ s : ListFC · A · X. ∀ P : ListFC · A · X ➔ ★. 
-  P (nilLFC · A · X) ➔ (Π a : A. Π x : X. P (consLFC · A · X a x)) ➔ P s.
-ListF ◂ ★ ➔ ★ ➔ ★ = λ A : ★. λ X : ★. ι s : ListFC · A · X. ListFI · A · X s.
-nilLF ◂ ∀ A : ★. ∀ X : ★. ListF · A · X
-  = Λ A. Λ X. [nilLFC · A · X, Λ A. λ pN. λ pC. pN].
-consLF ◂ ∀ A : ★. ∀ X : ★. A ➔ X ➔ ListF · A · X
-  = Λ A. Λ X. λ a. λ x. [consLFC · A · X a x, Λ P. λ pN. λ pC. pC a x].
+data ListF (A : ★) (X : ★) : ★ =
+  | nilLF : ListF
+  | consLF : A ➔ X ➔ ListF.
 
 elimListF ◂ ∀ A : ★. ∀ X : ★. ∀ P : ListF · A · X ➔ ★.
-  P (nilLF · A · X) ➔ (Π a : A. Π x : X. P (consLF · A · X a x)) ➔
+  P (nilLF · A · X) ➔ (Π a : A. Π x : X. P (consLF a x)) ➔
   Π s : ListF · A · X. P s
-  = Λ A. Λ X. Λ P. λ pN. λ pC. λ s. s.2 · (λ sC : ListFC · A · X.
-  ∀ C : ★. (Π s' : ListF · A · X . {sC ≃ s'} ➾ P s' ➔ C) ➔ C) 
-  (Λ C. λ p. p (nilLF · A · X) -β pN)
-  (λ a. λ x. Λ C. λ p. p (consLF · A · X a x) -β (pC a x))
-  · (P s) (λ s'. Λ q. λ p. ρ q - p).
+  = Λ A. Λ X. Λ P. λ pN. λ pC. λ s.
+  μ' s @ P { nilLF ➔ pN | consLF a x ➔ pC a x }.
 foldListF ◂ ∀ A : ★. ∀ X : ★. ∀ C : ★.
   C ➔ (A ➔ X ➔ C) ➔ ListF · A · X ➔ C
   = Λ A. Λ X. Λ C. elimListF · A · X · (λ s : ListF · A · X. C).
@@ -34,7 +20,6 @@ foldListF ◂ ∀ A : ★. ∀ X : ★. ∀ C : ★.
 imapL ◂ ∀ A : ★. IdMapping · (ListF · A) 
   = Λ A. Λ X. Λ Y. λ c. elimListF · A · X
   · (λ s : ListF · A · X. IdCod · (ListF · A · X) · (ListF · A · Y) s)
-  (pairId · (ListF · A · X) · (ListF · A · Y) -(nilLF · A · X) (nilLF · A · Y) β)
-  (λ a. λ x. pairId · (ListF · A · X) · (ListF · A · Y)
-    -(consLF · A · X a x) (consLF · A · Y a (elimId · X · Y c x)) β).
+  (pairId -(nilLF · A · X) (nilLF · A · Y) β)
+  (λ a. λ x. pairId -(consLF a x) (consLF a (elimId c x)) β).
 

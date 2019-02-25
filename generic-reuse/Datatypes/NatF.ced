@@ -4,29 +4,15 @@ import Id.
 import Sigma.
 import IIdMapping.
 
-NatFC ◂ ★ ➔ ★ = λ X : ★. ∀ C : ★. C ➔ (X ➔ C) ➔ C.
-zeroFC ◂ ∀ X : ★. NatFC · X
- = Λ X. Λ C. λ cZ. λ cS. cZ.
-sucFC ◂ ∀ X : ★. X ➔ NatFC · X
- = Λ X. λ x. Λ C. λ cZ. λ cS. cS x .
-
-NatFI ◂ Π X : ★. NatFC · X ➔ ★ 
- = λ X : ★. λ s : NatFC · X. ∀ P : NatFC · X ➔ ★. 
- P (zeroFC · X) ➔ (Π x : X. P (sucFC · X x)) ➔ P s.
-NatF ◂ ★ ➔ ★ = λ X : ★. ι s : NatFC · X. NatFI · X s.
-zeroF ◂ ∀ X : ★. NatF · X
- = Λ X. [zeroFC · X, Λ P. λ pZ. λ pS. pZ].
-sucF ◂ ∀ X : ★. X ➔ NatF · X
- = Λ X. λ x. [sucFC · X x, Λ P. λ pZ. λ pS. pS x].
+data NatF (X : ★) : ★ =
+  | zeroF : NatF
+  | sucF : X ➔ NatF.
 
 elimNatF ◂ ∀ X : ★. ∀ P : NatF · X ➔ ★.
- P (zeroF · X) ➔ (Π x : X. P (sucF · X x)) ➔
- Π s : NatF · X. P s
- = Λ X. Λ P. λ pZ. λ pS. λ s. s.2 · (λ sC : NatFC · X.
- ∀ C : ★. (Π s' : NatF · X . {sC ≃ s'} ➾ P s' ➔ C) ➔ C) 
- (Λ C. λ p. p (zeroF · X) -β pZ)
- (λ x. Λ C. λ p. p (sucF · X x) -β (pS x))
- · (P s) (λ s'. Λ q. λ p. ρ q - p).
+  P (zeroF · X) ➔ (Π x : X. P (sucF x)) ➔
+  Π s : NatF · X. P s
+  = Λ X. Λ P. λ pZ. λ pS. λ s.
+  μ' s @ P { zeroF ➔ pZ | sucF x ➔ pS x }.
 foldNatF ◂ ∀ X : ★. ∀ C : ★.
  C ➔ (X ➔ C) ➔ NatF · X ➔ C
  = Λ X. Λ C. elimNatF · X · (λ s : NatF · X. C).
@@ -34,7 +20,6 @@ foldNatF ◂ ∀ X : ★. ∀ C : ★.
 imapN ◂ IdMapping · (NatF) 
  = Λ X. Λ Y. λ c. elimNatF · X
  · (λ s : NatF · X. IdCod · (NatF · X) · (NatF · Y) s)
- (pairId · (NatF · X) · (NatF · Y) -(zeroF · X) (zeroF · Y) β)
- (λ x. pairId · (NatF · X) · (NatF · Y)
-  -(sucF · X x) (sucF · Y (elimId · X · Y c x)) β).
+ (pairId -(zeroF · X) (zeroF · Y) β)
+ (λ x. pairId -(sucF · X x) (sucF · Y (elimId · X · Y c x)) β).
 
