@@ -18,11 +18,9 @@ IFixIndM ◂ I ➔ ★ = λ i : I. ι x : IFixM i. IInductiveM i x.
 
 iidDown ◂ ∀ i : I. Id · (IFixIndM i) · (IFixM i)
   = Λ i. λ x. pair x.1 β.
-iimapDown ◂ ∀ i : I. Id · (F · IFixIndM i) · (F · IFixM i)
-  = Λ i. imap iidDown -i.
 
 iinIndM1 ◂ ∀ i : I. F · IFixIndM i  ➔ IFixM i
-  = Λ i. λ xs. iinM -i (elimId (iimapDown -i) xs).
+  = Λ i. λ xs. iinM -i (elimId~ -(imap iidDown -i) xs).
 iinIndM2 ◂ ∀ i : I. Π xs : F · IFixIndM i. IInductiveM i (iinIndM1 -i xs)
   = Λ i. λ xs. Λ P. λ c. c -iidDown (Λ i. λ x. x.2 c) -i xs.
 
@@ -33,7 +31,7 @@ ilowerPrfAlg ◂ ∀ P : Π i : I. IFixIndM i ➔ ★.
   IPrfAlgM · IFixIndM · P iinIndM ➔
   IPrfAlgM · IFixM · (IIdPlusCod · IFixM · IFixIndM · P) iinM
   = Λ P. λ alg. Λ R. Λ c. λ ih. Λ i. λ rs.
-  pair (iinIndM -i (elimId (imap (elimIIdPlusId -c ih) -i) rs))
+  pair (iinIndM -i (elimId~ -(imap (elimIIdPlusId -c ih) -i) rs))
     (pair β (alg -(elimIIdPlusId -c ih) (elimIIdPlusIH -c ih) -i rs)).
 
 iinductionM ◂ ∀ P : Π i : I. IFixIndM i ➔ ★.
