@@ -1,0 +1,29 @@
+import natFunctor.
+
+module NatS.
+
+import scott as S ·NatF NatFmap -NatFmapId -NatFmapCompose.
+
+opaque NatS ◂ ★ = S.S.
+
+opaque Z ◂ NatS
+= open NatS - S.in (in1 unit).
+
+opaque S ◂ NatS ➔ NatS
+= λ n. open NatS - S.in (in2 n).
+
+natSCase ◂ NatS ➔ ∀ X: ★. X ➔ (NatS ➔ X) ➔ X
+= open NatS - λ n. Λ X. λ z. λ s.
+  (S.unfoldS n).1.1 (λ d. rec-Sum d (λ _. z) (λ p. s p)).
+
+predS : NatS ➔ NatS
+= λ n. natSCase n n (λ n. n).
+
+natSInd : ∀ P: NatS ➔ ★. P Z ➔ (Π n: NatS. P (S n)) ➔ Π n: NatS. P n
+= open NatS - open Z - open S -
+  Λ P. λ z. λ s. λ n.
+  S.inductionS ·P
+    (λ fn. ind-Sum fn ·(λ x: NatF ·NatS. P (S.in x))
+             (λ a. ρ (eta-Unit a) - z)
+             (λ m. s m))
+    n.
