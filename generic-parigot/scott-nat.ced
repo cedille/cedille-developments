@@ -11,17 +11,17 @@ zeroF ◂ ∀ R : ★. NatF · R =
 sucF ◂ ∀ R : ★. R ➔ NatF ·R =
   Λ R. λ r. Λ X. λ z. λ s. s r.
 
-MonoNatF ◂ RecFunctor · NatF = Λ X. Λ Y. λ c.
-  caste (λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
+MonoNatF ◂ Mono · NatF = Λ X. Λ Y. λ c.
+  caste -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
 
 NatFI ◂ ★ ➔ ★ = λ R : ★.
   ι x : NatF · R. ∀ P : NatF · R ➔ ★.
     P (zeroF · R) ➔ (Π r : R. ∀ n : NatF · R. {n ≃ r} ➾ P n ➾ P (sucF r)) ➔
     P x.
 
-MonoNatFI ◂ RecFunctor · NatFI = Λ R1. Λ R2. λ c.
+MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
   caste
-    (λ n.
+    -(λ n.
        [ cast -(MonoNatF c) n.1
        , Λ P. λ z. λ s.
          n.2 · (λ x : NatF · R1. P (cast -(MonoNatF c) x)) z
@@ -79,7 +79,7 @@ toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n}
 
 toNatR! ◂ Cast · Nat · NatR
 = caste
-    (λ n. φ (toNatR n).2 - (toNatR n).1 {n} )
+    -(λ n. φ (toNatR n).2 - (toNatR n).1 {n} )
     -(λ _. β).
 
 recNatBase ◂ ∀ P : ★. P ➔ NatRZ · P
