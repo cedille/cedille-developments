@@ -1,6 +1,6 @@
 import functor.
 
-module FunctorThms(F : ★ ➔ ★)(fmap : Fmap · F)(fmapId : FmapId · F fmap) .
+module FunctorThms(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap} .
 
 import cast.
 import recType.

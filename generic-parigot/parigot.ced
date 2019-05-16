@@ -16,7 +16,7 @@ module Parigot(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fma
 
 import recType.
 import cast.
-import functorThms · F fmap fmapId.
+import functorThms · F fmap -fmapId.
 import public sigma.
 import top.
 
