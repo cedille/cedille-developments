@@ -5,5 +5,5 @@ module FunctorThms(F : ★ ➔ ★)(fmap : Fmap · F)(fmapId : FmapId · F fmap)
 import cast.
 import recType.
 
-FunctorMono ◂ RecFunctor · F =
-  Λ X . Λ Y . λ c . caste (λ d . fmap c.1 d) -(λ a . ρ (fmapId · X · Y -c.1 -(Λ x . ρ c.2 - β) a) - β).
+Mono-from-Functor ◂ Mono · F =
+  Λ X . Λ Y . λ c . caste -(λ d . fmap c.1 d) -(λ a . ρ (fmapId · X · Y -c.1 -(Λ x . ρ c.2 - β) a) - β).

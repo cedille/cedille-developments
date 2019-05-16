@@ -1,9 +1,8 @@
 module RecType(F : ★ ➔ ★).
 
-import top.
 import cast.
 
-RecFunctor ◂ ★ =
+Mono ◂ ★ =
   ∀ X : ★ . ∀ Y : ★ . Cast · X · Y ➔ Cast · (F · X) · (F · Y) .
 
 Rec ◂ ★ = ∀ X : ★ . Cast · (F · X) · X ➾ X . 
@@ -11,20 +10,14 @@ Rec ◂ ★ = ∀ X : ★ . Cast · (F · X) · X ➾ X .
 recCast ◂ ∀ X : ★ . Cast · (F · X) · X ➾ Cast · Rec · X =
   Λ X . Λ c . [ λ d . d · X -c , β ].
 
-recIn ◂ RecFunctor ➾ Cast · (F · Rec) · Rec =
-  Λ fmap . 
+recFold ◂ Mono ➾ Cast · (F · Rec) · Rec =
+  Λ mono . 
     [ λ x . Λ X . Λ c .
-      cast -c (cast -(fmap (recCast -c)) x),
+      cast -c (cast -(mono (recCast -c)) x),
       β ].
 
-recOut ◂ RecFunctor ➾ Cast · Rec · (F · Rec) =
-  Λ fmap . [λ x . x -(fmap (recIn -fmap)) , β ].
+recUnfold ◂ Mono ➾ Cast · Rec · (F · Rec) =
+  Λ mono . [λ x . x -(mono (recFold -mono)) , β ].
 
-recFold ◂ RecFunctor ➾ Cast · (F · Rec) · Rec = recIn .
-recUnfold ◂ RecFunctor ➾ Cast · Rec · (F · Rec) = recOut .
-
-recIso1 ◂ ∀ a : Top . {recFold (recUnfold a) ≃ a} = Λ a . β.
-recIso2 ◂ ∀ a : Top . {recUnfold (recFold a) ≃ a} = Λ a . β.
-
-recFmap ◂ ∀ X: ★. ∀ Y: ★. RecFunctor ➾ Cast · X · Y ➾ F · X ➔ F · Y =
-  Λ X . Λ Y . Λ f . Λ c . cast -(f c).
+recIso1 ◂ { λ a . recFold (recUnfold a) ≃ λ a . a} = β.
+recIso2 ◂ { λ a . recUnfold (recFold a) ≃ λ a . a} = β.
