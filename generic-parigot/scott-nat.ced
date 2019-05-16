@@ -1,0 +1,108 @@
+module scott-nat.
+
+import recType.
+import cast.
+
+NatF ◂ ★ ➔ ★ = λ R : ★. ∀ X : ★. X ➔ (R ➔ X) ➔ X.
+
+zeroF ◂ ∀ R : ★. NatF · R =
+  Λ R . Λ X . λ z . λ s . z.
+
+sucF ◂ ∀ R : ★. R ➔ NatF ·R =
+  Λ R. λ r. Λ X. λ z. λ s. s r.
+
+MonoNatF ◂ RecFunctor · NatF = Λ X. Λ Y. λ c.
+  caste (λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
+
+NatFI ◂ ★ ➔ ★ = λ R : ★.
+  ι x : NatF · R. ∀ P : NatF · R ➔ ★.
+    P (zeroF · R) ➔ (Π r : R. ∀ n : NatF · R. {n ≃ r} ➾ P n ➾ P (sucF r)) ➔
+    P x.
+
+MonoNatFI ◂ RecFunctor · NatFI = Λ R1. Λ R2. λ c.
+  caste
+    (λ n.
+       [ cast -(MonoNatF c) n.1
+       , Λ P. λ z. λ s.
+         n.2 · (λ x : NatF · R1. P (cast -(MonoNatF c) x)) z
+           (λ r. Λ n'. Λ eq. Λ pf.
+             s (cast -c r) -(cast -(MonoNatF c) n') -eq -pf)])
+    -(λ _. β).
+
+Nat ◂ ★ = Rec · NatFI.
+
+foldNat   = cast -(recFold -MonoNatFI).
+unfoldNat = cast -(recUnfold -MonoNatFI).
+
+LiftNat ◂ (Nat ➔ ★) ➔ Π R : ★. Cast · R · Nat ➔ NatF · R ➔ ★ =
+  λ P : Nat ➔ ★. λ R : ★. λ c : Cast · R · Nat. λ x : NatF · R.
+  ∀ m : NatFI · R. ∀ eq : {m ≃ x}. P (foldNat (φ eq - (cast -(MonoNatFI c) m) {x})).
+
+zero ◂ Nat = foldNat [ zeroF · Nat , Λ P. λ z. λ s. z].
+
+suc ◂ Nat ➔ Nat = λ n.
+  foldNat [ sucF n , Λ P. λ z. λ s. s n -(unfoldNat n).1 -β -((unfoldNat n).2 z s) ].
+
+pred ◂ Nat ➔ Nat
+= λ n. (unfoldNat n).1 n (λ p. p).
+
+inductionNat ◂ Π n : Nat. ∀ P : Nat ➔ ★. P zero ➔ (Π m : Nat. P m ➾ P (suc m)) ➔ P n
+= λ n. Λ P. λ z. λ s.
+  (unfoldNat n).2 · (LiftNat · P · Nat (castId · Nat))
+    (Λ _. Λ _. z)
+    (λ r. Λ n'. Λ eqr. Λ ih. Λ m. Λ eqm. s r -(ρ ς eqr - ih -(unfoldNat r) -(ς eqr)))
+    -(unfoldNat n) -β.
+
+caseNat ◂ Nat ➔ ∀ X : ★. X ➔ (Nat ➔ X) ➔ X
+= λ n. Λ X. λ z. λ s. (unfoldNat n).1 z s.
+
+-- Scott Nat recursor
+-- ==================================================
+
+NatRZ ◂ ★ ➔ ★ = λ X : ★. ∀ S : ★. S ➔ Nat ➔ X.
+
+NatRS ◂ ★ ➔ ★ = λ X : ★. ∀ S : ★. (NatRZ · X ➔ S ➔ S ➔ Nat ➔ X) ➔ S ➔ Nat ➔ X.
+
+NatR ◂ ★ = ∀ P : ★. NatRZ · P ➔ NatRS · P ➔ NatRS · P ➔ Nat ➔ P.
+
+zeroR ◂ NatR
+= Λ P. λ z. λ s. λ t. λ m. z t m.
+
+sucR ◂ NatR ➔ NatR
+= λ n. Λ P. λ z. λ s. λ t. λ m. s (n · P) t m.
+
+toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n}
+= λ n.
+  inductionNat n · (λ y : Nat. ι x : NatR. {x ≃ y})
+    [zeroR , β{zero}]
+    (λ m. Λ r. [ sucR (φ r.2 - r.1 {m} ) , β{suc m} ]).
+
+toNatR! ◂ Cast · Nat · NatR
+= caste
+    (λ n. φ (toNatR n).2 - (toNatR n).1 {n} )
+    -(λ _. β).
+
+recNatBase ◂ ∀ P : ★. P ➔ NatRZ · P
+= Λ P. λ p. Λ Y. λ y. λ m. p.
+
+recNatStep ◂ ∀ P : ★. P ➔ (Nat ➔ P ➔ P) ➔ NatRS · P
+= Λ P. λ p. λ f. Λ Y. λ g. λ y. λ m.
+  f (pred m) (g (recNatBase p) y y (pred m)).
+
+recNat ◂ ∀ P : ★. Nat ➔ P ➔ (Nat ➔ P ➔ P) ➔ P
+= Λ P. λ n. λ p. λ f.
+  (cast -toNatR! n) (recNatBase p) (recNatStep p f) (recNatStep p f) n.
+
+-- example:
+
+add ◂ Nat ➔ Nat ➔ Nat
+= λ m. λ n. recNat m n (λ m. λ s. suc s).
+
+num2 = suc (suc zero).
+
+_ ◂ {add num2 num2 ≃ suc (suc num2)} = β.
+
+minus ◂ Nat ➔ Nat ➔ Nat
+= λ m. λ n. recNat n m (λ _. λ m. pred m).
+
+_ ◂ {minus (suc (add num2 num2)) (suc num2) ≃ num2} = β.
