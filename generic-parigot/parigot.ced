@@ -28,10 +28,10 @@ Alg ◂ ★ ➔ ★ ➔ ★ = λ C : ★ . λ X : ★ . F · (Pair · C · X) �
   
 CF ◂ ★ ➔ ★ = λ C : ★ . ι c : ∀ X : ★ . Alg · C · X ➔ X. { toDU c ≃ c } .
 
-MonoCF ◂ RecFunctor · CF =
+MonoCF ◂ Mono · CF =
   Λ X . Λ Y . λ c .
-    [ λ d . [ Λ Z . λ a . d.1 · Z (λ fxz . a (cast -(FunctorMono · (Pair · X · Z) · (Pair · Y · Z)
-                                                   (caste (λ p . mkpair (cast -c (fst p)) (snd p)) -
+    [ λ d . [ Λ Z . λ a . d.1 · Z (λ fxz . a (cast -(Mono-from-Functor · (Pair · X · Z) · (Pair · Y · Z)
+                                                   (caste -(λ p . mkpair (cast -c (fst p)) (snd p)) -
                                                    (λ p . θ<p> (ind-pair p) (λ a . λ b . β)))) fxz)) , d.2],
                                                   β].
 
@@ -76,7 +76,7 @@ toD ◂ C ➔ D =
 reflection ◂ Π c : C . { toD c ≃ c } =
   λ c .  (unfoldC c).2 .
 
-castToD ◂ Cast · C · D = caste toD -reflection.
+castToD ◂ Cast · C · D = caste -toD -reflection.
 
 Induction ◂ Π x : C . Inductive x = λ x . (cast -castToD x).2.
 

@@ -20,10 +20,10 @@ AlgS ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F ·C ➔ X.
 SF ◂ ★ ➔ ★
 = λ C: ★. ι c: ∀ X: ★. AlgS ·C ·X ➔ X. {toSU c ≃ c}.
 
-MonoSF ◂ RecFunctor ·SF
+MonoSF ◂ Mono ·SF
 = Λ X. Λ Y. λ c.
   [ λ d. [ Λ Z. λ a.
-           [b : AlgS ·X ·Z = λ fc. a (cast -(FunctorMono c) fc)]
+           [b : AlgS ·X ·Z = λ fc. a (cast -(Mono-from-Functor c) fc)]
          - d.1 ·Z b
          , d.2 ]
   , β ].
@@ -37,12 +37,12 @@ PrfAlg ◂ Π C: ★. (SF ·C ➔ ★) ➔ ★
 TF ◂ ★ ➔ ★
 = λ C: ★. ι x: SF ·C. ∀ P: SF ·C ➔ ★. PrfAlg ·C ·P ➔ P x.
 
-MonoTF ◂ RecFunctor ·TF
+MonoTF ◂ Mono ·TF
 = Λ X. Λ Y. λ c.
   [ λ d. [ cast -(MonoSF c) d.1
          , Λ P. λ a.
            d.2 ·(λ x: SF ·X. P (cast -(MonoSF c) x))
-             (λ e. a (cast -(FunctorMono c) e))]
+             (λ e. a (cast -(Mono-from-Functor c) e))]
   , β ].
 
 S ◂ ★ = Rec ·TF.
