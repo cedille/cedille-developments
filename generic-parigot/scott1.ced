@@ -1,0 +1,48 @@
+import functor.
+
+module Scott
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId : FmapId· F fmap} {fmapCompose: FmapCompose ·F fmap}.
+
+import recType.
+import cast.
+import functorThms ·F fmap -fmapId.
+
+-- degenerate algebra
+AlgS ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F ·C ➔ X.
+
+SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. AlgS ·C ·X ➔ X.
+
+MonoSF ◂ Mono ·SF = Λ X. Λ Y. λ c.
+  [ λ d. Λ Z. λ a. d ·Z (λ fc. a (cast -(Mono-from-Functor c) fc))
+  , β ].
+
+inSF : ∀ C: ★. F ·C ➔ SF ·C
+= Λ C. λ fc. Λ X. λ a. a fc.
+
+PrfAlg ◂ Π C: ★. (SF ·C ➔ ★) ➔ ★
+= λ C: ★. λ P: SF ·C ➔ ★. Π d: F ·C. P (inSF d).
+
+TF ◂ ★ ➔ ★
+= λ C: ★. ι x: SF ·C. ∀ P: SF ·C ➔ ★. PrfAlg ·C ·P ➔ P x.
+
+MonoTF ◂ Mono ·TF
+= Λ X. Λ Y. λ c.
+  [ λ d. [ cast -(MonoSF c) d.1
+         , Λ P. λ a. d.2 ·(λ x: SF ·X. P (cast -(MonoSF c) x))
+             (λ e. a (cast -(Mono-from-Functor c) e))] , β ].
+
+S ◂ ★ = Rec ·TF.
+
+foldS   ◂ TF ·S ➔ S = cast -(recFold -MonoTF).
+unfoldS ◂ S ➔ TF ·S = cast -(recUnfold -MonoTF).
+
+in ◂ F ·S ➔ S = λ d. foldS [ Λ X. λ a. a d , Λ P. λ a. a d ].
+
+out ◂ S ➔ F ·S = λ d. (unfoldS d).1 (λ x. x).
+
+LiftS : (S ➔ ★) ➔ SF · S ➔ ★ = λ P: S ➔ ★. λ x: SF · S.
+  ∀ s: S. ∀ eq: {s ≃ x}. P (φ eq - s {x}).
+
+inductionS : ∀ P: S ➔ ★. (Π fs: F ·S. P (in fs)) ➔ Π d: S. P d = Λ P. λ ih. λ d.
+  (unfoldS d).2 ·(LiftS ·P) (λ fd. Λ _. Λ _. ih fd) -d -β.
