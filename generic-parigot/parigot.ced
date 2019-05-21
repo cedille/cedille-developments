@@ -16,7 +16,7 @@ module Parigot(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fma
 
 import recType.
 import cast.
-import functorThms · F fmap -fmapId.
+import functorThms · F fmap -fmapId -fmapCompose.
 import public sigma.
 import top.
 
@@ -25,7 +25,7 @@ inAlgU ◂ Top = β{λ d . inU (fmap snd d) }.
 toDU ◂ Top = β{λ c . c inAlgU}.
 
 Alg ◂ ★ ➔ ★ ➔ ★ = λ C : ★ . λ X : ★ . F · (Pair · C · X) ➔ X .
-  
+
 CF ◂ ★ ➔ ★ = λ C : ★ . ι c : ∀ X : ★ . Alg · C · X ➔ X. { toDU c ≃ c } .
 
 MonoCF ◂ Mono · CF =

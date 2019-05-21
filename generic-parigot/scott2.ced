@@ -1,13 +1,13 @@
 {- Scott-encoded inductive datatypes.
 
+
    This development is generic in a functor.
 
    The interface you should use is:
 
-   C         - the inductive type
+   S         - the inductive type
    in/out    - constructing/destructing data of type C
    Induction - dependent elimination on C
-   Recursion - non-dependent elimination on C (special case of Induction, provided for convenience)
    -}
 
 import functor.
@@ -16,21 +16,16 @@ module Scott(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fmapC
 
 import recType.
 import cast.
-import functorThms · F fmap -fmapId.
+import functorThms · F fmap -fmapId -fmapCompose.
 import wksigma.
 import top.
-
-fmapWrapUnwrap : ∀ X: ★. ∀ fx: F · X. {fmap unwrap (fmap wrap fx) ≃ fx} =
-  Λ X. Λ fx. ρ+ (fmapCompose -(unwrap · X) -(wrap · X) fx)
-             - ρ+ (fmapId ·X ·Top -(λ s. β{unwrap (wrap s)}) -(Λ x. β) fx)
-             - β.
 
 AlgS ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F · (Wrap · C) ➔ X.
 
 SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. AlgS · C · X ➔ X.
 
 MonoSF ◂ Mono · SF = Λ X. Λ Y. λ c.
-  [λ d. Λ Z. λ a. d (λ df. a (cast -(Mono-from-Functor (castWrap c)) df)) , β ].
+  [λ d. Λ Z. λ a. d (λ df. a (fmap-cast (castWrap c) df)) , β ].
 
 preIn ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc.
   Λ X. λ a. a (fmap (wrap · C) fc).
@@ -49,38 +44,39 @@ TF ◂ ★ ➔ ★ = λ C: ★. ι x: SF · C. ∀ P: SF · C ➔ ★. PrfAlgS �
 
 MonoPreS : Mono · PreS = Λ X. Λ Y. λ c. [ λ x. [ cast -c x.1 , cast -(MonoSF c) x.2] , β ].
 
-MonoPreSPlus : ∀ X: ★. ∀ Y: ★. ∀ P: SF · Y ➔ ★. Π c: Cast · X · Y.
-  Cast ·(PreSPlus · X · (λ x: SF · X. P (cast -(MonoSF c) x))) · (PreSPlus · Y · P)
-= Λ X. Λ Y. Λ P. λ c. caste
+MonoPreSPlus : ∀ X: ★. ∀ Y: ★. Π c: Cast · X · Y. ∀ P: SF · Y ➔ ★.
+  Cast ·(PreSPlus · X · (λ x: SF · X. P (cast -(MonoSF c) x))) · (PreSPlus · Y · P) =
+  Λ X. Λ Y. λ c. Λ P. caste
     -(λ x. rec-wksigma x (λ a. Λ p. mkwksigma (cast -(MonoPreS c) a) -p))
     -(λ x. θ<x> (ind-wksigma x) (λ a. Λ p. β)).
 
 MonoTF ◂ Mono · TF = Λ X. Λ Y. λ c. caste
   -(λ t. [ cast -(MonoSF c) t.1
          , Λ P. λ a. t.2 ·(λ s: SF · X. P (cast -(MonoSF c) s))
-                       (λ tf. a (cast -(Mono-from-Functor (MonoPreSPlus ·X ·Y ·P c)) tf)) ])
+                       (λ tf. a (cast -(Mono-from-Functor (MonoPreSPlus c ·P)) tf)) ])
   -(λ _. β).
 
 S ◂ ★ = Rec · TF.
 foldS   ◂ TF · S ➔ S = cast -(recFold -MonoTF).
 unfoldS ◂ S ➔ TF · S = cast -(recUnfold -MonoTF).
 
-in ◂ F · S ➔ S = λ d. foldS [ preIn · S d ,
-  Λ P. λ a. ρ+ ς (fmapWrapUnwrap -d)
-  - a (fmap · S · (PreSPlus · S · P) (λ s. mkwksigma [ s, (unfoldS s).1 ] -((unfoldS s).2 a)) d) ].
+in ◂ F · S ➔ S = λ d. foldS [ preIn · S d , Λ P. λ a.
+  ρ+ ς (fmapUnwrapWrapId d) -
+  a (fmap · S · (PreSPlus · S · P)
+      (λ s. mkwksigma [ s, (unfoldS s).1 ] -((unfoldS s).2 a)) d) ].
 
 out ◂ S ➔ F · S = λ d. (unfoldS d).1 ·(F · S) (λ df. fmap (unwrap ·S) df).
 
 LiftS ◂ (S ➔ ★) ➔ SF · S ➔ ★ = λ P: S ➔ ★. λ x: SF · S.
   ∀ m: S. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
 
-inductionS ◂ Π s: S. ∀ P: S ➔ ★. PrfAlgS · S · (LiftS · P) ➔ P s
+Induction ◂ Π s: S. ∀ P: S ➔ ★. PrfAlgS · S · (LiftS · P) ➔ P s
 = λ s. Λ P. λ a. (unfoldS s).2 ·(LiftS · P) a -s -β.
 
-lambek1 ◂ Π d: F · S. {out (in d) ≃ d} = λ d. fmapWrapUnwrap -d.
+lambek1 ◂ Π d: F · S. {out (in d) ≃ d} = λ d. fmapUnwrapWrapId d.
 
 lambek2 ◂ Π d: S. {in (out d) ≃ d} = λ d.
-  inductionS d ·(λ x: S. {in (out x) ≃ x})
+  Induction d ·(λ x: S. {in (out x) ≃ x})
     (λ df. Λ m. Λ eq.
-    ρ+ (fmapWrapUnwrap -(fmap (λ x: PreSPlus · S · (LiftS · (λ x: S. {in (out x) ≃ x})). wkproj1 x) df))
+    ρ+ (fmapUnwrapWrapId (fmap (λ x: PreSPlus · S · (LiftS · (λ x: S. {in (out x) ≃ x})). wkproj1 x) df))
     - β).

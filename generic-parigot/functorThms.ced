@@ -1,9 +1,30 @@
 import functor.
 
-module FunctorThms(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap} .
+module FunctorThms
+  (F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap} .
 
 import cast.
 import recType.
+import top.
 
 Mono-from-Functor ◂ Mono · F =
   Λ X . Λ Y . λ c . caste -(λ d . fmap c.1 d) -(λ a . ρ (fmapId · X · Y -c.1 -(Λ x . ρ c.2 - β) a) - β).
+
+fmap-cast ◂ ∀ A: ★. ∀ B: ★. Cast · A · B ➔ F · A ➔ F · B =
+  Λ A. Λ B. λ c. cast -(Mono-from-Functor c).
+
+import wksigma.
+
+fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F · X. {fmap unwrap (fmap wrap fx) ≃ fx} =
+  Λ X. λ fx. ρ+ (fmapCompose -(unwrap · X) -(wrap · X) fx) -
+             ρ+ (fmapId · X · Top -(λ s. β{unwrap (wrap s)}) -(Λ x. β) fx) -
+             β .
+
+import sigma.
+
+fmapFstPair ◂ ∀ A: ★. ∀ B: A ➔ ★. Π f: (Π x: A. B x). Π fx: F ·A.
+              {fmap proj1 (fmap (λ x. mksigma x (f x)) fx) ≃ fx} =
+  Λ A. Λ B. λ f. λ fx.
+    ρ+ (fmapCompose -(proj1 ·A ·B) -(λ x: A. mksigma x (f x)) fx) -
+    ρ+ (fmapId -(λ x: A. x) -(Λ x. β) fx) -
+    β .

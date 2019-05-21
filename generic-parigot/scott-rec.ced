@@ -6,7 +6,7 @@ module scott-rec
 
 import recType.
 import cast.
-import functorThms · F fmap -fmapId.
+import functorThms · F fmap -fmapId -fmapCompose.
 import wksigma.
 import top.
 
@@ -14,8 +14,6 @@ import scott2 ·F fmap -fmapId -fmapCompose.
 import parigot as P ·F fmap -fmapId -fmapCompose.
 import sigma.
 
--- TODO the extra 'S' argument is unnecessary
--- An artifact of subtyping via the NatF functor
 AlgSRec ◂ ★ ➔ ★ = λ X: ★. ∀ Y: ★. F ·(Wrap ·(ι x: S. Y ➔ Y ➔ X)) ➔ Y ➔ X.
 
 SRec ◂ ★ = ι _: S. ∀ X: ★. AlgSRec ·X ➔ AlgSRec ·X ➔ X.
@@ -24,11 +22,11 @@ wrapSRec ◂ ∀ X: ★. SRec ➔ Wrap ·(ι x: S. AlgSRec ·X ➔ AlgSRec ·X �
   Λ X. λ s. wrap [ s.1 , s.2 ·X ].
 
 inSRec ◂ F ·SRec ➔ SRec = λ sf.
-  [ in (cast -(Mono-from-Functor castSRec2S) sf)
+  [ in (fmap-cast castSRec2S sf)
   , Λ P. λ a1. λ a2. a1 (fmap (wrapSRec ·P) sf) a2 ].
 
 toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
-  inductionS s ·(λ y: S. ι x: SRec. {x ≃ y})
+  Induction s ·(λ y: S. ι x: SRec. {x ≃ y})
     (λ sf. Λ s. Λ eq.
     [unwrapSRec ◂ PreSPlus ·S ·(LiftS ·(λ y: S. ι x: SRec. {x ≃ y})) ➔ SRec
       = λ p. rec-wksigma p
@@ -38,11 +36,29 @@ toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
 castS2SRec ◂ Cast ·S ·SRec =
   caste -(λ s. (toSRec s).1) -(λ s. (toSRec s).2).
 
-fromPAlg ◂ ∀ X: ★. P.Alg ·S ·X ➔ AlgSRec ·X =
-  Λ X. λ a: P.Alg ·S ·X. Λ Y. λ sf. λ y.
-  [wrap2pair ◂ Wrap ·(ι x: S. Y ➔ Y ➔ X) ➔ Pair ·S ·X
-    = λ sr. mkpair (unwrap sr).1 ((unwrap sr).2 y y)]
-  - a (fmap wrap2pair sf).
+wrapSRec2Pair ◂ ∀ X: ★. ∀ Y: ★. Y ➔ Wrap ·(ι x: S. Y ➔ Y ➔ X) ➔ Pair ·S ·X =
+  Λ X. Λ Y. λ y. λ w. mkpair (unwrap w).1 ((unwrap w).2 y y).
 
-srec ◂ ∀ X: ★. S ➔ P.Alg ·S ·X ➔ X = Λ X. λ s. λ a.
+fromPAlg ◂ ∀ X: ★. P.Alg ·S ·X ➔ AlgSRec ·X =
+  Λ X. λ a: P.Alg ·S ·X. Λ Y. λ sf. λ y. a (fmap (wrapSRec2Pair ·X y) sf).
+
+Recursion ◂ ∀ X: ★. S ➔ P.Alg ·S ·X ➔ X = Λ X. λ s. λ a.
   (cast -castS2SRec s).2 (fromPAlg a) (fromPAlg a).
+
+lemmaWrapUnwrapPair ◂ ∀ X: ★. ∀ Y: ★. Π f: X ➔ Y. Π xf: F ·X.
+  {fmap (λ x. mkpair (unwrap x) (f (unwrap x))) (fmap wrap xf) ≃ fmap (λ x. mkpair x (f x)) xf}
+= Λ X. Λ Y. λ f. λ xf.
+  [f2   ◂ X ➔ Pair ·X ·Y = λ x. mkpair x (f x)]
+- [f1   ◂ Wrap ·X ➔ X = unwrap ·X]
+- [lem1 ◂ {fmap (λ x. mkpair (unwrap x) (f (unwrap x))) (fmap wrap xf)
+          ≃ fmap f2 (fmap f1 (fmap wrap xf)) }
+    = ς (fmapCompose -f2 -f1 (fmap (wrap ·X) xf)) ]
+- [lem2 ◂ {fmap f1 (fmap wrap xf) ≃ xf}
+    = fmapUnwrapWrapId xf]
+- ρ+ lem1 - ρ+ lem2 - β.
+
+RecursionComp ◂ ∀ X: ★. Π sf: F ·S. Π a: P.Alg ·S ·X.
+          {Recursion (in sf) a ≃ a (fmap (λ sr. mkpair sr (Recursion sr a)) sf)} =
+  Λ X. λ sf. λ a.
+  ρ+ (lemmaWrapUnwrapPair (λ x: SRec. Recursion x.1 a) (fmap-cast castS2SRec sf)) -
+  β .
