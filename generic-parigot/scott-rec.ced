@@ -1,0 +1,36 @@
+import functor.
+
+module scott-rec
+  (F : ★ ➔ ★) (fmap : Fmap · F)
+  {fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap}.
+
+import recType.
+import cast.
+import functorThms · F fmap -fmapId.
+import wksigma.
+import top.
+
+import scott2 ·F fmap -fmapId -fmapCompose.
+import parigot as P ·F fmap -fmapId -fmapCompose.
+
+AlgSRec ◂ ★ ➔ ★ = λ X: ★. ∀ Y: ★. F ·(Wrap ·(ι x: S. Y ➔ Y ➔ S ➔ X)) ➔ Y ➔ S ➔ X.
+
+SRec ◂ ★ = ι _: S. ∀ X: ★. AlgSRec ·X ➔ AlgSRec ·X ➔ S ➔ X.
+castSRec2S ◂ Cast ·SRec ·S = caste -(λ x. x.1) -(λ x. β).
+wrapSRec ◂ ∀ X: ★. SRec ➔ Wrap ·(ι x: S. AlgSRec ·X ➔ AlgSRec ·X ➔ S ➔ X) =
+  Λ X. λ s. wrap [ s.1 , s.2 ·X ].
+
+inSRec ◂ F ·SRec ➔ SRec = λ sf.
+  [ in (cast -(Mono-from-Functor castSRec2S) sf)
+  , Λ P. λ a1. λ a2. λ s. a1 (fmap (wrapSRec ·P) sf) a2 s ].
+
+toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
+  inductionS s ·(λ y: S. ι x: SRec. {x ≃ y})
+    (λ sf. Λ s. Λ eq.
+    [unwrapSRec ◂ PreSPlus ·S ·(LiftS ·(λ y: S. ι x: SRec. {x ≃ y})) ➔ SRec
+      = λ p. rec-wksigma p
+         (λ s'. Λ ih. [ s'.1 , φ (ih -s'.1 -β).2 - (ih -s'.1 -β).1.2 {s'} ])]
+    - [ inSRec (fmap unwrapSRec sf) , β{in (fmap unwrap sf)} ]).
+
+castS2SRec ◂ Cast ·S ·SRec =
+  caste -(λ s. (toSRec s).1) -(λ s. (toSRec s).2).

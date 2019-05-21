@@ -17,7 +17,7 @@ module Scott(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fmapC
 import recType.
 import cast.
 import functorThms · F fmap -fmapId.
-import public wksigma.
+import wksigma.
 import top.
 
 fmapWrapUnwrap : ∀ X: ★. ∀ fx: F · X. {fmap unwrap (fmap wrap fx) ≃ fx} =
