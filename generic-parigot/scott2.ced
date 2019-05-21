@@ -32,7 +32,7 @@ SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. AlgS · C · X ➔ X.
 MonoSF ◂ Mono · SF = Λ X. Λ Y. λ c.
   [λ d. Λ Z. λ a. d (λ df. a (cast -(Mono-from-Functor (castWrap c)) df)) , β ].
 
-inSF ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc.
+preIn ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc.
   Λ X. λ a. a (fmap (wrap · C) fc).
 
 PreS ◂ ★ ➔ ★ = λ C: ★. ι x: C. SF · C.
@@ -43,7 +43,7 @@ toC ◂ ∀ C: ★. ∀ P: SF · C ➔ ★. PreSPlus · C · P ➔ C =
   Λ C. Λ P. λ p. (wkproj1 p).1.
 
 PrfAlgS ◂ Π C: ★. (SF · C ➔ ★) ➔ ★ = λ C: ★. λ P: SF · C ➔ ★.
-  Π d: F · (PreSPlus · C · P). P (inSF (fmap (toC · C · P) d)).
+  Π d: F · (PreSPlus · C · P). P (preIn (fmap (toC · C · P) d)).
 
 TF ◂ ★ ➔ ★ = λ C: ★. ι x: SF · C. ∀ P: SF · C ➔ ★. PrfAlgS · C · P ➔ P x.
 
@@ -65,7 +65,7 @@ S ◂ ★ = Rec · TF.
 foldS   ◂ TF · S ➔ S = cast -(recFold -MonoTF).
 unfoldS ◂ S ➔ TF · S = cast -(recUnfold -MonoTF).
 
-in ◂ F · S ➔ S = λ d. foldS [ inSF · S d ,
+in ◂ F · S ➔ S = λ d. foldS [ preIn · S d ,
   Λ P. λ a. ρ+ ς (fmapWrapUnwrap -d)
   - a (fmap · S · (PreSPlus · S · P) (λ s. mkwksigma [ s, (unfoldS s).1 ] -((unfoldS s).2 a)) d) ].
 

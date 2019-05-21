@@ -88,7 +88,8 @@ recNat ◂ ∀ P : ★. Nat ➔ P ➔ (Nat ➔ P ➔ P) ➔ P
 add ◂ Nat ➔ Nat ➔ Nat
 = λ m. λ n. recNat m n (λ m. λ s. suc s).
 
-num2 = suc (suc zero).
+num1 = suc zero.
+num2 = suc num1.
 
 _ ◂ {add num2 num2 ≃ suc (suc num2)} = β.
 
@@ -96,3 +97,24 @@ minus ◂ Nat ➔ Nat ➔ Nat
 = λ m. λ n. recNat n m (λ _. λ m. pred m).
 
 _ ◂ {minus (suc (add num2 num2)) (suc num2) ≃ num2} = β.
+
+NatA2 ◂ ★ ➔ ★ = λ P: ★. ∀ Y: ★. NatF ·(Y ➔ Y ➔ Nat ➔ P) ➔ Y ➔ Nat ➔ P.
+
+NatR2 ◂ ★ = ∀ P: ★. NatA2 ·P ➔ NatA2 ·P ➔ Nat ➔ P.
+
+zeroR2 : NatR2
+= Λ P. λ a1. λ a2. λ m.
+  a1 ·(NatA2 ·P) (zeroF ·(NatA2 ·P ➔ NatA2 ·P ➔ Nat ➔ P)) a2 m.
+
+sucR2 : NatR2 ➔ NatR2
+= λ n. Λ P. λ a1. λ a2. λ m. a1 ·(NatA2 ·P) (sucF (n ·P)) a2 m.
+
+test1 : ∀ P: ★. P ➔ (Nat ➔ P ➔ P) ➔ NatA2 ·P = Λ P. λ x. λ f.
+  Λ Y. λ nf. λ y. λ m. nf x (λ a. f m (a y y (pred m))).
+
+test2 : ∀ P: ★. P ➔ (Nat ➔ P ➔ P) ➔ NatR2 ➔ Nat ➔ P = Λ P. λ p. λ f. λ n. λ m.
+  n (test1 p f) (test1 p f) m.
+
+add1 ◂ NatR2 ➔ Nat ➔ Nat = λ m. λ n. test2 n (λ _. λ s. suc s) m zero.
+
+numR2 ◂ NatR2 = sucR2 (sucR2 zeroR2).
