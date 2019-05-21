@@ -26,29 +26,29 @@ inductionNatS ◂ Π n: NatS. ∀ P: NatS ➔ ★. P zeroS ➔ (Π m: NatS. P m 
 caseNatS ◂ Π n: NatS. ∀ X: ★. X ➔ (NatS ➔ X) ➔ X = λ n. Λ X. λ z. λ s.
   inductionNatS n ·(λ x: NatS. X) z (λ n. Λ x. s n).
 
-NatRA ◂ ★ ➔ ★ = λ P: ★. ∀ Y: ★. NatF ·(Wrap ·(Y ➔ Y ➔ NatS ➔ P)) ➔ Y ➔ NatS ➔ P.
-NatR  ◂ ★ = ∀ P: ★. NatRA ·P ➔ NatRA ·P ➔ NatS ➔ P.
+NatRA ◂ ★ ➔ ★ = λ P: ★. ∀ Y: ★. NatF ·(Wrap ·(ι _: NatS. Y ➔ Y ➔ NatS ➔ P)) ➔ Y ➔ NatS ➔ P.
+NatR  ◂ ★ = ι _: NatS. ∀ P: ★. NatRA ·P ➔ NatRA ·P ➔ NatS ➔ P.
 
-zeroR ◂ NatR = Λ P. λ a1. λ a2. λ m.
-  a1 ·(NatRA ·P) (in1 unit) a2 m.
-_ : {zeroS ≃ zeroR} = β.
+zeroR ◂ NatR = [zeroS , Λ P. λ a1. λ a2. λ m.
+  a1 ·(NatRA ·P) (in1 unit) a2 m].
 
-sucR  ◂ NatR ➔ NatR = λ n. Λ P. λ a1. λ a2. λ m.
-  a1 ·(NatRA ·P) (in2 (wrap (n ·P))) a2 m.
+sucR  ◂ NatR ➔ NatR = λ n. [sucS n.1 , Λ P. λ a1. λ a2. λ m.
+  a1 ·(NatRA ·P) (in2 (wrap [ n.1 , n.2 ·P ])) a2 m].
 _ : {sucS ≃ sucR} = β.
 
 import cast.
 toNatR ◂ Π n: NatS. ι x: NatR. {x ≃ n} = λ n.
   inductionNatS n ·(λ y: NatS. ι x: NatR. {x ≃ y})
-    [zeroR , β{zeroS}] (λ n. Λ ih. [ sucR (φ ih.2 - ih.1 {n}) , β{sucS n} ]).
+    [zeroR , β{zeroS}]
+    (λ n. Λ ih. [ sucR (φ ih.2 - ih.1 {n}) , β{sucS n} ]).
 
 castNatR ◂ Cast · NatS · NatR = caste -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
 
 mkNatRA ◂ ∀ P: ★. P ➔ (NatS ➔ P ➔ P) ➔ NatRA ·P = Λ P. λ x. λ f.
-  Λ Y. λ nf. λ y. λ m. nf.1 (λ u. x) (λ a. f m (unwrap a y y (predS m))).
+  Λ Y. λ nf. λ y. λ m. nf.1 (λ u. x) (λ a. f (unwrap a).1 ((unwrap a).2 y y m)).
 
 natRec ◂ ∀ P: ★. P ➔ (NatS ➔ P ➔ P) ➔ NatS ➔ P =
-  Λ P. λ x. λ f. λ n. (cast -castNatR n) (mkNatRA x f) (mkNatRA x f) n.
+  Λ P. λ x. λ f. λ n. (cast -castNatR n).2 (mkNatRA x f) (mkNatRA x f) n.
 
 addS ◂ NatS ➔ NatS ➔ NatS = λ m. λ n. natRec n (λ _. sucS) m.
 
@@ -64,12 +64,12 @@ import sigma.
 
 fromPAlg ◂ ∀ P: ★. P.Alg ·NatS ·P ➔ NatRA ·P =
   Λ P. λ a: P.Alg ·NatS ·P. Λ Y. λ nf. λ y. λ m.
-  [nf' = NatFmap ·(Wrap ·(Y ➔ Y ➔ NatS ➔ P)) ·(Pair ·NatS ·P)
-    (λ a'. mkpair (predS m) (unwrap a' y y (predS m))) nf]
+  [nf' = NatFmap ·(Wrap ·(ι _: NatS. Y ➔ Y ➔ NatS ➔ P)) ·(Pair ·NatS ·P)
+    (λ a'. mkpair (unwrap a').1 ((unwrap a').2 y y (predS m))) nf]
   - a nf' .
 
 natRecP ◂ ∀ P: ★. NatS ➔ P.Alg ·NatS ·P ➔ P = Λ P. λ n. λ a.
-  (cast -castNatR n) (fromPAlg a) (fromPAlg a) n.
+  (cast -castNatR n).2 (fromPAlg a) (fromPAlg a) n.
 
 addP ◂ NatS ➔ NatS ➔ NatS = λ m. λ n.
   natRecP m (λ nf. nf.1 (λ u. n) (λ p. sucS (snd p))).
