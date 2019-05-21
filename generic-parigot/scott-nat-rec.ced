@@ -83,15 +83,30 @@ recNat ◂ ∀ P : ★. Nat ➔ P ➔ (Nat ➔ P ➔ P) ➔ P
 = Λ P. λ n. λ p. λ f.
   (cast -toNatR! n) (recNatBase p) (recNatStep p f) (recNatStep p f) n.
 
+recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X. {recNat zero x f ≃ x} =
+  Λ X. Λ x. Λ f. β.
+
+recNatCompS ◂ ∀ X: ★. ∀ n: Nat. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
+              {recNat (suc n) x f ≃ f n (recNat n x f)} =
+  Λ X. Λ n. Λ x. Λ f. β.
+
 -- example:
 
-add ◂ Nat ➔ Nat ➔ Nat
-= λ m. λ n. recNat m n (λ m. λ s. suc s).
+add ◂ Nat ➔ Nat ➔ Nat = λ m. λ n. recNat m n (λ p. λ s. suc s).
+sumFrom ◂ Nat ➔ Nat = λ m. recNat m zero (λ p. λ s. suc (add p s)).
+
+_ ◂ ∀ m: Nat. {add zero m ≃ m} = Λ m. β.
+_ ◂ ∀ m: Nat. ∀ n: Nat. {add (suc m) n ≃ suc (add m n)} = Λ m. Λ n. β.
+
+_ ◂ {sumFrom zero ≃ zero} = β.
+_ ◂ ∀ m: Nat. {sumFrom (suc m) ≃ add (suc m) (sumFrom m)} = Λ m. β.
 
 num1 = suc zero.
 num2 = suc num1.
 
 _ ◂ {add num2 num2 ≃ suc (suc num2)} = β.
+_ ◂ {sumFrom num2 ≃ suc num2} = β.
+
 
 minus ◂ Nat ➔ Nat ➔ Nat
 = λ m. λ n. recNat n m (λ _. λ m. pred m).
