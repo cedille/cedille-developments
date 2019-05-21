@@ -1,9 +1,11 @@
 import natFunctor.
 import wksigma.
+import sigma.
 
 module scott-new-test.
 
 import scott2 as S ·NatF NatFmap -NatFmapId -NatFmapCompose.
+import scott-rec as SR ·NatF NatFmap -NatFmapId -NatFmapCompose.
 
 NatS ◂ ★ = S.S.
 
@@ -26,6 +28,38 @@ inductionNatS ◂ Π n: NatS. ∀ P: NatS ➔ ★. P zeroS ➔ (Π m: NatS. P m 
 caseNatS ◂ Π n: NatS. ∀ X: ★. X ➔ (NatS ➔ X) ➔ X = λ n. Λ X. λ z. λ s.
   inductionNatS n ·(λ x: NatS. X) z (λ n. Λ x. s n).
 
+natRec ◂ NatS ➔ ∀ X: ★. X ➔ (NatS ➔ X ➔ X) ➔ X =
+  λ n. Λ X. λ x. λ f.
+  SR.srec ·X n (λ nf. nf.1 (λ u. x) (λ p. rec-pair p f)).
+
+-- test
+
+add ◂ NatS ➔ NatS ➔ NatS = λ m. λ n. natRec m n (λ p. λ s. sucS s).
+_ : ∀ m: NatS. {add zeroS m ≃ m} = Λ m. β.
+
+pred' ◂ NatS ➔ NatS = λ m. natRec m m (λ x. λ y. x).
+
+sumFrom ◂ NatS ➔ NatS = λ m. natRec m zeroS (λ p. λ s. sucS (add p s)).
+
+-- computation laws don't hold by β alone :(
+-- _ : ∀ m: NatS. ∀ n: NatS. {add (sucS m) n ≃ sucS (add m n)} =
+--   Λ m. Λ n. β.
+
+num1 = sucS zeroS.
+num2 = sucS num1.
+num3 = sucS num2.
+num4 = sucS num3.
+
+_ : {add num2 num2 ≃ sucS (add num1 num2)} = β.
+_ : {add num1 num2 ≃ num3} = β.
+_ : {add num4 num2 ≃ add num2 num4} = β.
+
+_ : {pred' num1 ≃ zeroS} = β.
+_ : {pred' (pred' num4) ≃ num2} = β.
+
+_ : {sumFrom num4 ≃ add num4 (add num2 num4)} = β.
+
+{-
 NatRA ◂ ★ ➔ ★ = λ P: ★. ∀ Y: ★. NatF ·(Wrap ·(ι _: NatS. Y ➔ Y ➔ NatS ➔ P)) ➔ Y ➔ NatS ➔ P.
 NatR  ◂ ★ = ι _: NatS. ∀ P: ★. NatRA ·P ➔ NatRA ·P ➔ NatS ➔ P.
 

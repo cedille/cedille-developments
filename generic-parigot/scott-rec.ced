@@ -12,17 +12,20 @@ import top.
 
 import scott2 ·F fmap -fmapId -fmapCompose.
 import parigot as P ·F fmap -fmapId -fmapCompose.
+import sigma.
 
-AlgSRec ◂ ★ ➔ ★ = λ X: ★. ∀ Y: ★. F ·(Wrap ·(ι x: S. Y ➔ Y ➔ S ➔ X)) ➔ Y ➔ S ➔ X.
+-- TODO the extra 'S' argument is unnecessary
+-- An artifact of subtyping via the NatF functor
+AlgSRec ◂ ★ ➔ ★ = λ X: ★. ∀ Y: ★. F ·(Wrap ·(ι x: S. Y ➔ Y ➔ X)) ➔ Y ➔ X.
 
-SRec ◂ ★ = ι _: S. ∀ X: ★. AlgSRec ·X ➔ AlgSRec ·X ➔ S ➔ X.
+SRec ◂ ★ = ι _: S. ∀ X: ★. AlgSRec ·X ➔ AlgSRec ·X ➔ X.
 castSRec2S ◂ Cast ·SRec ·S = caste -(λ x. x.1) -(λ x. β).
-wrapSRec ◂ ∀ X: ★. SRec ➔ Wrap ·(ι x: S. AlgSRec ·X ➔ AlgSRec ·X ➔ S ➔ X) =
+wrapSRec ◂ ∀ X: ★. SRec ➔ Wrap ·(ι x: S. AlgSRec ·X ➔ AlgSRec ·X ➔ X) =
   Λ X. λ s. wrap [ s.1 , s.2 ·X ].
 
 inSRec ◂ F ·SRec ➔ SRec = λ sf.
   [ in (cast -(Mono-from-Functor castSRec2S) sf)
-  , Λ P. λ a1. λ a2. λ s. a1 (fmap (wrapSRec ·P) sf) a2 s ].
+  , Λ P. λ a1. λ a2. a1 (fmap (wrapSRec ·P) sf) a2 ].
 
 toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
   inductionS s ·(λ y: S. ι x: SRec. {x ≃ y})
@@ -34,3 +37,12 @@ toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
 
 castS2SRec ◂ Cast ·S ·SRec =
   caste -(λ s. (toSRec s).1) -(λ s. (toSRec s).2).
+
+fromPAlg ◂ ∀ X: ★. P.Alg ·S ·X ➔ AlgSRec ·X =
+  Λ X. λ a: P.Alg ·S ·X. Λ Y. λ sf. λ y.
+  [wrap2pair ◂ Wrap ·(ι x: S. Y ➔ Y ➔ X) ➔ Pair ·S ·X
+    = λ sr. mkpair (unwrap sr).1 ((unwrap sr).2 y y)]
+  - a (fmap wrap2pair sf).
+
+srec ◂ ∀ X: ★. S ➔ P.Alg ·S ·X ➔ X = Λ X. λ s. λ a.
+  (cast -castS2SRec s).2 (fromPAlg a) (fromPAlg a).
