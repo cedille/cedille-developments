@@ -38,7 +38,11 @@ sucR  ◂ NatR ➔ NatR = λ n. Λ P. λ a1. λ a2. λ m.
 _ : {sucS ≃ sucR} = β.
 
 import cast.
-castNatR ◂ Cast · NatS · NatR = ●.
+toNatR ◂ Π n: NatS. ι x: NatR. {x ≃ n} = λ n.
+  inductionNatS n ·(λ y: NatS. ι x: NatR. {x ≃ y})
+    [zeroR , β{zeroS}] (λ n. Λ ih. [ sucR (φ ih.2 - ih.1 {n}) , β{sucS n} ]).
+
+castNatR ◂ Cast · NatS · NatR = caste -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
 
 mkNatRA ◂ ∀ P: ★. P ➔ (NatS ➔ P ➔ P) ➔ NatRA ·P = Λ P. λ x. λ f.
   Λ Y. λ nf. λ y. λ m. nf.1 (λ u. x) (λ a. f m (unwrap a y y (predS m))).
@@ -55,9 +59,29 @@ num3 = sucS num2.
 _ : {addS num1 num2 ≃ addS num2 num1} = β.
 _ : {addS num1 num2 ≃ num3} = β.
 
+import parigot as P ·NatF NatFmap -NatFmapId -NatFmapCompose.
+import sigma.
+
+fromPAlg ◂ ∀ P: ★. P.Alg ·NatS ·P ➔ NatRA ·P =
+  Λ P. λ a: P.Alg ·NatS ·P. Λ Y. λ nf. λ y. λ m.
+  [nf' = NatFmap ·(Wrap ·(Y ➔ Y ➔ NatS ➔ P)) ·(Pair ·NatS ·P)
+    (λ a'. mkpair (predS m) (unwrap a' y y (predS m))) nf]
+  - a nf' .
+
+natRecP ◂ ∀ P: ★. NatS ➔ P.Alg ·NatS ·P ➔ P = Λ P. λ n. λ a.
+  (cast -castNatR n) (fromPAlg a) (fromPAlg a) n.
+
+addP ◂ NatS ➔ NatS ➔ NatS = λ m. λ n.
+  natRecP m (λ nf. nf.1 (λ u. n) (λ p. sucS (snd p))).
+
+-- natRecP ◂ ∀ P: ★. NatS ➔ P ➔ (NatS ➔ P ➔ P) ➔ P = Λ P. λ n. λ x. λ f.
+--   (cast -castNatR n)
+--     (fromPAlg ·P (λ nf. nf.1 (λ u. x) (λ p. p.1 f)))
+--     (fromPAlg ·P (λ nf. nf.1 (λ u. x) (λ p. p.1 f))) n.
+
 {-
 
-NatRZ ◂ ★ ➔ ★ = λ X: ★. ∀ S: ★. Unit ➔ S ➔ NatS ➔ X.
+natrz ◂ ★ ➔ ★ = λ X: ★. ∀ S: ★. Unit ➔ S ➔ NatS ➔ X.
 NatRS ◂ ★ ➔ ★ = λ X: ★. ∀ S: ★. Wrap · (((NatRZ · X ➔ S ➔ S ➔ NatS ➔ X) ➔ X) ➔ X) ➔ S ➔ NatS ➔ X.
 
 NatR ◂ ★ = ∀ X: ★. ((NatRZ · X ➔ NatRS · X ➔ NatRS · X ➔ NatS ➔ X) ➔ X) ➔ X.
