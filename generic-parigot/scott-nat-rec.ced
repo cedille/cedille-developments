@@ -55,11 +55,12 @@ caseNat ◂ Nat ➔ ∀ X : ★. X ➔ (Nat ➔ X) ➔ X
 -- Scott Nat recursor
 -- ==================================================
 
-NatRZ ◂ ★ ➔ ★ = λ X : ★. ∀ S : ★. S ➔ Nat ➔ X.
+NatRZ ◂ ★ ➔ ★ = λ X : ★. ∀ Z : ★. ∀ S : ★. Z ➔ S ➔ Nat ➔ X.
 
-NatRS ◂ ★ ➔ ★ = λ X : ★. ∀ S : ★. (NatRZ · X ➔ S ➔ S ➔ Nat ➔ X) ➔ S ➔ Nat ➔ X.
+NatRS ◂ ★ ➔ ★ = λ X : ★.
+  ∀ Z : ★. ∀ S : ★. (Z ➔ S ➔ Z ➔ S ➔ Nat ➔ X) ➔ Z ➔ S ➔ Nat ➔ X.
 
-NatR ◂ ★ = ∀ P : ★. NatRZ · P ➔ NatRS · P ➔ NatRS · P ➔ Nat ➔ P.
+NatR ◂ ★ = ∀ X : ★. NatRZ · X ➔ NatRS · X ➔ NatRZ · X ➔ NatRS · X ➔ Nat ➔ X.
 
 zeroR ◂ NatR = Λ P. λ z. λ s. λ t. λ m. z t m.
 sucR ◂ NatR ➔ NatR = λ n. Λ P. λ z. λ s. λ t. λ m. s (n · P) t m.
@@ -72,18 +73,22 @@ toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n} = λ n.
 toNatR! ◂ Cast · Nat · NatR =
   caste -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
 
-recNatBase ◂ ∀ P : ★. P ➔ NatRZ · P =
-  Λ P. λ p. Λ Y. λ y. λ m. p.
+recNatBase ◂ ∀ X : ★. X ➔ NatRZ · X =
+  Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ n. x.
 
-recNatStep ◂ ∀ P : ★. P ➔ (Nat ➔ P ➔ P) ➔ NatRS · P =
-  Λ P. λ p. λ f. Λ Y. λ g. λ y. λ m.
-    f (pred m) (g (recNatBase p) y y (pred m)).
+recNatStep ◂ ∀ X : ★. X ➔ (Nat ➔ X ➔ X) ➔ NatRS · X =
+  Λ X. λ x. λ f. Λ Z. Λ S. λ n. λ z. λ s. λ m.
+  f (pred m) (n z s z s (pred m)).
 
-recNat ◂ ∀ P : ★. Nat ➔ P ➔ (Nat ➔ P ➔ P) ➔ P
-= Λ P. λ n. λ p. λ f.
-  (cast -toNatR! n) (recNatBase p) (recNatStep p f) (recNatStep p f) n.
+recNat ◂ ∀ X : ★. Nat ➔ X ➔ (Nat ➔ X ➔ X) ➔ X =
+  Λ X. λ n. λ x. λ f.
+  (cast -toNatR! n)
+    (recNatBase x) (recNatStep x f)
+    (recNatBase x) (recNatStep x f) n.
 
-recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X. {recNat zero x f ≃ x} =
+{- computation laws satisfied by beta-equivalences, though not by beta-reduction -}
+recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
+              {recNat zero x f ≃ x} =
   Λ X. Λ x. Λ f. β.
 
 recNatCompS ◂ ∀ X: ★. ∀ n: Nat. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
