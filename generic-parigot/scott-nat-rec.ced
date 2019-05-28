@@ -138,3 +138,13 @@ test2 : ∀ P: ★. P ➔ (Nat ➔ P ➔ P) ➔ NatR2 ➔ Nat ➔ P = Λ P. λ p
 add1 ◂ NatR2 ➔ Nat ➔ Nat = λ m. λ n. test2 n (λ _. λ s. suc s) m zero.
 
 numR2 ◂ NatR2 = sucR2 (sucR2 zeroR2).
+
+U : ★ ➔ ★ = λ X: ★. ∀ Y: ★. Y ➔ Nat ➔ X.
+T : ★ ➔ ★ = λ X: ★. ∀ Y: ★. (U ·X ➔ Y ➔ Y ➔ Nat ➔ X) ➔ Y ➔ Nat ➔ X.
+Nat' : ★ = ∀ X: ★. U ·X ➔ T ·X ➔ T ·X ➔ Nat ➔ X.
+
+zero' : Nat' = Λ X. λ z. λ s1. λ s2. λ m. z s2 m.
+zeroBad : Nat' = Λ X. λ z. λ s1. λ s2. λ m. z s1 m.
+
+Bot ◂ ★ = ∀ X: ★. X.
+_ : {zero ≃ zeroBad} ➔ Bot = λ eq. δ - eq.

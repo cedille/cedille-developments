@@ -45,6 +45,15 @@ fromPAlg ◂ ∀ X: ★. P.Alg ·S ·X ➔ AlgSRec ·X =
 Recursion ◂ ∀ X: ★. S ➔ P.Alg ·S ·X ➔ X = Λ X. λ s. λ a.
   (cast -castS2SRec s).2 (fromPAlg a) (fromPAlg a).
 
+PrfAlgSRec ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★.
+  ∀ Y: ★. Π d: F ·(Wrap ·(ι x: S. Y ➔ Y ➔ P x)). Y ➔
+  P (in (fmap (λ x: Wrap ·(ι x: S. Y ➔ Y ➔ P x). (unwrap x).1) d)).
+
+InductiveSRec ◂ S ➔ ★ = λ s: S.
+  ∀ P: S ➔ ★. PrfAlgSRec ·P ➔ P s.
+
+SInd ◂ ★ = ι x: S. InductiveSRec x.
+
 lemmaWrapUnwrapPair ◂ ∀ X: ★. ∀ Y: ★. Π f: X ➔ Y. Π xf: F ·X.
   {fmap (λ x. mkpair (unwrap x) (f (unwrap x))) (fmap wrap xf) ≃ fmap (λ x. mkpair x (f x)) xf}
 = Λ X. Λ Y. λ f. λ xf.
