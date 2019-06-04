@@ -51,3 +51,11 @@ ind-pair ◂ ∀ A: ★. ∀ B: ★. Π x: Pair ·A ·B.
 
 rec-pair : ∀ A: ★. ∀ B: ★. Pair ·A ·B ➔ ∀ X: ★. (A ➔ B ➔ X) ➔ X
   = Λ A. Λ B. λ x. Λ X. λ alg. ind-pair x ·(λ _: Pair ·A ·B. X) alg.
+
+import cast.
+
+MonoPair1 ◂ ∀ A1: ★. ∀ A2: ★. ∀ B: ★.
+  Cast ·A1 ·A2 ➔ Cast ·(Pair ·A1 ·B) ·(Pair ·A2 ·B)
+= Λ A1. Λ A2. Λ b. λ c.
+  caste -(λ p. rec-pair p (λ a. λ b. mkpair (cast -c a) b))
+        -(λ p. θ<p> (ind-pair p) (λ a. λ b. β)).

@@ -22,9 +22,8 @@ fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F · X. {fmap unwrap (fmap wrap fx) ≃ 
 
 import sigma.
 
-fmapFstPair ◂ ∀ A: ★. ∀ B: A ➔ ★. Π f: (Π x: A. B x). Π fx: F ·A.
-              {fmap proj1 (fmap (λ x. mksigma x (f x)) fx) ≃ fx} =
-  Λ A. Λ B. λ f. λ fx.
-    ρ+ (fmapCompose -(proj1 ·A ·B) -(λ x: A. mksigma x (f x)) fx) -
-    ρ+ (fmapId -(λ x: A. x) -(Λ x. β) fx) -
-    β .
+fmapProj1Sigma ◂ ∀ X: ★. ∀ A: ★. ∀ B: A ➔ ★.
+  Π f: X ➔ A. Π g: Π x: X. B (f x). Π fx: F ·X.
+  {fmap proj1 (fmap (λ x. mksigma (f x) (g x)) fx) ≃ fmap f fx}
+= Λ X. Λ A. Λ B. λ f. λ g. λ fx.
+  ρ+ (fmapCompose -(proj1 ·A ·B) -(λ x: X. mksigma (f x) (g x)) fx) - β.
