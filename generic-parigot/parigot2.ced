@@ -1,0 +1,165 @@
+{- Parigot-encoded inductive datatypes.
+
+   This development is generic in a functor.
+
+   The interface you should use is:
+
+   C         - the inductive type
+   in/out    - constructing/destructing data of type C
+   Induction - dependent elimination on C
+   Recursion - non-dependent elimination on C (special case of Induction, provided for convenience)
+   -}
+
+import functor.
+
+module Parigot(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap}.
+
+import recType.
+import cast.
+import functorThms · F fmap -fmapId -fmapCompose.
+import public sigma.
+import top.
+
+{-
+inU ◂ Top = β{λ d . λ a . a (fmap (λ x . mkpair x (x a)) d)} .
+inAlgU ◂ Top = β{λ d . inU (fmap snd d) }.
+toDU ◂ Top = β{λ c . c inAlgU}.
+
+Alg ◂ ★ ➔ ★ ➔ ★ = λ C : ★ . λ X : ★ . F · (Pair · C · X) ➔ X .
+
+CF ◂ ★ ➔ ★ = λ C : ★ . ι c : ∀ X : ★ . Alg · C · X ➔ X. { toDU c ≃ c } .
+-}
+
+Alg ◂ ★ ➔ ★ ➔ ★ = λ R: ★. λ X: ★. F ·(Pair ·R ·X) ➔ X.
+RF ◂ ★ ➔ ★ = λ R: ★. ∀ X: ★. Alg ·R ·X ➔ X.
+
+MonoPF ◂ Mono ·RF = Λ X. Λ Y. λ c.
+  caste -(λ pf. Λ Z. λ alg.
+            pf (λ fxz. alg (cast -(Mono-from-Functor (MonoPair1 ·X ·Y ·Z c)) fxz)))
+        -(λ _. β).
+
+R ◂ ★ = Rec ·RF.
+
+foldR   ◂ RF ·R ➔ R = cast -(recFold -MonoPF).
+unfoldR ◂ R ➔ RF ·R = cast -(recUnfold -MonoPF).
+
+{-
+MonoCF ◂ Mono · CF =
+  Λ X . Λ Y . λ c .
+    [ λ d . [ Λ Z . λ a . d.1 · Z (λ fxz . a (cast -(Mono-from-Functor · (Pair · X · Z) · (Pair · Y · Z)
+                                                   (caste -(λ p . mkpair (cast -c (fst p)) (snd p)) -
+                                                   (λ p . θ<p> (ind-pair p) (λ a . λ b . β)))) fxz)) , d.2],
+                                                  β].
+
+C ◂ ★ = Rec · CF .
+
+foldC ◂ CF · C ➔ C = cast -(recFold -MonoCF).
+unfoldC ◂ C ➔ CF · C = cast -(recUnfold -MonoCF).
+-}
+
+in ◂ F ·R ➔ R = λ d. foldR (Λ X. λ alg.
+  alg (fmap (λ x: R. mkpair x ((unfoldR x) alg)) d)).
+
+out ◂ R ➔ F ·R = λ d. (unfoldR d) ·(F ·R) (fmap (fst ·R ·(F ·R))).
+
+{-
+in ◂ F · C ➔ C =
+  λ d . foldC [Λ X . λ a . a (fmap (λ x : C . mkpair x ((unfoldC x).1 a)) d),
+               ρ+ (fmapCompose -(snd · C · C) -(λ x : C . mkpair x (φ ς (unfoldC x).2 - x {x inAlgU})) d) -
+               ρ (fmapId · C · Top  -(λ x . β{snd (mkpair x (x inAlgU))}) -(Λ x . ρ+ (unfoldC x).2 - β) d) -
+               β{λ a . a (fmap (λ x . mkpair x (x a)) d)}] .
+
+out ◂ C ➔ F · C =
+  λ d . (unfoldC d).1 · (F · C) (fmap (fst · C · (F · C))).
+-}
+
+PrfAlg ◂ Π X: ★. (X ➔ ★) ➔ (F ·X ➔ X) ➔ ★
+= λ X: ★. λ P: X ➔ ★. λ in: F ·X ➔ X.
+  Π d: F ·(Sigma ·X ·P). P (in (fmap (proj1 ·X ·P) d)).
+
+Inductive ◂ R ➔ ★ = λ d: R. ∀ P: R ➔ ★. PrfAlg ·R ·P in ➔ P d.
+
+I ◂ ★ = ι x: R. Inductive x.
+
+castI2R ◂ Cast ·I ·R = caste -(λ x. x.1) -(λ x. β).
+
+inI1 ◂ F ·I ➔ R = λ d. in (cast -(Mono-from-Functor castI2R) d).
+
+inI2 ◂ Π d: F ·I. Inductive (inI1 d)
+= λ d. Λ P. λ a.
+  ρ  ς (fmapId -(λ x: I. x.1) -(Λ x. β) d) -
+  ρ+ ς (fmapProj1Sigma ·I ·R ·P (λ x. x.1) (λ x. x.2 a) d) -
+  a (fmap (λ x: I. mksigma ·R ·P x.1 (x.2 ·P a)) d).
+
+inI ◂ F ·I ➔ I = λ d. [inI1 d , inI2 d].
+
+LiftI ◂ (I ➔ ★) ➔ R ➔ ★ = λ P: I ➔ ★. λ x: R.
+  ∀ m: I. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
+
+induction ◂ ∀ P: I ➔ ★. PrfAlg ·I ·P inI ➔ Π d: I. P d
+= Λ P. λ alg. λ d. d.2 ·(LiftI ·P)
+  (λ ds. Λ m. Λ eq. alg ds) -d -β.
+
+-- induction ◂ ∀ P: I ➔ ★
+
+-- inAlgH : Sigma ·R ·(λ x: R. ι i: I. {i ≃ x}) ➔ I
+-- = λ p. φ (proj2 p).2 - (proj2 p).1 {proj1 p}.
+
+-- inAlg ◂ PrfAlg ·(λ x: R. ι y: I. {y ≃ x})
+-- = λ ds. [ inI (fmap inAlgH ds) , β{in (fmap proj1 ds)} ].
+
+-- LiftI ◂ (I ➔ ★) ➔ R ➔ ★ = λ P: I ➔ ★. λ x: R.
+--   ∀ m: I. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
+
+-- Induction ◂ ∀ P: I ➔ ★. PrfAlg ·(LiftI ·P) ➔ Π i: I. P i
+-- = Λ P. λ alg. λ i. i.2 alg -● -●.
+
+{-
+PfAlg ◂ (C ➔ ★) ➔ ★ = λ P : C ➔ ★ .
+  Π d : F · (Sigma · C · P) . P (in (fmap (proj1 · C · P) d)) .
+
+Inductive ◂ C ➔ ★ = λ c : C .
+  ∀ P : C ➔ ★ .
+  PfAlg · P ➔
+  P c.
+
+D ◂ ★ = ι x : C . Inductive x.
+
+in' ◂ F · D ➔ D =
+  λ d .
+    [ in (φ (fmapId · D · C -(λ x : D . x.1) -(Λ x . β) d) -(fmap (λ x : D . x.1) d) { d }) ,
+      Λ P . λ a . ρ ς (χ { fmap proj1 (fmap (λ d . mksigma d (d a)) d) ≃ d } -
+                       ρ (fmapCompose -(proj1 · C · P) -(λ d : D . mksigma · C · P d.1 (d.2 · P a)) d) -
+                       fmapId · D · D -(λ x . x) -(Λ x . β) d) -
+                  a (fmap (λ d : D . mksigma · C · P d.1 (d.2 · P a)) d) ].
+
+inAlg ◂ Alg · C · D =
+  λ d . in' (fmap (snd · C · D) d) .
+-}
+
+-- castR2I ◂ Cast ·R ·I = caste -(λ x. unfoldR x ·I inAlg) -●.
+
+{-
+toD ◂ C ➔ D =
+  λ c . (unfoldC c).1 · D inAlg.
+
+reflection ◂ Π c : C . { toD c ≃ c } =
+  λ c .  (unfoldC c).2 .
+
+castToD ◂ Cast · C · D = caste -toD -reflection.
+
+Induction ◂ Π x : C . Inductive x = λ x . (cast -castToD x).2.
+
+Recursion ◂ Π x : C . ∀ X : ★ . Alg · C · X ➔ X = λ x . (unfoldC x).1.
+
+InductionId ◂ { Induction ≃ λ x . x } = β.
+
+lambek1 ◂ ∀ d : F · C . { out (in d) ≃ d } =
+  Λ d . χ { fmap (fst · C · (F · C)) (fmap (λ x : C . mkpair x ((unfoldC x).1 (fmap (fst · C · (F · C))))) d) ≃ d } -
+        ρ (fmapCompose -(fst · C · (F · C)) -(λ x : C . mkpair x ((unfoldC x).1 (fmap (fst · C · (F · C))))) d) -
+        ρ (fmapId · C · C -(λ x . x) -(Λ x . β) d) - β.
+
+lambek2 ◂ ∀ c : C . { in (out c) ≃ c } =
+  Λ c . ρ (Induction c · (λ c : C . { in (out c) ≃ c })
+            (λ d . ρ (lambek1 -(fmap (proj1 · C · (λ c : C . {in (out c) ≃ c})) d)) - β)) -
+        β.
