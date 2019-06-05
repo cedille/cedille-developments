@@ -4,9 +4,9 @@ import cast.
 
 Fmap ◂ ★ = ∀ X : ★ . ∀ Y : ★ . (X ➔ Y) ➔ (F · X ➔ F · Y).
 
-FmapId ◂ Fmap ➔ ★ = λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . ∀ c : X ➔ Y . (∀ x : X . { c x ≃ x }) ➾ Π x : F · X . { fmap c x ≃ x }.
+FmapId ◂ Fmap ➔ ★ = λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . Π c : X ➔ Y . (Π x : X . { c x ≃ x }) ➔ Π x : F · X . { fmap c x ≃ x }.
 
 FmapCompose ◂ Fmap ➔ ★ =
-  λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . ∀ Z : ★ . ∀ f : Y ➔ Z . ∀ g : X ➔ Y . Π x : F · X .
+  λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . ∀ Z : ★ . Π f : Y ➔ Z . Π g : X ➔ Y . Π x : F · X .
     { fmap f (fmap g x) ≃ fmap (λ x . f (g x)) x } .
 

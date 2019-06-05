@@ -8,7 +8,7 @@ import recType.
 import top.
 
 Mono-from-Functor ◂ Mono · F =
-  Λ X . Λ Y . λ c . caste -(λ d . fmap c.1 d) -(λ a . ρ (fmapId · X · Y -c.1 -(Λ x . ρ c.2 - β) a) - β).
+  Λ X . Λ Y . λ c . caste -(λ d . fmap c.1 d) -(λ a . ρ (fmapId · X · Y c.1 (λ x . ρ c.2 - β) a) - β).
 
 fmap-cast ◂ ∀ A: ★. ∀ B: ★. Cast · A · B ➔ F · A ➔ F · B =
   Λ A. Λ B. λ c. cast -(Mono-from-Functor c).
@@ -16,8 +16,8 @@ fmap-cast ◂ ∀ A: ★. ∀ B: ★. Cast · A · B ➔ F · A ➔ F · B =
 import wksigma.
 
 fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F · X. {fmap unwrap (fmap wrap fx) ≃ fx} =
-  Λ X. λ fx. ρ+ (fmapCompose -(unwrap · X) -(wrap · X) fx) -
-             ρ+ (fmapId · X · Top -(λ s. β{unwrap (wrap s)}) -(Λ x. β) fx) -
+  Λ X. λ fx. ρ+ (fmapCompose (unwrap ·X) (wrap ·X) fx) -
+             ρ+ (fmapId · X · Top (λ s. β{unwrap (wrap s)}) (λ x. β) fx) -
              β .
 
 import sigma.
@@ -26,4 +26,17 @@ fmapProj1Sigma ◂ ∀ X: ★. ∀ A: ★. ∀ B: A ➔ ★.
   Π f: X ➔ A. Π g: Π x: X. B (f x). Π fx: F ·X.
   {fmap proj1 (fmap (λ x. mksigma (f x) (g x)) fx) ≃ fmap f fx}
 = Λ X. Λ A. Λ B. λ f. λ g. λ fx.
-  ρ+ (fmapCompose -(proj1 ·A ·B) -(λ x: X. mksigma (f x) (g x)) fx) - β.
+  ρ+ (fmapCompose (proj1 ·A ·B) (λ x: X. mksigma (f x) (g x)) fx) - β.
+
+fmapFstPair ◂ ∀ A: ★. ∀ B: ★. Π f: A ➔ B. Π xs: F ·A.
+  {fmap fst (fmap (λ x. mkpair x (f x)) xs) ≃ xs}
+= Λ A. Λ B. λ f. λ xs.
+  ρ+ (fmapCompose (fst ·A ·B) (λ x: A. mkpair x (f x)) xs) -
+  ρ+ (fmapId (λ x: A. x) (λ x. β) xs) -
+  β.
+
+fmapSndPair ◂ ∀ A: ★. ∀ B: ★. Π f: A ➔ B. Π xs: F ·A.
+  {fmap snd (fmap (λ x. mkpair x (f x)) xs) ≃ fmap f xs}
+= Λ A. Λ B. λ f. λ xs.
+  ρ+ (fmapCompose (snd ·A ·B) (λ x: A. mkpair x (f x)) xs) -
+  β.
