@@ -8,3 +8,7 @@ FmapId ◂ Fmap ➔ ★ = λ fmap: Fmap.
 FmapCompose ◂ Fmap ➔ ★ = λ fmap: Fmap.
   ∀ X: ★. ∀ Y: ★. ∀ Z: ★. Π f: Y ➔ Z. Π g: X ➔ Y. Π x: F ·X.
   {fmap f (fmap g x) ≃ fmap (λ x. f (g x)) x}.
+
+FmapExt ◂ Fmap ➔ ★ = λ fmap: Fmap.
+  ∀ X: ★. ∀ Y: ★. Π f: X ➔ Y. Π g: X ➔ Y. (Π x: X. {f x ≃ g x}) ➔
+  Π xs: F ·X. {fmap f xs ≃ fmap g xs}.
