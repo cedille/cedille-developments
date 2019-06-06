@@ -4,14 +4,15 @@
 
    The interface you should use is:
 
-   C         - the inductive type
-   in/out    - constructing/destructing data of type C
-   Induction - dependent elimination on C
-   Recursion - non-dependent elimination on C (special case of Induction, provided for convenience)
+   R         - the inductive type
+   in/out    - constructing/destructing data of type R
+   induction - dependent elimination on R
+   recursion - non-dependent elimination on R (special case of induction, provided for convenience)
    -}
 
 import functor.
-module Parigot(F : ★ ➔ ★)(fmap : Fmap · F){fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap}.
+module Parigot (F: ★ ➔ ★) (fmap: Fmap ·F)
+               {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import recType.
 import cast.
@@ -90,6 +91,6 @@ _ : {induction ≃ fold} = β.
 
 recursion ◂ ∀ X: ★. Alg ·R ·X ➔ R ➔ X = fold.
 
-lambek2 ◂ Π r: R. {in (out r) ≃ r} = λ r.
-  induction ·(λ x: R. {in (out x) ≃ x})
+lambek2 ◂ Π r: R. {in (out r) ≃ r}
+= λ r. induction ·(λ x: R. {in (out x) ≃ x})
     (λ rs. ρ (lambek1 (fmap (proj1 ·R ·(λ x: R. {in (out x) ≃ x})) rs)) - β) r.

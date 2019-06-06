@@ -1,12 +1,10 @@
-module Functor(F : ★ ➔ ★).
+module Functor (F : ★ ➔ ★).
 
-import cast.
+Fmap ◂ ★ = ∀ X: ★. ∀ Y: ★. (X ➔ Y) ➔ (F ·X ➔ F ·Y).
 
-Fmap ◂ ★ = ∀ X : ★ . ∀ Y : ★ . (X ➔ Y) ➔ (F · X ➔ F · Y).
+FmapId ◂ Fmap ➔ ★ = λ fmap: Fmap.
+  ∀ X: ★. ∀ Y: ★. Π c: X ➔ Y. (Π x: X. {c x ≃ x}) ➔ Π x: F ·X . {fmap c x ≃ x}.
 
-FmapId ◂ Fmap ➔ ★ = λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . Π c : X ➔ Y . (Π x : X . { c x ≃ x }) ➔ Π x : F · X . { fmap c x ≃ x }.
-
-FmapCompose ◂ Fmap ➔ ★ =
-  λ fmap : Fmap . ∀ X : ★ . ∀ Y : ★ . ∀ Z : ★ . Π f : Y ➔ Z . Π g : X ➔ Y . Π x : F · X .
-    { fmap f (fmap g x) ≃ fmap (λ x . f (g x)) x } .
-
+FmapCompose ◂ Fmap ➔ ★ = λ fmap: Fmap.
+  ∀ X: ★. ∀ Y: ★. ∀ Z: ★. Π f: Y ➔ Z. Π g: X ➔ Y. Π x: F ·X.
+  {fmap f (fmap g x) ≃ fmap (λ x. f (g x)) x}.
