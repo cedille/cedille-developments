@@ -20,8 +20,7 @@ lambek2 ◂ Π r: R. {in (out r) ≃ r}
 = λ r. induction ·(λ x: R. {in (out x) ≃ x})
     (λ rs. ρ (lambek1 (fmap (proj1 ·R ·(λ x: R. {in (out x) ≃ x})) rs)) - β) r.
 
-initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: Alg ·R ·X. Π h: R ➔ X.
-  Π hom: Π xs: F ·R. {h (in xs) ≃ a (fmap (λ r. mkpair r (h r)) xs)}.
+initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: Alg ·R ·X. Π h: R ➔ X. Π hom: Π xs: F ·R. {h (in xs) ≃ a (fmap (λ r. mkpair r (h r)) xs)}.
   Π x: R. {h x ≃ fold a x}
 = λ fext. Λ X. λ a. λ h. λ hom. λ x.
   induction ·(λ x: R. {h x ≃ fold a x}) (

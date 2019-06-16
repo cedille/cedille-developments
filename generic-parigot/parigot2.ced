@@ -61,8 +61,11 @@ _ : {inAlg ≃ inAlgU} = β.
 
 out ◂ R ➔ F ·R = λ d. (unfoldRF d).1 ·(F ·R) (fmap (fst ·R ·(F ·R))).
 
-PrfAlg ◂ (R ➔ ★) ➔ ★ = λ P: R ➔ ★.
+PrfAlgGen ◂ Π R: ★. (F ·R ➔ R) ➔ (R ➔ ★) ➔ ★
+= λ R: ★. λ in: F ·R ➔ R. λ P: R ➔ ★.
   Π d: F ·(Sigma ·R ·P). P (in (fmap (proj1 ·R ·P) d)).
+
+PrfAlg ◂ (R ➔ ★) ➔ ★ = PrfAlgGen ·R in.
 
 Inductive ◂ R ➔ ★ = λ r: R. ∀ P: R ➔ ★. PrfAlg ·P ➔ P r.
 
@@ -92,7 +95,3 @@ induction ◂ ∀ P: R ➔ ★. PrfAlg ·P ➔ Π x: R. P x =
 _ : {induction ≃ fold} = β.
 
 recursion ◂ ∀ X: ★. Alg ·R ·X ➔ R ➔ X = fold.
-
-
--- lambek1 ◂ Π rs: F ·R. {out (in rs) ≃ rs} = λ rs.
--- ρ (fmapFstPair (λ x: R. fold (fmap (fst ·R ·(F ·R))) x) rs) - β.
