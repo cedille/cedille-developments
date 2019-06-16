@@ -31,6 +31,9 @@ rec-sigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Sigma ·A ·B ➔
 = Λ A. Λ B. λ p. Λ X. λ f. ind-sigma p ·(λ _: Sigma ·A ·B. X)
   (λ a. λ b. f a b).
 
+eta-sigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π p: Sigma ·A ·B. {rec-sigma p (λ a. λ b. mksigma a b) ≃ p}
+= Λ A. Λ B. λ p. θ<p> (ind-sigma p) (λ a. λ b. β).
+
 proj1 ◂ ∀ A: ★. ∀ B: A ➔ ★. Sigma ·A ·B  ➔ A = Λ A. Λ B. λ s. s.1 ·A (λ a. λ b. a).
 
 proj2 ◂ ∀ A : ★. ∀ B: A ➔ ★. Π s: Sigma ·A ·B. B (proj1 s) =

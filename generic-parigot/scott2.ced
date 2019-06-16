@@ -72,11 +72,3 @@ LiftS ◂ (S ➔ ★) ➔ SF · S ➔ ★ = λ P: S ➔ ★. λ x: SF · S.
 
 Induction ◂ Π s: S. ∀ P: S ➔ ★. PrfAlgS · S · (LiftS · P) ➔ P s
 = λ s. Λ P. λ a. (unfoldS s).2 ·(LiftS · P) a -s -β.
-
-lambek1 ◂ Π d: F · S. {out (in d) ≃ d} = λ d. fmapUnwrapWrapId d.
-
-lambek2 ◂ Π d: S. {in (out d) ≃ d} = λ d.
-  Induction d ·(λ x: S. {in (out x) ≃ x})
-    (λ df. Λ m. Λ eq.
-    ρ+ (fmapUnwrapWrapId (fmap (λ x: PreSPlus · S · (LiftS · (λ x: S. {in (out x) ≃ x})). wkproj1 x) df))
-    - β).

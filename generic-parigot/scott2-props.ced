@@ -14,6 +14,7 @@ import parigot2 as P ·F fmap -fmapId -fmapCompose.
 
 import functorThms ·F fmap -fmapId -fmapCompose.
 
+-- cancellation (computation) law
 cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: P.PrfAlgGen ·S in ·P.
   {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
 = Λ P. λ xs. λ alg.
@@ -21,36 +22,65 @@ cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: P.PrfAlgGen ·S in ·P.
   (wrapSInd ·P) (cast -(Mono-from-Functor castS2SInd) xs)) -
   β.
 
+-- reflection law
 reflect ◂ S ➔ S = λ x: S. recursion (λ xs. in (fmap (snd ·S ·S) xs)) x.
-Reflection ◂ S ➔ ★ = λ x: S. {reflect x ≃ x}.
-Reflective ◂ ★ = ι x: S. Reflection x.
-Reflection' ◂ Reflective ➔ ★ = λ x: Reflective. Reflection x.1.
+Reflection ◂ Π X: ★. X ➔ ★ = λ X: ★. λ x: X. {reflect x ≃ x}.
+Ref ◂ ★ = ι x: S. Reflection ·S x.
 
-castReflective ◂ Cast ·(Sigma ·S ·Reflection) ·(Sigma ·Reflective ·Reflection')
-= caste -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ p - β{x} ] p))
-        -(λ p. θ<p> (ind-sigma p) (λ x. λ p. β)).
+castRef ◂ Cast ·(Sigma ·S ·(Reflection ·S)) ·(Sigma ·Ref ·(Reflection ·Ref)) =
+  caste -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ p - β{x} ] p))
+        -(λ p. eta-sigma p).
 
-refFun1 ◂ F ·(Sigma ·S ·Reflection) ➔ F ·Reflective
-= λ xs. fmap (λ p: Sigma ·Reflective ·Reflection'. proj1 p)
-             (cast -(Mono-from-Functor castReflective) xs).
+refFun1 ◂ F ·(Sigma ·S ·(Reflection ·S)) ➔ F ·Ref = λ xs.
+  fmap (proj1 ·Ref ·(Reflection ·Ref)) (cast -(Mono-from-Functor castRef) xs).
 
-refFun2 ◂ Wrap ·Reflective ➔ S = λ w. reflect (unwrap w).1.
+refFun2 ◂ Wrap ·Ref ➔ S = λ w. reflect (unwrap w).1.
 
-refLemma1 ◂ Π xs: F ·(Wrap ·Reflective).
+refLemma1 ◂ Π xs: F ·(Wrap ·Ref).
   { fmap snd (fmap (λ x. mkpair (unwrap x) (reflect (unwrap x))) xs)
-  ≃ fmap (λ x. reflect (unwrap x)) xs}
-= λ xs. ρ (fmapCompose ·(Wrap ·Reflective)
-             (snd ·S ·S) (λ w. mkpair (unwrap w).1 (reflect (unwrap w).1)) xs)
-        - β.
+  ≃ fmap (λ x. reflect (unwrap x)) xs } = λ xs.
+  ρ (fmapCompose (snd ·S ·S)
+                 (λ w: Wrap ·Ref. mkpair (unwrap w).1 (reflect (unwrap w).1)) xs) -
+  β.
 
-refLemma2 ◂ Π xs: F ·Reflective.
-  {fmap refFun2 (fmap wrap xs) ≃ fmap reflect xs}
-= λ xs. ρ+ (fmapCompose refFun2 (wrap ·Reflective) xs) - β.
+refLemma2 ◂ Π xs: F ·Ref. {fmap refFun2 (fmap wrap xs) ≃ fmap reflect xs}
+= λ xs. ρ+ (fmapCompose refFun2 (wrap ·Ref) xs) - β.
 
-reflection ◂ Π x: S. Reflection x
-= λ x. induction ·Reflection
-    (λ xs. ρ+ (refLemma1 (fmap (wrap ·Reflective) (refFun1 xs))) -
+reflection ◂ Π x: S. Reflection ·S x
+= λ x. induction ·(Reflection ·S)
+    (λ xs. ρ+ (refLemma1 (fmap (wrap ·Ref) (refFun1 xs))) -
            ρ+ (refLemma2 (refFun1 xs)) -
-           ρ+ (fmapId (λ x: Reflective. reflect x.1) (λ x. x.2) (refFun1 xs)) -
+           ρ+ (fmapId (λ x: Ref. reflect x.1) (λ x. x.2) (refFun1 xs)) -
            β)
     x.
+
+-- Lambek's lemmas
+lambek1 ◂ Π d: F · S. {out (in d) ≃ d} = λ d. fmapUnwrapWrapId d.
+
+lambek2 ◂ Π d: S. {in (out d) ≃ d} = λ d.
+  Induction d ·(λ x: S. {in (out x) ≃ x})
+    (λ df. Λ m. Λ eq.
+    ρ+ (fmapUnwrapWrapId
+         (fmap (λ x: PreSPlus ·S ·(LiftS ·(λ x: S. {in (out x) ≃ x})). wkproj1 x) df)) -
+    β).
+
+-- Initiality
+initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: P.Alg ·S ·X.
+  Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap (λ x. mkpair x (h x)) xs)}.
+  Π x: S. {h x ≃ recursion a x}
+= λ fext. Λ X. λ a. λ h. λ hom. λ x.
+  induction ·(λ x: S. {h x ≃ recursion a x}) (
+    λ xs. ρ (hom (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs)) -
+          ρ (fmapCompose
+              (λ x: S. mkpair x (h x))
+              (λ p: Sigma ·S ·(λ x: S. { h x ≃ recursion a x }). proj1 p) xs) -
+          ρ (cancellation ·(λ x: S. X)
+              (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs) a) -
+          ρ+ (fmapCompose (λ x: S. mkpair x (recursion a x))
+                          (proj1 ·S ·(λ x: S. { h x ≃ recursion a x }))
+                          xs) -
+          ρ+ (fext ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x })) ·(Pair ·S ·X)
+               (λ p. mkpair (proj1 p) (h (proj1 p)))
+               (λ p. mkpair (proj1 p) (recursion a (proj1 p)))
+               (λ p. ρ+ (proj2 p) - β) xs) -
+          β) x.
