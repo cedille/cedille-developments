@@ -1,0 +1,56 @@
+import functor.
+import cast.
+import top.
+import sigma.
+import wksigma.
+
+module scott-props
+  (F: ★ ➔ ★) (fmap: Fmap ·F) {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
+
+import scott2 ·F fmap -fmapId -fmapCompose.
+import scott-rec2 ·F fmap -fmapId -fmapCompose.
+import parigot2 as P ·F fmap -fmapId -fmapCompose.
+
+
+import functorThms ·F fmap -fmapId -fmapCompose.
+
+cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: P.PrfAlgGen ·S in ·P.
+  {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
+= Λ P. λ xs. λ alg.
+  ρ+ (fmapCompose (wrapSInd2Pair ·P (fromPrfAlgP alg))
+  (wrapSInd ·P) (cast -(Mono-from-Functor castS2SInd) xs)) -
+  β.
+
+reflect ◂ S ➔ S = λ x: S. recursion (λ xs. in (fmap (snd ·S ·S) xs)) x.
+Reflection ◂ S ➔ ★ = λ x: S. {reflect x ≃ x}.
+Reflective ◂ ★ = ι x: S. Reflection x.
+Reflection' ◂ Reflective ➔ ★ = λ x: Reflective. Reflection x.1.
+
+castReflective ◂ Cast ·(Sigma ·S ·Reflection) ·(Sigma ·Reflective ·Reflection')
+= caste -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ p - β{x} ] p))
+        -(λ p. θ<p> (ind-sigma p) (λ x. λ p. β)).
+
+refFun1 ◂ F ·(Sigma ·S ·Reflection) ➔ F ·Reflective
+= λ xs. fmap (λ p: Sigma ·Reflective ·Reflection'. proj1 p)
+             (cast -(Mono-from-Functor castReflective) xs).
+
+refFun2 ◂ Wrap ·Reflective ➔ S = λ w. reflect (unwrap w).1.
+
+refLemma1 ◂ Π xs: F ·(Wrap ·Reflective).
+  { fmap snd (fmap (λ x. mkpair (unwrap x) (reflect (unwrap x))) xs)
+  ≃ fmap (λ x. reflect (unwrap x)) xs}
+= λ xs. ρ (fmapCompose ·(Wrap ·Reflective)
+             (snd ·S ·S) (λ w. mkpair (unwrap w).1 (reflect (unwrap w).1)) xs)
+        - β.
+
+refLemma2 ◂ Π xs: F ·Reflective.
+  {fmap refFun2 (fmap wrap xs) ≃ fmap reflect xs}
+= λ xs. ρ+ (fmapCompose refFun2 (wrap ·Reflective) xs) - β.
+
+reflection ◂ Π x: S. Reflection x
+= λ x. induction ·Reflection
+    (λ xs. ρ+ (refLemma1 (fmap (wrap ·Reflective) (refFun1 xs))) -
+           ρ+ (refLemma2 (refFun1 xs)) -
+           ρ+ (fmapId (λ x: Reflective. reflect x.1) (λ x. x.2) (refFun1 xs)) -
+           β)
+    x.

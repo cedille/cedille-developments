@@ -25,7 +25,7 @@ AlgS ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F · (Wrap · C) ➔ X.
 SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. AlgS · C · X ➔ X.
 
 MonoSF ◂ Mono · SF = Λ X. Λ Y. λ c.
-  [λ d. Λ Z. λ a. d (λ df. a (fmap-cast (castWrap c) df)) , β ].
+  [λ d. Λ Z. λ a. d (λ df. a (cast -(Mono-from-Functor (castWrap c)) df)) , β ].
 
 preIn ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc.
   Λ X. λ a. a (fmap (wrap · C) fc).
