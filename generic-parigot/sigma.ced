@@ -64,12 +64,12 @@ import cast.
 MonoPair1 ◂ ∀ A1: ★. ∀ A2: ★. ∀ B: ★.
   Cast ·A1 ·A2 ➔ Cast ·(Pair ·A1 ·B) ·(Pair ·A2 ·B)
 = Λ A1. Λ A2. Λ b. λ c.
-  caste -(λ p. rec-pair p (λ a. λ b. mkpair (cast -c a) b))
-        -(λ p. θ<p> (ind-pair p) (λ a. λ b. β)).
+  intrCast -(λ p. rec-pair p (λ a. λ b. mkpair (elimCast -c a) b))
+           -(λ p. θ<p> (ind-pair p) (λ a. λ b. β)).
 
 MonoSigma2 ◂ ∀ A: ★. ∀ B1: A ➔ ★. ∀ B2: A ➔ ★.
   ∀ c: (Π a: A. Cast ·(B1 a) ·(B2 a)).
   Cast ·(Sigma ·A ·B1) ·(Sigma ·A ·B2)
 = Λ A. Λ B1. Λ B2. Λ c.
-  caste -(λ p. ind-sigma p ·(λ x: Sigma ·A ·B1. Sigma ·A ·B2) (λ a. λ b. mksigma a (cast -(c a) b)))
-        -(λ p. θ<p> (ind-sigma p) (λ a. λ b. β)).
+  intrCast -(λ p. ind-sigma p ·(λ x: Sigma ·A ·B1. Sigma ·A ·B2) (λ a. λ b. mksigma a (elimCast -(c a) b)))
+           -(λ p. θ<p> (ind-sigma p) (λ a. λ b. β)).

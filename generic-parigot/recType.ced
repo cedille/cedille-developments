@@ -1,23 +1,21 @@
-module RecType(F : ★ ➔ ★).
+module RecType (F : ★ ➔ ★).
 
 import cast.
 
-Mono ◂ ★ =
-  ∀ X : ★ . ∀ Y : ★ . Cast · X · Y ➔ Cast · (F · X) · (F · Y) .
+Mono ◂ ★ = ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔ Cast ·(F ·X) ·(F ·Y).
 
-Rec ◂ ★ = ∀ X : ★ . Cast · (F · X) · X ➾ X . 
+Rec ◂ ★ = ∀ X: ★. Cast ·(F ·X) ·X ➾ X.
 
-recCast ◂ ∀ X : ★ . Cast · (F · X) · X ➾ Cast · Rec · X =
-  Λ X . Λ c . [ λ d . d · X -c , β ].
+recCast ◂ ∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Rec ·X =
+  Λ X. Λ c. [ λ d. d -c , β ].
 
-recFold ◂ Mono ➾ Cast · (F · Rec) · Rec =
-  Λ mono . 
-    [ λ x . Λ X . Λ c .
-      cast -c (cast -(mono (recCast -c)) x),
-      β ].
+recRoll ◂ Mono ➾ Cast ·(F ·Rec) ·Rec =
+  Λ mono. [ λ x. Λ X. Λ c. elimCast -(castTrans -(mono (recCast -c)) -c) x , β ].
 
-recUnfold ◂ Mono ➾ Cast · Rec · (F · Rec) =
-  Λ mono . [λ x . x -(mono (recFold -mono)) , β ].
+recUnroll ◂ Mono ➾ Cast ·Rec ·(F ·Rec) =
+  Λ mono. [λ x. x -(mono (recRoll -mono)) , β ].
 
-recIso1 ◂ { λ a . recFold (recUnfold a) ≃ λ a . a} = β.
-recIso2 ◂ { λ a . recUnfold (recFold a) ≃ λ a . a} = β.
+recRollId   ◂ { recRoll   ≃ λ x. x } = β.
+recUnrollId ◂ { recUnroll ≃ λ x. x } = β.
+recIso1 ◂ { λ a. recRoll (recUnroll a) ≃ λ a. a} = β.
+recIso2 ◂ { λ a. recUnroll (recRoll a) ≃ λ a. a} = β.

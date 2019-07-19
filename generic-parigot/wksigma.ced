@@ -21,7 +21,6 @@ WkSigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
 mkwksigma ◂ ∀ X : ★ . ∀ Y : X ➔ ★ . Π x : X . Y x ➾ WkSigma · X · Y =
  Λ X . Λ Y . λ x . Λ y . [ mkcwksigma · X · Y x -y , [ β{mkcwksigma x -y}  , Λ X' . Λ Q . Λ pr . λ e . e x -y  ] ] .
 
-
 ind-wksigma ◂ ∀ A : ★ . ∀ B : A ➔ ★ . Π x : WkSigma · A · B .
  ∀ P : WkSigma · A · B ➔ ★ . (Π a : A . ∀ b : B a . P (mkwksigma · A · B a -b)) ➔ P x
   = Λ A . Λ B . λ x . Λ P . λ p . ρ ς x.2.1 - (x.2.2 · (WkSigma · A · B) · P -(mkwksigma · A · B) p) .
@@ -31,6 +30,15 @@ rec-wksigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma · A · B.
 = Λ A. Λ B. λ x. Λ X. λ f. ind-wksigma x ·(λ x: WkSigma · A · B. X) f.
 
 wkproj1 ◂ ∀ A : ★ . ∀ B : A ➔ ★ . WkSigma · A · B  ➔  A = Λ A . Λ B . λ s . s.1 · A (λ a . Λ _ . a).
+
+wksigma-beta : ∀ A: ★. ∀ B: A ➔ ★. ∀ P: WkSigma ·A ·B ➔ ★.
+  Π a: A. ∀ b: B a. Π f: Π a: A. ∀ b: B a. P (mkwksigma a -b).
+  {ind-wksigma (mkwksigma a -b) f ≃ f a -b}
+= Λ A. Λ B. Λ P. λ a. Λ b. λ f. β.
+
+wksigma-eta : ∀ A: ★. ∀ B: A ➔ ★. Π p: WkSigma ·A ·B.
+  {ind-wksigma p (λ a. Λ b. mkwksigma a -b) ≃ p}
+= Λ A. Λ B. λ p. θ<p> (ind-wksigma p) (λ a. Λ b. β).
 
 -- helpers for non-dependent WkSigma
 WkPair ◂ ★ ➔ ★ ➔ ★
@@ -62,4 +70,4 @@ unwrap ◂ ∀ A: ★. Wrap · A ➔ A = Λ A. λ w. wkfst w.
 import cast.
 
 castWrap ◂ ∀ A: ★. ∀ B: ★. Cast · A · B ➔ Cast · (Wrap · A) · (Wrap · B) =
-  Λ A. Λ B. λ c. caste -(λ w. wrap (cast -c (unwrap w))) -(λ w. θ<w> (ind-wkpair w) (λ a. Λ u. β)).
+  Λ A. Λ B. λ c. intrCast -(λ w. wrap (elimCast -c (unwrap w))) -(λ w. θ<w> (ind-wkpair w) (λ a. Λ u. β)).

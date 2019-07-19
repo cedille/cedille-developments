@@ -8,7 +8,7 @@ module scott-props
   (F: ★ ➔ ★) (fmap: Fmap ·F) {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import scott2 ·F fmap -fmapId -fmapCompose.
-import scott-rec2 ·F fmap -fmapId -fmapCompose.
+import scott2-rec ·F fmap -fmapId -fmapCompose.
 import parigot2 as P ·F fmap -fmapId -fmapCompose.
 
 
@@ -19,7 +19,7 @@ cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: P.PrfAlgGen ·S in ·P.
   {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
 = Λ P. λ xs. λ alg.
   ρ+ (fmapCompose (wrapSInd2Pair ·P (fromPrfAlgP alg))
-  (wrapSInd ·P) (cast -(Mono-from-Functor castS2SInd) xs)) -
+  (wrapSInd ·P) (fmap-cast -castS2SInd xs)) -
   β.
 
 -- reflection law
@@ -46,23 +46,21 @@ refLemma1 ◂ Π xs: F ·(Wrap ·Ref).
 refLemma2 ◂ Π xs: F ·Ref. {fmap refFun2 (fmap wrap xs) ≃ fmap reflect xs}
 = λ xs. ρ+ (fmapCompose refFun2 (wrap ·Ref) xs) - β.
 
-reflection ◂ Π x: S. Reflection ·S x
-= λ x. induction ·(Reflection ·S)
-    (λ xs. ρ+ (refLemma1 (fmap (wrap ·Ref) (refFun1 xs))) -
-           ρ+ (refLemma2 (refFun1 xs)) -
-           ρ+ (fmapId (λ x: Ref. reflect x.1) (λ x. x.2) (refFun1 xs)) -
-           β)
-    x.
+reflection ◂ Π x: S. Reflection ·S x = λ x.
+  induction ·(Reflection ·S) (
+    λ xs. ρ+ (refLemma1 (fmap (wrap ·Ref) (refFun1 xs))) -
+          ρ+ (refLemma2 (refFun1 xs)) -
+          ρ+ (fmapId (λ x: Ref. reflect x.1) (λ x. x.2) (refFun1 xs)) -
+          β) x.
 
 -- Lambek's lemmas
-lambek1 ◂ Π d: F · S. {out (in d) ≃ d} = λ d. fmapUnwrapWrapId d.
+Lambek1 ◂ F ·S ➔ ★ = λ x: F ·S. { out (in x) ≃ x}.
+lambek1 ◂ Π x: F ·S. Lambek1 x = λ x.
+  fmapIdFromCompose (unwrap ·S) (wrap ·S) -(λ x. β) x.
 
-lambek2 ◂ Π d: S. {in (out d) ≃ d} = λ d.
-  Induction d ·(λ x: S. {in (out x) ≃ x})
-    (λ df. Λ m. Λ eq.
-    ρ+ (fmapUnwrapWrapId
-         (fmap (λ x: PreSPlus ·S ·(LiftS ·(λ x: S. {in (out x) ≃ x})). wkproj1 x) df)) -
-    β).
+Lambek2 ◂ S ➔ ★ = λ x: S. { in (out x) ≃ x }.
+lambek2 ◂ Π x: S. Lambek2 x = λ x.
+  induction ·Lambek2 (λ xs. ρ+ (lambek1 (fmap (proj1 ·S ·Lambek2) xs)) - β) x.
 
 -- Initiality
 initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: P.Alg ·S ·X.
@@ -71,14 +69,12 @@ initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: P.Alg ·S ·X.
 = λ fext. Λ X. λ a. λ h. λ hom. λ x.
   induction ·(λ x: S. {h x ≃ recursion a x}) (
     λ xs. ρ (hom (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs)) -
-          ρ (fmapCompose
-              (λ x: S. mkpair x (h x))
-              (λ p: Sigma ·S ·(λ x: S. { h x ≃ recursion a x }). proj1 p) xs) -
+          ρ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x }))
+              (λ x: S. mkpair x (h x)) (λ p. proj1 p) xs) -
           ρ (cancellation ·(λ x: S. X)
               (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs) a) -
-          ρ+ (fmapCompose (λ x: S. mkpair x (recursion a x))
-                          (proj1 ·S ·(λ x: S. { h x ≃ recursion a x }))
-                          xs) -
+          ρ+ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x }))
+               (λ x: S. mkpair x (recursion a x)) (λ x. proj1 x) xs) -
           ρ+ (fext ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x })) ·(Pair ·S ·X)
                (λ p. mkpair (proj1 p) (h (proj1 p)))
                (λ p. mkpair (proj1 p) (recursion a (proj1 p)))

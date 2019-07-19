@@ -20,15 +20,52 @@ import functorThms · F fmap -fmapId -fmapCompose.
 import wksigma.
 import top.
 
-AlgS ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F · (Wrap · C) ➔ X.
+Alg ◂ ★ ➔ ★ ➔ ★ = λ C: ★. λ X: ★. F ·(Wrap ·C) ➔ X.
+SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. Alg ·C ·X ➔ X.
 
-SF ◂ ★ ➔ ★ = λ C: ★. ∀ X: ★. AlgS · C · X ➔ X.
+monoSF ◂ Mono ·SF =
+  Λ X. Λ Y. λ c. [λ d. Λ Z. λ a. d (λ df. a (fmap-cast -(castWrap c) df)) , β ].
 
-MonoSF ◂ Mono · SF = Λ X. Λ Y. λ c.
-  [λ d. Λ Z. λ a. d (λ df. a (cast -(Mono-from-Functor (castWrap c)) df)) , β ].
+PreS ◂ ★ ➔ ★ = λ C: ★. ι x: C. SF ·C.
+PreSPlus ◂ Π C: ★. (SF ·C ➔ ★) ➔ ★ =
+  λ C: ★. λ P: SF ·C ➔ ★. WkSigma ·(PreS ·C) ·(λ x: PreS ·C. P x.2).
 
-preIn ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc.
-  Λ X. λ a. a (fmap (wrap · C) fc).
+monoPreS : Mono · PreS = Λ X. Λ Y. λ c. [ λ x. [ elimCast -c x.1 , elimCast -(monoSF c) x.2] , β ].
+
+monoPreSPlus : ∀ X: ★. ∀ Y: ★. Π c: Cast · X · Y. ∀ P: SF · Y ➔ ★.
+  Cast ·(PreSPlus · X · (λ x: SF · X. P (elimCast -(monoSF c) x))) · (PreSPlus · Y · P) =
+  Λ X. Λ Y. λ c. Λ P. intrCast
+    -(λ x. rec-wksigma x (λ a. Λ p. mkwksigma (elimCast -(monoPreS c) a) -p))
+    -(λ x. θ<x> (ind-wksigma x) (λ a. Λ p. β)).
+
+preIn ◂ ∀ C: ★. F ·(PreS ·C) ➔ SF ·C =
+  Λ C. λ xs. Λ X. λ alg. alg (fmap (λ x: PreS ·C. wrap x.1) xs).
+
+PrfAlgGen ◂ Π C: ★. (SF ·C ➔ ★) ➔ ★ =
+  λ C: ★. λ P: SF ·C ➔ ★. Π xs: F ·(PreSPlus ·C ·P).
+    P (preIn (fmap ·(PreSPlus ·C ·P) ·(PreS ·C) (λ x. wkproj1 x) xs)).
+
+Inductive ◂ Π C: ★. SF ·C ➔ ★ = λ C: ★. λ x: SF ·C. ∀ P: SF ·C ➔ ★. PrfAlgGen ·C ·P ➔ P x.
+
+IF ◂ ★ ➔ ★ = λ C: ★. ι x: SF ·C. Inductive ·C x.
+
+monoIF ◂ Mono ·IF = Λ X. Λ Y. λ c.
+  intrCast
+    -(λ t. [ elimCast -(monoSF c) t.1
+           , Λ P. λ a. t.2 ·(λ s: SF ·X. P (elimCast -(monoSF c) s))
+                         (λ tf. a (fmap-cast -(monoPreSPlus c ·P) tf)) ])
+    -(λ _. β).
+
+S ◂ ★ = Rec · IF.
+roll   ◂ IF ·S ➔ S = elimCast -(recRoll -monoIF).
+unroll ◂ S ➔ IF ·S = elimCast -(recUnroll -monoIF).
+
+
+{-
+monoSF ◂ Mono · SF =
+  Λ X. Λ Y. λ c. [λ d. Λ Z. λ a. d (λ df. a (fmap-cast -(castWrap c) df)) , β ].
+
+preIn ◂ ∀ C: ★. F · C ➔ SF · C = Λ C. λ fc. Λ X. λ a. a (fmap (wrap · C) fc).
 
 PreS ◂ ★ ➔ ★ = λ C: ★. ι x: C. SF · C.
 PreSPlus ◂ Π C: ★. (SF · C ➔ ★) ➔ ★ =
@@ -42,12 +79,12 @@ PrfAlgS ◂ Π C: ★. (SF · C ➔ ★) ➔ ★ = λ C: ★. λ P: SF · C ➔ 
 
 TF ◂ ★ ➔ ★ = λ C: ★. ι x: SF · C. ∀ P: SF · C ➔ ★. PrfAlgS · C · P ➔ P x.
 
-MonoPreS : Mono · PreS = Λ X. Λ Y. λ c. [ λ x. [ cast -c x.1 , cast -(MonoSF c) x.2] , β ].
+MonoPreS : Mono · PreS = Λ X. Λ Y. λ c. [ λ x. [ elimCast -c x.1 , elimCast -(monoSF c) x.2] , β ].
 
 MonoPreSPlus : ∀ X: ★. ∀ Y: ★. Π c: Cast · X · Y. ∀ P: SF · Y ➔ ★.
-  Cast ·(PreSPlus · X · (λ x: SF · X. P (cast -(MonoSF c) x))) · (PreSPlus · Y · P) =
-  Λ X. Λ Y. λ c. Λ P. caste
-    -(λ x. rec-wksigma x (λ a. Λ p. mkwksigma (cast -(MonoPreS c) a) -p))
+  Cast ·(PreSPlus · X · (λ x: SF · X. P (elimCast -(monoSF c) x))) · (PreSPlus · Y · P) =
+  Λ X. Λ Y. λ c. Λ P. intrCast
+    -(λ x. rec-wksigma x (λ a. Λ p. mkwksigma (elimCast -(MonoPreS c) a) -p))
     -(λ x. θ<x> (ind-wksigma x) (λ a. Λ p. β)).
 
 MonoTF ◂ Mono · TF = Λ X. Λ Y. λ c. caste
@@ -61,7 +98,7 @@ foldS   ◂ TF · S ➔ S = cast -(recFold -MonoTF).
 unfoldS ◂ S ➔ TF · S = cast -(recUnfold -MonoTF).
 
 in ◂ F · S ➔ S = λ d. foldS [ preIn · S d , Λ P. λ a.
-  ρ+ ς (fmapUnwrapWrapId d) -
+  ρ+ ς (fmapIdFromCompose (unwrap ·S) (wrap ·S) -(λ x. β) d) -
   a (fmap · S · (PreSPlus · S · P)
       (λ s. mkwksigma [ s, (unfoldS s).1 ] -((unfoldS s).2 a)) d) ].
 
