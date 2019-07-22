@@ -21,8 +21,8 @@ WkSigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
 mkwksigma ◂ ∀ X : ★ . ∀ Y : X ➔ ★ . Π x : X . Y x ➾ WkSigma · X · Y =
  Λ X . Λ Y . λ x . Λ y . [ mkcwksigma · X · Y x -y , [ β{mkcwksigma x -y}  , Λ X' . Λ Q . Λ pr . λ e . e x -y  ] ] .
 
-ind-wksigma ◂ ∀ A : ★ . ∀ B : A ➔ ★ . Π x : WkSigma · A · B .
- ∀ P : WkSigma · A · B ➔ ★ . (Π a : A . ∀ b : B a . P (mkwksigma · A · B a -b)) ➔ P x
+ind-wksigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma ·A ·B.
+  ∀ P: WkSigma ·A ·B ➔ ★. (Π a: A. ∀ b: B a. P (mkwksigma a -b)) ➔ P x
   = Λ A . Λ B . λ x . Λ P . λ p . ρ ς x.2.1 - (x.2.2 · (WkSigma · A · B) · P -(mkwksigma · A · B) p) .
 
 rec-wksigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma · A · B.

@@ -17,24 +17,24 @@ import sigma.
 AlgSRec ◂ ★ ➔ ★ = λ X: ★. ∀ Y: ★. F ·(Wrap ·(ι x: S. Y ➔ Y ➔ X)) ➔ Y ➔ X.
 
 SRec ◂ ★ = ι _: S. ∀ X: ★. AlgSRec ·X ➔ AlgSRec ·X ➔ X.
-castSRec2S ◂ Cast ·SRec ·S = caste -(λ x. x.1) -(λ x. β).
+castSRec2S ◂ Cast ·SRec ·S = intrCast -(λ x. x.1) -(λ x. β).
 wrapSRec ◂ ∀ X: ★. SRec ➔ Wrap ·(ι x: S. AlgSRec ·X ➔ AlgSRec ·X ➔ X) =
   Λ X. λ s. wrap [ s.1 , s.2 ·X ].
 
 inSRec ◂ F ·SRec ➔ SRec = λ sf.
-  [ in (fmap-cast castSRec2S sf)
+  [ in (fmap-cast -castSRec2S sf)
   , Λ P. λ a1. λ a2. a1 (fmap (wrapSRec ·P) sf) a2 ].
 
 toSRec ◂ Π s: S. ι x: SRec. {x ≃ s} = λ s.
-  Induction s ·(λ y: S. ι x: SRec. {x ≃ y})
+  WkInduction s ·(λ y: S. ι x: SRec. {x ≃ y})
     (λ sf. Λ s. Λ eq.
-    [unwrapSRec ◂ PreSPlus ·S ·(LiftS ·(λ y: S. ι x: SRec. {x ≃ y})) ➔ SRec
+    [unwrapSRec ◂ PrfS ·S ·(Lift ·(λ y: S. ι x: SRec. {x ≃ y})) ➔ SRec
       = λ p. rec-wksigma p
          (λ s'. Λ ih. [ s'.1 , φ (ih -s'.1 -β).2 - (ih -s'.1 -β).1.2 {s'} ])]
     - [ inSRec (fmap unwrapSRec sf) , β{in (fmap unwrap sf)} ]).
 
 castS2SRec ◂ Cast ·S ·SRec =
-  caste -(λ s. (toSRec s).1) -(λ s. (toSRec s).2).
+  intrCast -(λ s. (toSRec s).1) -(λ s. (toSRec s).2).
 
 wrapSRec2Pair ◂ ∀ X: ★. ∀ Y: ★. Y ➔ Wrap ·(ι x: S. Y ➔ Y ➔ X) ➔ Pair ·S ·X =
   Λ X. Λ Y. λ y. λ w. mkpair (unwrap w).1 ((unwrap w).2 y y).
@@ -43,7 +43,7 @@ fromPAlg ◂ ∀ X: ★. P.Alg ·S ·X ➔ AlgSRec ·X =
   Λ X. λ a: P.Alg ·S ·X. Λ Y. λ sf. λ y. a (fmap (wrapSRec2Pair ·X y) sf).
 
 Recursion ◂ ∀ X: ★. S ➔ P.Alg ·S ·X ➔ X = Λ X. λ s. λ a.
-  (cast -castS2SRec s).2 (fromPAlg a) (fromPAlg a).
+  (elimCast -castS2SRec s).2 (fromPAlg a) (fromPAlg a).
 
 PrfAlgSRec ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★.
   ∀ Y: ★. Π d: F ·(Wrap ·(ι x: S. Y ➔ Y ➔ P x)). Y ➔
@@ -61,7 +61,7 @@ lemmaWrapUnwrapPair ◂ ∀ X: ★. ∀ Y: ★. Π f: X ➔ Y. Π xf: F ·X.
 - [f1   ◂ Wrap ·X ➔ X = unwrap ·X]
 - [lem1 ◂ {fmap (λ x. mkpair (unwrap x) (f (unwrap x))) (fmap wrap xf)
           ≃ fmap f2 (fmap f1 (fmap wrap xf)) }
-    = ς (fmapCompose -f2 -f1 (fmap (wrap ·X) xf)) ]
+    = ς (fmapCompose f2 f1 (fmap (wrap ·X) xf)) ]
 - [lem2 ◂ {fmap f1 (fmap wrap xf) ≃ xf}
     = fmapUnwrapWrapId xf]
 - ρ+ lem1 - ρ+ lem2 - β.
@@ -69,5 +69,5 @@ lemmaWrapUnwrapPair ◂ ∀ X: ★. ∀ Y: ★. Π f: X ➔ Y. Π xf: F ·X.
 RecursionComp ◂ ∀ X: ★. Π sf: F ·S. Π a: P.Alg ·S ·X.
           {Recursion (in sf) a ≃ a (fmap (λ sr. mkpair sr (Recursion sr a)) sf)} =
   Λ X. λ sf. λ a.
-  ρ+ (lemmaWrapUnwrapPair (λ x: SRec. Recursion x.1 a) (fmap-cast castS2SRec sf)) -
+  ρ+ (lemmaWrapUnwrapPair (λ x: SRec. Recursion x.1 a) (fmap-cast -castS2SRec sf)) -
   β .
