@@ -11,64 +11,60 @@ import wksigma.
 import top.
 
 import scott2 ·F fmap -fmapId -fmapCompose.
-import parigot2 as P ·F fmap -fmapId -fmapCompose.
+-- import parigot2 as P ·F fmap -fmapId -fmapCompose.
 import sigma.
 
-unwrapIotaAlg ◂ ∀ Y: ★. ∀ P: S ➔ ★. Wrap ·(ι x: S. Y ➔ Y ➔ P x) ➔ S =
-  Λ P. Λ Y. λ w. (unwrap w).1.
+PreSR ◂ ★ ➔ (S ➔ ★) ➔ ★ = λ A: ★. λ P: S ➔ ★. ι x: S. A ➔ A ➔ P x.
 
 PrfAlgSR ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★.
-  ∀ Y: ★. Π d: F ·(Wrap ·(ι x: S. Y ➔ Y ➔ P x)). Y ➔
-  P (in (fmap (unwrapIotaAlg ·Y ·P) d)).
+  ∀ A: ★. Π d: F ·(Wrap ·(PreSR ·A ·P)). A ➔
+  P (in (fmap (λ x: Wrap ·(PreSR ·A ·P). (unwrap x).1) d)).
 
-InductiveSR ◂ S ➔ ★ = λ s: S.
-  ∀ P: S ➔ ★. PrfAlgSR ·P ➔ PrfAlgSR ·P ➔ P s.
+InductiveSR ◂ S ➔ ★ = λ x: S.
+  ∀ P: S ➔ ★. PrfAlgSR ·P ➔ PrfAlgSR ·P ➔ P x.
 
-SInd ◂ ★ = ι x: S. InductiveSR x.
+SR ◂ ★ = ι x: S. InductiveSR x.
 
-castSInd2S ◂ Cast ·SInd ·S =
-  caste -(λ x. x.1) -(λ x. β).
+fromSR ◂ Cast ·SR ·S = intrCast -(λ x. x.1) -(λ _. β).
 
-wrapSInd ◂ ∀ P: S ➔ ★. SInd ➔ Wrap ·(ι x: S. PrfAlgSR ·P ➔ PrfAlgSR ·P ➔ P x) =
+wrapSR ◂ ∀ P: S ➔ ★. SR ➔ Wrap ·(PreSR ·(PrfAlgSR ·P) ·P) =
   Λ P. λ s. wrap [ s.1 , s.2 ·P ].
 
-inSInd ◂ F ·SInd ➔ SInd = λ xs.
-  [ in (cast -(Mono-from-Functor castSInd2S) xs)
+inSR ◂ F ·SR ➔ SR = λ xs.
+  [ in (fmap-cast -fromSR xs)
   , Λ P. λ alg1. λ alg2.
-    ρ ς (fmapUnwrapWrapId xs) - alg1 (fmap (wrapSInd ·P) xs) alg2 ].
+    ρ ς (fmapId (λ x: SR. unwrap (wrap x)) (λ x . β) xs) -
+    ρ ς (fmapCompose (unwrap ·SR) (wrap ·SR) xs) -
+    alg1 (fmap (wrapSR ·P) xs) alg2 ].
 
-_ : {inSInd ≃ in} = β.
+_ : {inSR ≃ in} = β.
 
-toSInd ◂ Π d: S. ι x: SInd. {x ≃ d} = λ d.
-  Induction d ·(λ y: S. ι x: SInd. {x ≃ y})
+toSR' ◂ Π s: S. ι x: SR. {x ≃ s} = λ s.
+  wkInduction s ·(λ y: S. ι x: SR. {x ≃ y})
     (λ ds. Λ s. Λ eq.
-    [unwrapSInd ◂ PreSPlus ·S ·(LiftS ·(λ y: S. ι x: SInd. {x ≃ y})) ➔ SInd
+    [uw ◂ PrfS ·S ·(Lift ·(λ y: S. ι x: SR. {x ≃ y})) ➔ SR
       = λ p. rec-wksigma p (λ t. Λ ih.
-        [eqt  : {ih ≃ t} = (ih -t.1 -β).2] -
-        [indt : InductiveSR t.1 = ρ ς eqt - (ih -t.1 -β).1.2 ] -
+        [eqt  ◂ {ih ≃ t} = (ih -t.1 -β).2] -
+        [indt ◂ InductiveSR t.1 = ρ ς eqt - (ih -t.1 -β).1.2 ] -
         [ t.1 , φ eqt - indt {t} ])] -
-    [ inSInd (fmap unwrapSInd ds) , β{in (fmap unwrap ds)} ]).
+    [ inSR (fmap uw ds) , β{preIn (fmap uw ds)} ]).
 
-castS2SInd ◂ Cast ·S ·SInd =
-  caste -(λ s. (toSInd s).1) -(λ s. (toSInd s).2).
+toSR ◂ Cast ·S ·SR =
+  intrCast -(λ s. (toSR' s).1) -(λ s. (toSR' s).2).
 
-wrapSInd2Pair ◂ ∀ P: S ➔ ★. ∀ Y: ★. Y ➔ Wrap ·(ι x: S. Y ➔ Y ➔ P x) ➔ Sigma ·S ·P =
+PrfAlg ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★.
+  Π xs: F ·(Sigma ·S ·P). P (in (fmap (proj1 ·S ·P) xs)).
+
+pairSR ◂ ∀ P: S ➔ ★. ∀ A: ★. A ➔ Wrap ·(PreSR ·A ·P) ➔ Sigma ·S ·P =
   Λ P. Λ Y. λ y. λ w. mksigma (unwrap w).1 ((unwrap w).2 y y).
 
-fromPrfAlgP ◂ ∀ P: S ➔ ★. P.PrfAlgGen ·S in ·P ➔ PrfAlgSR ·P =
-  Λ P. λ a. Λ Y. λ sf. λ y.
-  ρ+ ς (fmapCompose (proj1 ·S ·P) (wrapSInd2Pair ·P y) sf)
-  - a (fmap (wrapSInd2Pair ·P y) sf).
+fromPrfAlg ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ PrfAlgSR ·P =
+  Λ P. λ alg. Λ A. λ sf. λ a.
+  ρ+ ς (fmapCompose (proj1 ·S ·P) (pairSR ·P a) sf) -
+  alg (fmap (pairSR ·P a) sf).
 
-induction ◂ ∀ P: S ➔ ★. P.PrfAlgGen ·S in ·P ➔ Π s: S. P s =
-  Λ P. λ alg. λ s. (cast -castS2SInd s).2 (fromPrfAlgP alg) (fromPrfAlgP alg).
+induction ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ Π s: S. P s =
+  Λ P. λ alg. λ s. (elimCast -toSR s).2 (fromPrfAlg alg) (fromPrfAlg alg).
 
-recursion ◂ ∀ X: ★. P.PrfAlgGen ·S in ·(λ x: S. X) ➔ S ➔ X =
+recursion ◂ ∀ X: ★. PrfAlg ·(λ x: S. X) ➔ S ➔ X =
   Λ X. induction ·(λ x: S. X).
-
--- InductionSRComp ◂ ∀ P: S ➔ ★. Π alg: P.PrfAlgGen ·S in ·P. Π sf: F ·S.
---   {InductionSR alg (in sf) ≃ alg (fmap (λ x. mksigma x (InductionSR alg x)) sf)} =
---   Λ P. λ alg. λ sf.
---   ρ+ (fmapCompose (wrapSInd2Pair ·P (fromPrfAlgP alg))
---                   (wrapSInd ·P) (cast -(Mono-from-Functor castS2SInd) sf)) -
---   β.

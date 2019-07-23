@@ -36,16 +36,17 @@ monoPrfS ◂ ∀ X: ★. ∀ Y: ★. Π c: Cast ·X ·Y. ∀ P: SF ·Y ➔ ★.
   Cast ·(PrfS ·X ·(λ x: SF ·X. P (elimCast -(monoSF c) x))) ·(PrfS ·Y ·P) =
   Λ X. Λ Y. λ c. Λ P. intrCast
     -(λ x. rec-wksigma x (λ a. Λ p. mkwksigma (elimCast -(monoPreS c) a) -p))
-    -(λ x. θ<x> (ind-wksigma x) (λ a: PreS ·X. Λ p. β)).
+    -(λ x. θ<x> (ind-wksigma x) (λ a. Λ p. β)).
 
 preIn ◂ ∀ S: ★. F ·(PreS ·S) ➔ SF ·S =
   Λ S. λ xs. Λ X. λ alg. alg (fmap (λ x: PreS ·S. wrap x.1) xs).
 
-PrfAlg ◂ Π S: ★. (SF ·S ➔ ★) ➔ ★ =
+WkPrfAlg ◂ Π S: ★. (SF ·S ➔ ★) ➔ ★ =
   λ S: ★. λ P: SF ·S ➔ ★. Π xs: F ·(PrfS ·S ·P).
-    P (preIn (fmap ·(PrfS ·S ·P) ·(PreS ·S) (λ x. wkproj1 x) xs)).
+    P (preIn (fmap (λ x: PrfS ·S ·P. wkproj1 x) xs)).
 
-Inductive ◂ Π S: ★. SF ·S ➔ ★ = λ S: ★. λ x: SF ·S. ∀ P: SF ·S ➔ ★. PrfAlg ·S ·P ➔ P x.
+Inductive ◂ Π S: ★. SF ·S ➔ ★ = λ S: ★. λ x: SF ·S.
+  ∀ P: SF ·S ➔ ★. WkPrfAlg ·S ·P ➔ P x.
 
 IF ◂ ★ ➔ ★ = λ S: ★. ι x: SF ·S. Inductive ·S x.
 
@@ -60,8 +61,7 @@ S ◂ ★ = Rec · IF.
 roll   ◂ IF ·S ➔ S = elimCast -(recRoll -monoIF).
 unroll ◂ S ➔ IF ·S = elimCast -(recUnroll -monoIF).
 
-toPreS ◂ Cast ·S ·(PreS ·S) =
-  intrCast -(λ x. [ x , (unroll x).1 ]) -(λ _. β).
+toPreS ◂ Cast ·S ·(PreS ·S) = intrCast -(λ x. [ x , (unroll x).1 ]) -(λ _. β).
 
 in ◂ F ·S ➔ S = λ xs.
   roll [ preIn ·S (fmap-cast -toPreS xs)
@@ -73,8 +73,11 @@ in ◂ F ·S ➔ S = λ xs.
 
 out ◂ S ➔ F ·S = λ x. (unroll x).1 (λ xs. fmap (unwrap ·S) xs).
 
+case ◂ ∀ X: ★. Alg ·S ·X ➔ S ➔ X = Λ X. λ a. λ x.
+  a (fmap (wrap ·S) (out x)).
+
 Lift ◂ (S ➔ ★) ➔ SF ·S ➔ ★ = λ P: S ➔ ★. λ x: SF ·S.
   ∀ m: S. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
 
-WkInduction ◂ Π x: S. ∀ P: S ➔ ★. PrfAlg ·S ·(Lift ·P) ➔ P x =
+wkInduction ◂ Π x: S. ∀ P: S ➔ ★. WkPrfAlg ·S ·(Lift ·P) ➔ P x =
   λ s. Λ P. λ a. (unroll s).2 ·(Lift ·P) a -s -β.
