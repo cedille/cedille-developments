@@ -1,0 +1,241 @@
+module modk.
+
+import nat.
+import bool.
+import pair.
+
+{-
+  rem n m
+  rem 0 m = 0
+  rem (S n) m = if (n < m - 1) then (n + 1) else (rem (n - (m - 1)) m)
+-}
+rem : Nat ➔ Nat ➔ Nat
+= λ n. λ m. μ rec. n {
+  | zero ➔ zero
+  | succ n' ➔
+    [ x = to/Nat -isType/rec n' ] -
+    [ m' = pred m ] -
+    if (lt x m')
+    (succ x)
+    (rec (minus' -isType/rec n' m'))
+  }.
+
+rem-zero : Π k: Nat. {rem zero k ≃ zero}
+= λ k. β.
+
+rem-zero-r : Π n: Nat. {rem n zero ≃ zero}
+= λ n. μ ih. n @(λ x: Nat. {rem x zero ≃ zero}) {
+  | zero ➔ β
+  | succ n ➔
+    ρ (ltNZ (to/Nat -isType/ih n)) @ x.
+      {if (x) (succ n) (rem (minus n zero) zero) ≃ zero}
+  - ρ (ih n) @ x.
+      {x ≃ zero}
+  - β
+  }.
+
+rem-lt : Π n: Nat. Π k: Nat. {lt (rem n (succ k)) (succ k) ≃ tt}
+= λ n. λ k. μ ih. n @(λ x: Nat. {lt (rem x (succ k)) (succ k) ≃ tt}) {
+  | zero ➔ β
+  | succ n ➔ (μ' (lt (to/Nat -isType/ih n) k) @(λ x: Bool. {x ≃ lt n k} ➾ {lt (if x (succ n) (rem (minus n k) (succ k))) (succ k) ≃ tt}) {
+    | tt ➔ Λ eq. ρ ς eq @ x. {x ≃ tt} - β
+    | ff ➔ Λ eq.
+      ρ (ih (minus' -isType/ih n k)) @ x. {x ≃ tt}
+    - β
+    }) -β
+  }.
+
+remIdem : Π n: Nat. Π k: Nat. {rem (rem n k) k ≃ rem n k}
+= λ n. λ k. μ' (rem n k) @(λ x: Nat. {x ≃ rem n k} ➾ {rem x k ≃ x}) {
+  | zero ➔ Λ _. β
+  | succ r ➔ μ' k
+    @(λ x: Nat. {succ r ≃ rem n x} ➾ {if (lt r (pred x)) (succ r) (rem (minus r (pred x)) x) ≃ succ r}) {
+    | zero ➔ Λ eq.
+      δ - ρ ς (rem-zero-r n) @ x. {succ r ≃ x} - eq
+    | succ k ➔ Λ eq.
+      ρ eq @ x . {if (lt x (succ k)) (succ r) (rem (minus r k) (succ k)) ≃ succ r}
+    - ρ (rem-lt n k) @ x. {if x (succ r) (rem (minus r (pred (succ k))) (succ k)) ≃ succ r}
+    - β
+    }
+  } -β.
+
+import quotient-defs.
+
+remIdemFn : Π k: Nat. IdemFn·Nat
+= λ k. [ λ n. rem n k , λ n. ρ+ (remIdem n k) - β{rem n k} ].
+
+rem-ltMK-tt : Π m: Nat. Π k: Nat. {lt m k ≃ tt} ➔ {rem m k ≃ m}
+= λ m. λ k. μ' k @(λ x: Nat. {lt m x ≃ tt} ➔ {rem m x ≃ m}) {
+  | zero ➔ ρ (ltNZ m) @ x . { x ≃ tt } ➔ { rem m zero ≃ m } - λ eq. δ - eq
+  | succ k ➔ μ' m @(λ x: Nat. {lt x (succ k) ≃ tt} ➔ {rem x (succ k) ≃ x}) {
+    | zero ➔ λ _. β
+    | succ m ➔ λ eq.
+      ρ eq @ x . {if x (succ m) (rem (minus m k) (succ k)) ≃ succ m}
+    - β
+    }
+  }.
+
+rem-ltMK-ff : Π m: Nat. Π k: Nat. {lt m k ≃ ff} ➔ {rem m k ≃ rem (minus m k) k}
+= λ m. λ k. μ' k @(λ x: Nat. {lt m x ≃ ff} ➔ {rem m x ≃ rem (minus m x) x}) {
+  | zero ➔ λ _.
+    ρ (rem-zero-r m) @ x . { x ≃ rem (minus m zero) zero } - ρ (rem-zero-r (minus m zero)) - β
+  | succ k ➔ μ' m @(λ x: Nat. {lt x (succ k) ≃ ff} ➔ {rem x (succ k) ≃ rem (minus x (succ k)) (succ k)}) {
+    | zero ➔ λ eq. δ - eq
+    | succ m ➔ χ ({lt m k ≃ ff} ➔ {if (lt m k) (succ m) (rem (minus m k) (succ k)) ≃ rem (minus (succ m) (succ k)) (succ k)})
+    - λ eq.
+      ρ eq - ρ (minusSS m k) - β
+    }
+  }.
+
+rem-add-a-m-k : Π a: Nat. Π m: Nat. Π k: Nat. {lt m k ≃ ff} ➔ {rem (add a (minus m k)) k ≃ rem (add a m) k}
+= λ a. μ iha. a @(λ x: Nat. Π m: Nat. Π k: Nat. {lt m k ≃ ff} ➔ {rem (add x (minus m k)) k ≃ rem (add x m) k}) {
+  | zero ➔ λ m. λ k. λ eq. ς (rem-ltMK-ff m k eq)
+  | succ a ➔ [ta = to/Nat -isType/iha a]
+  - λ m. λ k. (μ' k @(λ x: Nat. Π m: Nat. {lt m x ≃ ff} ➔ {rem (add (succ a) (minus m x)) x ≃ rem (add (succ a) m) x}) {
+    | zero ➔ λ m. λ _.
+      ρ (rem-zero-r (add (succ ta) (minus m zero)))
+      @ x. {x ≃ rem (add (succ a) m) zero}
+    - ρ (rem-zero-r (add (succ ta) m))
+      @ x. {zero ≃ x}
+    - β
+    | succ k ➔ λ m. λ eq.
+      ρ ς (add-succ-right ta (minus m (succ k)))
+      @ x. { rem (x) (succ k) ≃ rem (add (succ a) m) (succ k)}
+    - ρ ς (add-succ-right ta m)
+      @ x. {rem (add ta (succ (minus m (succ k)))) (succ k) ≃ rem x (succ k)}
+    - ρ (lt-ff-succ-minus m (succ k) eq)
+      @ x. {rem (add ta x) (succ k) ≃ rem (add ta (succ m)) (succ k)}
+    - iha a (succ m) (succ k) (lt-ff-succ-ff m (succ k) eq)
+    }) m
+  }.
+
+remAddComm : Π k: Nat. Π m: Nat. Π n: Nat. {rem (add m n) k ≃ rem (add (rem m k) (rem n k)) k}
+= λ k. μ' k @(λ x: Nat. Π m: Nat. Π n: Nat. {rem (add m n) x ≃ rem (add (rem m x) (rem n x)) x}) {
+  | zero ➔ λ m. λ n.
+    ρ (rem-zero-r (add m n))
+      @ x. {x ≃ rem (add (rem m zero) (rem n zero)) zero}
+  - ρ (rem-zero-r (add (rem m zero) (rem n zero)))
+      @ x. {zero ≃ x}
+  - β
+  | succ k ➔ λ m. μ ihm. m @(λ x: Nat. Π n: Nat. {rem (add x n) (succ k) ≃ rem (add (rem x (succ k)) (rem n (succ k))) (succ k)}) {
+    | zero ➔ λ n. ρ (remIdem n (succ k)) @ x. {rem n (succ k) ≃ x} - β
+    | succ m ➔ [tm = to/Nat -isType/ihm m]
+    - (μ' (lt (succ tm) (succ k)) @(λ x: Bool. {lt (succ m) (succ k) ≃ x} ➔ Π n: Nat. {rem (add (succ m) n) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem n (succ k))) (succ k)}) {
+      | tt ➔ λ eq-ltMK-tt.
+        ρ (ς (rem-ltMK-tt (succ tm) (succ k) eq-ltMK-tt))
+          @ x. Π n : Nat . {rem (add x n) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem n (succ k))) (succ k)}
+      - λ n. μ ihn. n @(λ x: Nat. {rem (add (rem (succ tm) (succ k)) x) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem x (succ k))) (succ k)}) {
+        | zero ➔
+          ρ (addZeroRight (rem (succ tm) (succ k)))
+            @ x. {rem x (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem zero (succ k))) (succ k)}
+        - ρ (remIdem (succ tm) (succ k))
+            @ x. {x ≃ rem (add (rem (succ m) (succ k)) (rem zero (succ k))) (succ k)}
+        - ρ (rem-zero (succ k))
+            @ x. {rem (succ tm) (succ k) ≃ rem (add (rem (succ m) (succ k)) x) (succ k)}
+        - ρ (addZeroRight (rem (succ tm) (succ k)))
+            @ x. {rem (succ tm) (succ k) ≃ rem x (succ k)}
+        - ρ (remIdem (succ tm) (succ k))
+            @ x. {rem (succ tm) (succ k) ≃ x}
+        - β
+        | succ n ➔ [tn = to/Nat -isType/ihn n]
+        - (μ' (lt (succ tn) (succ k)) @(λ x: Bool. {lt (succ n) (succ k) ≃ x} ➔ {rem (add (rem (succ tm) (succ k)) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}) {
+          | tt ➔ λ eq-ltNK-tt.
+            ρ ς (rem-ltMK-tt (succ tn) (succ k) eq-ltNK-tt)
+              @ x. {rem (add (rem (succ tm) (succ k)) x) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}
+          - β
+          | ff ➔ λ eq-ltNK-ff.
+            [ih1 = ihn (minus' -isType/ihn n k)]
+          - [ih2 : { rem (add (rem (succ tm) (succ k)) (succ tn)) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (minus' n k) (succ k))) (succ k) }
+              = ρ (ς (rem-add-a-m-k (rem (succ tm) (succ k)) (succ tn) (succ k) eq-ltNK-ff))
+              - ρ (ς (minusPLeft (succ tn) k))
+                  @ x. {rem (add (rem (succ tm) (succ k)) x) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (minus' n k) (succ k))) (succ k)}
+              - ih1]
+          - ρ (rem-ltMK-ff (succ tn) (succ k) eq-ltNK-ff)
+              @ x. {rem (add (rem (succ tm) (succ k)) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) x) (succ k)}
+          - ρ (ς (minusPLeft (succ tn) k))
+              @ x. {rem (add (rem (succ tm) (succ k)) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem x (succ k))) (succ k)}
+          - ih2
+          }) β
+        }
+      | ff ➔ λ eq-ltMK-ff. λ n. μ ihn. n @(λ x: Nat. {rem (add (succ m) x) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem x (succ k))) (succ k)}) {
+        | zero ➔
+          ρ (addZeroRight (succ tm))
+        - ρ (addZeroRight (rem (succ tm) (succ k)))
+        - ρ (remIdem (succ tm) (succ k))
+        - β
+        | succ n ➔ [tn = to/Nat -isType/ihn n]
+        - (μ' (lt (succ tn) (succ k))
+            @(λ x: Bool. {lt (succ n) (succ k) ≃ x} ➔ { rem (add (succ m) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}) {
+          | tt ➔ λ eq-ltNK-tt.
+            [ih1 = ihm (minus' -isType/ihm m k) (succ tn)]
+          - [ih2
+              = ρ ς (rem-add-a-m-k (succ tn) (succ tm) (succ k) eq-ltMK-ff)
+                @ x. {x ≃ rem (add (succ tn) (rem (succ tm) (succ k))) (succ k) }
+              - ρ (minusSS tm k)
+                @ x. {rem (add (succ tn) x) (succ k) ≃ rem (add (succ tn) (rem (succ tm) (succ k))) (succ k)}
+              - ρ (rem-ltMK-ff (succ tm) (succ k) eq-ltMK-ff)
+                @ x. {rem (add (succ tn) (minus tm k)) (succ k) ≃ rem (add (succ tn) x) (succ k)}
+              - ρ (minusSS tm k)
+                @ x. {rem (add (succ tn) (minus tm k)) (succ k) ≃ rem (add (succ tn) (rem x (succ k))) (succ k)}
+              - ρ ς (addComm (rem (minus tm k) (succ k)) (succ tn))
+                @ x. {rem (add (succ tn) (minus tm k)) (succ k) ≃ rem (x) (succ k)}
+              - ρ ς (addComm (minus tm k) (succ tn))
+                @ x. {rem (x) (succ k) ≃ rem (add (rem (minus m k) (succ k)) (succ tn)) (succ k)}
+              - ρ ς (rem-ltMK-tt (succ tn) (succ k) eq-ltNK-tt)
+                @ x. {rem (add (minus m k) (succ tn)) (succ k) ≃ rem (add (rem (minus m k) (succ k)) (x)) (succ k)}
+              - ih1]
+          - ρ (addComm (succ tm) (succ tn))
+            @ x. {rem x (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}
+          - ρ ih2
+            @ x. {x ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}
+          - ρ (addComm (succ tn) (rem (succ tm) (succ k)))
+            @ x . {rem x (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}
+          - ρ ς (rem-ltMK-tt (succ tn) (succ k) eq-ltNK-tt)
+            @ x. {rem (add (rem (succ tm) (succ k)) x) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem (succ n) (succ k))) (succ k)}
+          - β
+          | ff ➔ λ eq-ltNK-ff.
+            [ihm1 = ihm (minus' -isType/ihm m k) (succ tn)]
+          - [ihn1 = ihn (minus' -isType/ihn n k)]
+          - ρ (rem-ltMK-ff (succ tn) (succ k) eq-ltNK-ff)
+            @ x. {rem (add (succ m) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) x) (succ k)}
+          - ρ (minusSS tn k)
+            @ x. { rem (add (succ m) (succ n)) (succ k) ≃ rem (add (rem (succ m) (succ k)) (rem x (succ k))) (succ k) }
+          - ρ ς ihn1
+            @ x. {rem (add (succ m) (succ n)) (succ k) ≃ x}
+          - ρ ς (minusSS tn k)
+            @ x. {rem (add (succ m) (succ n)) (succ k) ≃ (rem (add (succ m) (x)) (succ k))}
+          - ρ (rem-add-a-m-k (succ tm) (succ tn) (succ k) eq-ltNK-ff)
+            @ x. { rem (add (succ m) (succ n)) (succ k) ≃ x }
+          - β
+          }) β
+        }
+      }) β
+    }
+  }.
+
+
+
+Mod : Nat ➔ ★ = λ k: Nat. Quotient·Nat (remIdemFn k).
+-- Mod : Nat ➔ ★ = λ k: Nat. ι n: Nat. {rem n k ≃ n}.
+
+canon : Π k: Nat. Nat ➔ Mod k =
+  λ k. λ n. [rem n k, ρ (remIdem n k) - β{rem n k}].
+
+addMod : Π k: Nat. Mod k ➔ Mod k ➔ Mod k
+= λ k. λ n. λ m. qcanon (remIdemFn k) (add n.1 m.1).
+
+addModAssoc : Π k: Nat. Π a: Mod k. Π b: Mod k. Π c: Mod k. {addMod k (addMod k a b) c ≃ addMod k a (addMod k b c)}
+= λ k. λ a. λ b. λ c. ρ<1> ς c.2 - ρ<2> ς a.2
+  - ρ ς (remAddComm k (add a.1 b.1) c.1)
+  - ρ ς (remAddComm k a.1 (add b.1 c.1))
+  - ρ ς (addAssoc a.1 b.1 c.1) - β.
+
+addModComm : Π k: Nat. Π a: Mod k. Π b: Mod k. {addMod k a b ≃ addMod k b a}
+= λ k. λ a. λ b. ρ (addComm a.1 b.1) @ x. {rem x k ≃ addMod k b a} - β.
+
+addModIdLeft : Π k: Nat. Π a: Mod k. {addMod k a zero ≃ a}
+= λ k. λ a. ρ (addZeroRight a.1) @ x. {rem x k ≃ a}
+  - ρ (a.2) - β.
+
+addModIdRight : Π k: Nat. Π a: Mod k. {addMod k zero a ≃ a}
+= λ k. λ a. ρ (a.2) - β.

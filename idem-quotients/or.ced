@@ -1,0 +1,5 @@
+module or.
+
+data Or (A: ★) (B: ★) : ★ =
+  | injl : A ➔ Or
+  | injr : B ➔ Or.

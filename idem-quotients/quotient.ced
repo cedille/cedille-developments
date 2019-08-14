@@ -1,0 +1,92 @@
+import quotient-defs.
+import pair.
+
+module quotient (A: ★) (f: IdemFn·A).
+Q : ★ = Quotient·A f.
+
+Equiv : A ➔ A ➔ ★
+= λ a: A. λ b: A. {f a ≃ f b}.
+
+canon : A ➔ Q
+= λ a. qcanon f a.
+
+sound : Π a: A. Π b: A. Equiv a b ➔ {canon a ≃ canon b}
+= λ a. λ b. λ eq. eq.
+
+complete : Π a: A. Equiv (f.1 a) a
+= λ a. ρ (f.2 a) @ x. {x ≃ f a} - β.
+
+surjection : Π q: Q. ι a: A. {q ≃ canon a}
+= λ q. [q.1, ρ ς q.2 @ x. {x ≃ canon q} - β{q.1}].
+
+data IsSimple : (★ ➔ ★) ➔ ★ =
+  | base : IsSimple·(λ x: ★. x)
+  | any : ∀ T: ★. IsSimple·(λ x: ★. T)
+  | arrow : ∀ A: ★ ➔ ★. ∀ B: ★ ➔ ★.
+    IsSimple·A ➔ IsSimple·B ➔ IsSimple·(λ x: ★. A·x ➔ B·x).
+
+liftByCanon : ∀ F: ★ ➔ ★. IsSimple·F ➔ Pair·(F·A ➔ F·Q)·(F·Q ➔ F·A)
+= Λ F. λ e. μ ih. e {
+  | base ➔ pair (canon) (λ x. x.1)
+  | any·T ➔ pair (λ x. x) (λ x. x)
+  | arrow·A·B a b ➔ [left = ih a]
+  - [right = ih b]
+  - pair
+    (λ t. λ q. [i = snd left]
+    - [j = fst right]
+    - j (t (i q)))
+    (λ q. λ t. [i = fst left]
+    - [j = snd right]
+    - j (q (i t)))
+  }.
+
+liftByCanon1 : (A ➔ A) ➔ Q ➔ Q =
+  λ op. (fst (liftByCanon (arrow base base))) op.
+
+liftByCanon1' : (A ➔ A) ➔ Q ➔ Q =
+  λ op. λ q. canon (op q.1).
+
+liftByCanon1Eq : Π op: A ➔ A. {liftByCanon1 op ≃ liftByCanon1' op} =
+  λ op. β.
+
+liftByCanon2 : (A ➔ A ➔ A) ➔ Q ➔ Q ➔ Q =
+  λ op. (fst (liftByCanon (arrow base (arrow base base)) )) op.
+
+Compatible : Π T: ★. (T ➔ A) ➔ ★ =
+  λ T: ★. λ op: T ➔ A. Π t: T. {f (op t) ≃ op t}.
+
+liftArg : ∀ R: ★. Π op: A ➔ R. Q ➔ R =
+  Λ R. λ op. λ q. op q.1.
+
+lift : ∀ T: ★. Π op: T ➔ A. Compatible·T op ➾ T ➔ Q =
+  Λ T. λ op. Λ c. λ t. [op t, ρ (c t) - β{op t}].
+
+lift1 : Π op: (A ➔ A). Compatible·A op ➾ Q ➔ Q
+= λ op. Λ c. liftArg (lift op -c).
+
+lift2 : Π op: (A ➔ A ➔ A). (Π a: A. Compatible·A (op a)) ➾ Q ➔ Q ➔ Q =
+  λ op. Λ c. λ x. liftArg (lift (op x.1) -(c x.1)).
+
+liftArgId : ∀ R: ★. Π op: A ➔ R. {liftArg op ≃ op} =
+  Λ T. λ op. β.
+
+liftId : ∀ T: ★. Π op: T ➔ A. {lift op ≃ op} =
+  Λ T. λ op. β.
+
+Lift : (A ➔ ★) ➔ Q ➔ ★ = λ P: A ➔ ★. λ q: Q. P q.1.
+
+dlift : ∀ P: A ➔ ★. (Π a: A. P a) ➔ Π q: Q. Lift·P q =
+  Λ P. λ p. λ q. p q.1.
+
+dlift1 : ∀ P: A ➔ ★. Π op: A ➔ A. (Π a: A. P (op a)) ➔
+  ∀ c: Compatible·A op. Π q: Q. Lift·P (lift op -c q.1)
+= Λ P. λ f. λ p. Λ c. λ q. p q.1.
+
+qind : ∀ B: Q ➔ ★. (Π a: A. B (canon a)) ➔ Π q: Q. B q
+= Λ B. λ c. λ q. ρ ς q.2 - c q.1.
+
+CompatibleArg : Π R: ★. (A ➔ R) ➔ ★
+= λ R: ★. λ op: A ➔ R. Π a: A. {op (f a) ≃ op a}.
+
+liftProp : ∀ R: ★. Π op: A ➔ R. CompatibleArg·R op ➾ Π a: A. {liftArg op (canon a) ≃ op a}
+= Λ R. λ op. Λ c. λ a. ρ (c a) - β.

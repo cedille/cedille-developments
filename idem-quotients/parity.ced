@@ -1,0 +1,93 @@
+module parity.
+
+import quotient-defs.
+import nat.
+import or.
+
+even : Nat ➔ Nat
+= λ n. μ rec. n {
+  | zero ➔ zero
+  | succ n' ➔ μ' n' {
+    | zero ➔ zero
+    | succ n'' ➔ succ (succ (rec n''))
+    }
+  }.
+
+evenIdem : Π n: Nat. {even (even n) ≃ even n}
+= [M: Nat ➔ ★ = λ n: Nat. {even (even n) ≃ even n}]
+- λ n. μ ih. n @ (λ a: Nat. M a) {
+  | zero ➔ β
+  | succ n' ➔ μ' n' @ (λ b: Nat. M (succ b)) {
+    | zero ➔ β
+    | succ n'' ➔ ρ (ih n'')
+      @ x. {succ (succ x) ≃ succ (succ (even n''))}
+      - β
+    }
+  }.
+
+odd : Nat ➔ Nat
+= λ n. succ (even n).
+
+oddIdem : Π n: Nat. {odd (odd n) ≃ odd n}
+= [M: Nat ➔ ★ = λ n: Nat. {odd (odd n) ≃ odd n}]
+- λ n. μ ih. n @(λ a: Nat. M a) {
+  | zero ➔ β
+  | succ n' ➔ μ' n' @(λ b: Nat. M (succ b)) {
+    | zero ➔ β
+    | succ n'' ➔ ρ (ih n'')
+      @ x. {succ (succ x) ≃ succ (succ (odd n''))}
+      - β
+    }
+  }.
+
+evenIdemFn : IdemFn·Nat = [ even , λ n. ρ+ (evenIdem n) - β{even n}].
+oddIdemFn : IdemFn·Nat = [ odd , λ n. ρ+ (oddIdem n) - β{odd n}].
+
+evenOdd : Π n: Nat. {pred (odd n) ≃ even n}
+= λ n. β.
+
+oddEven : Π n: Nat. {succ (even n) ≃ odd n}
+= λ n. β.
+
+Even : ★ = Quotient·Nat evenIdemFn.
+
+evenZero : Even = [zero, β{zero}].
+
+Odd : ★ = Quotient·Nat oddIdemFn.
+
+oddOne : Odd = [succ zero, β{succ zero}].
+
+succSucc : Nat ➔ Nat
+= λ n. succ (succ n).
+
+evenSSCompat : Π e: Even. {even (succSucc e) ≃ succSucc e}
+= λ e. μ' e.1 @ λ i: Nat. {even i ≃ i} ➾ {even (succSucc i) ≃ succSucc i} {
+  | zero ➔ Λ eq. β
+  | succ e ➔ Λ eq. ρ eq @ x. {succ (succ x) ≃ succ (succ (succ e))} - β
+  } -e.2.
+
+evenSuccSucc : Even ➔ Even
+= λ e. [succSucc e.1, ρ (evenSSCompat e) - β{succSucc e}].
+
+oddSSCompat : Π o: Odd. {odd (succSucc o) ≃ succSucc o}
+= λ o. μ' o.1 @ λ i: Nat. {odd i ≃ i} ➾ {odd (succSucc i) ≃ succSucc i} {
+  | zero ➔ Λ eq. δ - eq
+  | succ o ➔ Λ eq. ρ eq @ x. {succ (succ x) ≃ succ (succ (succ o))} - β
+  } -o.2.
+
+oddSuccSucc : Odd ➔ Odd
+= λ o. [succSucc o.1, ρ (oddSSCompat o) - β{succSucc o}].
+
+evenOrOdd : Π n: Nat. Or·(ι x: Even. {n ≃ x})·(ι x: Odd. {n ≃ x})
+= λ n. μ ih. n {
+  | zero ➔ injl [evenZero, β{zero}]
+  | succ n' ➔ μ' n' {
+    | zero ➔ injr [oddOne, β{succ zero}]
+    | succ n' ➔ [h = ih n'] - μ' h {
+      | injl l ➔ injl [evenSuccSucc l.1, ρ l.2 - β{succ (succ l)}]
+      | injr r ➔ injr [oddSuccSucc r.1, ρ r.2 - β{succ (succ r)}]
+      }
+    }
+  }.
+
+double : Nat ➔ Nat = λ n. mult n n2.
