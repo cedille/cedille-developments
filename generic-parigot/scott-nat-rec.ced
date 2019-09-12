@@ -12,7 +12,7 @@ sucF ◂ ∀ R : ★. R ➔ NatF ·R =
   Λ R. λ r. Λ X. λ z. λ s. s r.
 
 MonoNatF ◂ Mono · NatF = Λ X. Λ Y. λ c.
-  caste -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
+  intrCast -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
 
 NatFI ◂ ★ ➔ ★ = λ R : ★.
   ι x : NatF · R. ∀ P : NatF · R ➔ ★.
@@ -20,7 +20,7 @@ NatFI ◂ ★ ➔ ★ = λ R : ★.
     P x.
 
 MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
-  caste
+  intrCast
     -(λ n. [ cast -(MonoNatF c) n.1 , Λ P. λ z. λ s.
          n.2 · (λ x : NatF · R1. P (cast -(MonoNatF c) x)) z
            (λ r. Λ pf. s [ cast -c r.1 , cast -(MonoNatF c) r.2] -pf)])
@@ -28,8 +28,8 @@ MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
 
 Nat ◂ ★ = Rec · NatFI.
 
-foldNat   = cast -(recFold -MonoNatFI).
-unfoldNat = cast -(recUnfold -MonoNatFI).
+foldNat   = cast -(recRoll -MonoNatFI).
+unfoldNat = cast -(recUnroll -MonoNatFI).
 
 LiftNat ◂ (Nat ➔ ★) ➔ NatF · Nat ➔ ★ =
   λ P : Nat ➔ ★. λ x : NatF · Nat.
@@ -71,7 +71,7 @@ toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n} = λ n.
     (λ m. Λ r. [ sucR (φ r.2 - r.1 {m} ) , β{suc m} ]).
 
 toNatR! ◂ Cast · Nat · NatR =
-  caste -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
+  intrCast -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
 
 recNatBase ◂ ∀ X : ★. X ➔ NatRZ · X =
   Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ n. x.
