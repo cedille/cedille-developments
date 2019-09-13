@@ -25,62 +25,62 @@ recU     ◂ Top = β{λ alg. λ x. x alg}.
 inU      ◂ Top = β{λ xs. λ alg. alg (fmap (λ x. mkpair x (recU alg x)) xs)}.
 reflectU ◂ Top = β{recU (λ xs. inU (fmap snd xs))}.
 
-Alg ◂ ★ ➔ ★ ➔ ★ = λ R: ★. λ X: ★. F ·(Pair ·R ·X) ➔ X.
-RF  ◂ ★ ➔ ★ = λ R: ★. ι x: ∀ X: ★. Alg ·R ·X ➔ X. {reflectU x ≃ x}.
+AlgP ◂ ★ ➔ ★ ➔ ★ = λ P: ★. λ X: ★. F ·(Pair ·P ·X) ➔ X.
+PF  ◂ ★ ➔ ★ = λ P: ★. ι x: ∀ X: ★. AlgP ·P ·X ➔ X. {reflectU x ≃ x}.
 
-castFPair1 ◂ ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔
-  ∀ Z: ★. Cast ·(F ·(Pair ·X ·Z)) ·(F ·(Pair ·Y ·Z))
-= Λ X. Λ Y. λ c. Λ Z. MonoFunctor (MonoPair1 c).
+castFPair1 ◂ ∀ P1: ★. ∀ P2: ★. Cast ·P1 ·P2 ➔
+  ∀ X: ★. Cast ·(F ·(Pair ·P1 ·X)) ·(F ·(Pair ·P2 ·X))
+= Λ P1. Λ P2. λ c. Λ X. MonoFunctor (MonoPair1 c).
 
-monoRF ◂ Mono ·RF = Λ X. Λ Y. λ c.
-  intrCast -(λ x. [ Λ Z. λ alg. x.1 (λ xs. alg (elimCast -(castFPair1 c ·Z) xs))
+monoPF ◂ Mono ·PF = Λ P1. Λ P2. λ c.
+  intrCast -(λ x. [ Λ X. λ alg. x.1 (λ xs. alg (elimCast -(castFPair1 c ·X) xs))
                   , x.2 ])
            -(λ x. β).
 
-R ◂ ★ = Rec ·RF.
-rollR   ◂ RF ·R ➔ R = elimCast -(recRoll -monoRF).
-unrollR ◂ R ➔ RF ·R = elimCast -(recUnroll -monoRF).
+P ◂ ★ = Rec ·PF.
+rollP   ◂ PF ·P ➔ P = elimCast -(recRoll -monoPF).
+unrollP ◂ P ➔ PF ·P = elimCast -(recUnroll -monoPF).
 
-recursion ◂ ∀ X: ★. Alg ·R ·X ➔ R ➔ X =
-  Λ X. λ alg. λ r. (unrollR r).1 alg.
+recursion ◂ ∀ X: ★. AlgP ·P ·X ➔ P ➔ X =
+  Λ X. λ alg. λ x. (unrollP x).1 alg.
 _ : {recursion ≃ recU} = β.
 
-inR1 ◂ F ·R ➔ ∀ X: ★. Alg ·R ·X ➔ X =
-  λ rs. Λ X. λ alg. alg (fmap (λ r: R. mkpair r (recursion alg r)) rs).
+inP1 ◂ F ·P ➔ ∀ X: ★. AlgP ·P ·X ➔ X =
+  λ xs. Λ X. λ alg. alg (fmap (λ x: P. mkpair x (recursion alg x)) xs).
 
-reflectionInR1 ◂ Π xs: F ·R. {reflectU (inR1 xs) ≃ inR1 xs} =
-  λ rs. ρ+ (fmapCompose ·R (snd ·R ·Top) (λ r. mkpair r (β{reflectU r})) rs) -
-        ρ+ (fmapId ·R ·Top (λ r. β{reflectU r}) (λ r. (unrollR r).2) rs) -
+reflectionInP1 ◂ Π xs: F ·P. {reflectU (inP1 xs) ≃ inP1 xs} =
+  λ xs. ρ+ (fmapCompose ·P (snd ·P ·Top) (λ x. mkpair x (β{reflectU x})) xs) -
+        ρ+ (fmapId ·P ·Top (λ x. β{reflectU x}) (λ x. (unrollP x).2) xs) -
         β.
 
-in ◂ F ·R ➔ R = λ rs. rollR [inR1 rs , ρ (reflectionInR1 rs) - β{inR1 rs}].
+in ◂ F ·P ➔ P = λ xs. rollP [inP1 xs , ρ (reflectionInP1 xs) - β{inP1 xs}].
 _ : {in ≃ inU} = β.
 
-out ◂ R ➔ F ·R = recursion (fmap (fst ·R ·(F ·R))).
+out ◂ P ➔ F ·P = recursion (fmap (fst ·P ·(F ·P))).
 
-PrfAlg ◂ (R ➔ ★) ➔ ★ = λ P: R ➔ ★. Π d: F ·(Sigma ·R ·P). P (in (fmap (proj1 ·R ·P) d)).
+PrfAlgP ◂ (P ➔ ★) ➔ ★ = λ Q: P ➔ ★.
+  Π xs: F ·(Sigma ·P ·Q). Q (in (fmap (proj1 ·P ·Q) xs)).
 
-Inductive ◂ R ➔ ★ = λ r: R. ∀ P: R ➔ ★. PrfAlg ·P ➔ P r.
+Inductive ◂ P ➔ ★ = λ x: P. ∀ Q: P ➔ ★. PrfAlgP ·Q ➔ Q x.
+IP ◂ ★ = ι x: P. Inductive x.
 
-I ◂ ★ = ι x: R. Inductive x.
+inIP1 ◂ F ·IP ➔ P = λ xs. in (fcast -(intrCast ·IP ·P -(λ x. x.1) -(λ x. β)) xs).
 
-inI1 ◂ F ·I ➔ R = λ xs. in (fcast -(intrCast ·I ·R -(λ x. x.1) -(λ x. β)) xs).
+inIP2 ◂ Π xs: F ·IP. Inductive (inIP1 xs) = λ xs. Λ Q. λ alg.
+  ρ  ς (fmapId (λ x: IP. x.1) (λ x. β) xs) -
+  ρ+ ς (fmapProj1Sigma ·IP ·P ·Q (λ x. x.1) (λ x. x.2 alg) xs) -
+  alg (fmap (λ x: IP. mksigma x.1 (x.2 ·Q alg)) xs).
 
-inI2 ◂ Π xs: F ·I. Inductive (inI1 xs) = λ xs. Λ P. λ alg.
-  ρ  ς (fmapId (λ x: I. x.1) (λ x. β) xs) -
-  ρ+ ς (fmapProj1Sigma ·I ·R ·P (λ x. x.1) (λ x. x.2 alg) xs) -
-  alg (fmap (λ x: I. mksigma x.1 (x.2 ·P alg)) xs).
+inIP ◂ F ·IP ➔ IP = λ xs. [ inIP1 xs , inIP2 xs].
+_ : {in ≃ inIP} = β.
 
-inI ◂ F ·I ➔ I = λ xs. [ inI1 xs , inI2 xs].
+reflectP ◂ P ➔ IP = λ x. recursion (λ xs. inIP (fmap (snd ·P ·IP) xs)) x.
 
-reflectI ◂ R ➔ I = λ x. recursion (λ xs. inI (fmap (snd ·R ·I) xs)) x.
+castP ◂ Cast ·P ·IP = intrCast -reflectP -(λ r. (unrollP r).2).
 
-_ : {reflectI ≃ reflectU} = β.
+induction ◂ ∀ Q: P ➔ ★. PrfAlgP ·Q ➔ Π x: P. Q x =
+  Λ Q. λ alg. λ x. (elimCast -castP x).2 alg.
 
-castI ◂ Cast ·R ·I = intrCast -reflectI -(λ r. (unrollR r).2).
-
-induction ◂ ∀ P: R ➔ ★. PrfAlg ·P ➔ Π x: R. P x =
-  Λ P. λ alg. λ x. (elimCast -castI x).2 alg.
-
+_ : {reflectP ≃ reflectU} = β.
 _ : {induction ≃ recursion} = β.
 

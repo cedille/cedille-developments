@@ -3,21 +3,22 @@ module scott-nat.
 import recType.
 import cast.
 
-NatF ◂ ★ ➔ ★ = λ R : ★. ∀ X : ★. X ➔ (R ➔ X) ➔ X.
+NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X : ★. X ➔ (N ➔ X) ➔ X.
 
-zeroF ◂ ∀ R : ★. NatF · R =
+zeroF ◂ ∀ N: ★. NatF ·N =
   Λ R . Λ X . λ z . λ s . z.
 
-sucF ◂ ∀ R : ★. R ➔ NatF ·R =
+sucF ◂ ∀ N: ★. N ➔ NatF ·N =
   Λ R. λ r. Λ X. λ z. λ s. s r.
 
-MonoNatF ◂ Mono · NatF = Λ X. Λ Y. λ c.
+MonoNatF ◂ Mono ·NatF = Λ X. Λ Y. λ c.
   intrCast -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
 
-NatFI ◂ ★ ➔ ★ = λ R : ★.
-  ι x : NatF · R. ∀ P : NatF · R ➔ ★.
-    P (zeroF · R) ➔ (Π r : ι x: R. NatF · R. P r.2 ➾ P (sucF r.1)) ➔
-    P x.
+InductiveNatF : Π N: ★. NatF ·N ➔ ★ = λ N: ★. λ n: NatF ·N.
+  ∀ P: NatF ·N ➔ ★. P (zeroF ·N) ➔
+  (Π n: (ι x: N. NatF ·N). P n.2 ➾ P (sucF n.1)) ➔ P n.
+
+NatFI ◂ ★ ➔ ★ = λ N: ★. ι x: NatF ·N. InductiveNatF ·N x.
 
 MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
   intrCast
@@ -26,41 +27,37 @@ MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
            (λ r. Λ pf. s [ cast -c r.1 , cast -(MonoNatF c) r.2] -pf)])
     -(λ _. β).
 
-Nat ◂ ★ = Rec · NatFI.
+Nat ◂ ★ = Rec ·NatFI.
+rollNat   = elimCast -(recRoll -MonoNatFI).
+unrollNat = elimCast -(recUnroll -MonoNatFI).
 
-foldNat   = elimCast -(recRoll -MonoNatFI).
-unfoldNat = elimCast -(recUnroll -MonoNatFI).
+zeroFI ◂ InductiveNatF ·Nat (zeroF ·Nat) = Λ P. λ z. λ s. z.
+zero ◂ Nat = rollNat [ zeroF ·Nat , zeroFI ] .
+
+sucFI ◂ Π n: Nat. InductiveNatF ·Nat (sucF n)
+= λ n. Λ P. λ z. λ s. s [ n , (unrollNat n).1 ] -((unrollNat n).2 z s).
+suc ◂ Nat ➔ Nat = λ n. rollNat [ sucF n , sucFI n ] .
+
+pred ◂ Nat ➔ Nat = λ n. (unrollNat n).1 n (λ p. p).
 
 LiftNat ◂ (Nat ➔ ★) ➔ NatF · Nat ➔ ★ =
   λ P : Nat ➔ ★. λ x : NatF · Nat.
   ∀ m : Nat. ∀ eq : {m ≃ x}. P (φ eq - m {x}).
 
-zero ◂ Nat = foldNat [ zeroF · Nat , Λ P. λ z. λ s. z].
-
-suc ◂ Nat ➔ Nat = λ n. foldNat
-  [ sucF n , Λ P. λ z. λ s. s [ n , (unfoldNat n).1 ] -((unfoldNat n).2 z s) ].
-
-pred ◂ Nat ➔ Nat
-= λ n. (unfoldNat n).1 n (λ p. p).
-
-inductionNat ◂ Π n : Nat. ∀ P : Nat ➔ ★. P zero ➔ (Π m : Nat. P m ➾ P (suc m)) ➔ P n
+inductionNat ◂ Π n: Nat. ∀ P: Nat ➔ ★.
+  P zero ➔ (Π m: Nat. P m ➾ P (suc m)) ➔ P n
 = λ n. Λ P. λ z. λ s.
-  (unfoldNat n).2 · (LiftNat · P) (Λ _. Λ _. z)
-    (λ r. Λ ih. Λ m. Λ eq. s r.1 -(ih -r.1 -β))
-    -n -β.
-
-caseNat ◂ Nat ➔ ∀ X : ★. X ➔ (Nat ➔ X) ➔ X
-= λ n. Λ X. λ z. λ s. (unfoldNat n).1 z s.
+  (unrollNat n).2 ·(LiftNat ·P) (Λ _. Λ _. z)
+    (λ r. Λ ih. Λ m. Λ eq. s r.1 -(ih -r.1 -β)) -n -β.
 
 -- Scott Nat recursor
 -- ==================================================
 
 NatRZ ◂ ★ ➔ ★ = λ X: ★. ∀ Z: ★. ∀ S: ★. Z ➔ S ➔ Nat ➔ X.
-
 NatRS ◂ ★ ➔ ★ = λ X: ★.
   ∀ Z: ★. ∀ S: ★. (Z ➔ S ➔ Z ➔ S ➔ Nat ➔ X) ➔ Z ➔ S ➔ Nat ➔ X.
-
-NatR ◂ ★ = ∀ X: ★. NatRZ ·X ➔ NatRS ·X ➔ NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ X.
+NatR ◂ ★ = ∀ X: ★.
+  NatRZ ·X ➔ NatRS ·X ➔ NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ X.
 
 zeroR ◂ NatR = Λ P. λ z. λ s. λ t. λ m. z t m.
 sucR ◂ NatR ➔ NatR = λ n. Λ P. λ z. λ s. λ t. λ m. s (n · P) t m.
