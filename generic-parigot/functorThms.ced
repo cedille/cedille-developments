@@ -1,17 +1,17 @@
 import functor.
 
 module functorThms (F: ★ ➔ ★) (fmap: Fmap ·F)
-  {fmapId: FmapId ·F fmap}{fmapCompose: FmapCompose ·F fmap}.
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import cast.
 import recType.
 
-Mono-from-Functor ◂ Mono ·F = Λ X. Λ Y. λ c.
+MonoFunctor ◂ Mono ·F = Λ X. Λ Y. λ c.
   intrCast -(λ d. fmap c.1 d)
            -(λ a. fmapId c.1 (λ x . ρ c.2 - β) a).
 
-fmap-cast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B =
-  Λ A. Λ B. Λ c. elimCast -(Mono-from-Functor c).
+fcast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B =
+  Λ A. Λ B. Λ c. elimCast -(MonoFunctor c).
 
 fmapIdFromCompose ◂ ∀ X: ★. ∀ Y: ★. ∀ Z: ★.
   Π f: Y ➔ Z. Π g: X ➔ Y. (Π x: X. {f (g x) ≃ x}) ➾
