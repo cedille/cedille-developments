@@ -1,25 +1,23 @@
 import functor.
 import cast.
-import top.
-import sigma.
-import wksigma.
+import utils.
 
-module scott-props
-  (F: ★ ➔ ★) (fmap: Fmap ·F) {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
-
-import scott2 ·F fmap -fmapId -fmapCompose.
-import scott2-rec ·F fmap -fmapId -fmapCompose.
-import parigot2 as P ·F fmap -fmapId -fmapCompose.
-
+module scott/props
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import functorThms ·F fmap -fmapId -fmapCompose.
 
+import scott/encoding  ·F fmap -fmapId -fmapCompose.
+import scott/induction ·F fmap -fmapId -fmapCompose.
+
+
 -- cancellation (computation) law
-cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: P.PrfAlgGen ·S in ·P.
+cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: PrfAlg ·P.
   {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
 = Λ P. λ xs. λ alg.
   ρ+ (fmapCompose (wrapSInd2Pair ·P (fromPrfAlgP alg))
-  (wrapSInd ·P) (fmap-cast -castS2SInd xs)) -
+        (wrapSInd ·P) (fcast -castS2SInd xs)) -
   β.
 
 -- reflection law
@@ -28,11 +26,12 @@ Reflection ◂ Π X: ★. X ➔ ★ = λ X: ★. λ x: X. {reflect x ≃ x}.
 Ref ◂ ★ = ι x: S. Reflection ·S x.
 
 castRef ◂ Cast ·(Sigma ·S ·(Reflection ·S)) ·(Sigma ·Ref ·(Reflection ·Ref)) =
-  caste -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ p - β{x} ] p))
-        -(λ p. eta-sigma p).
+  intrCast
+    -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ+ p - β{x} ] p))
+    -(λ p. eta-sigma p).
 
 refFun1 ◂ F ·(Sigma ·S ·(Reflection ·S)) ➔ F ·Ref = λ xs.
-  fmap (proj1 ·Ref ·(Reflection ·Ref)) (cast -(Mono-from-Functor castRef) xs).
+  fmap (proj1 ·Ref ·(Reflection ·Ref)) (elimCast -(MonoFunctor castRef) xs).
 
 refFun2 ◂ Wrap ·Ref ➔ S = λ w. reflect (unwrap w).1.
 
@@ -63,7 +62,7 @@ lambek2 ◂ Π x: S. Lambek2 x = λ x.
   induction ·Lambek2 (λ xs. ρ+ (lambek1 (fmap (proj1 ·S ·Lambek2) xs)) - β) x.
 
 -- Initiality
-initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: P.Alg ·S ·X.
+initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.
   Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap (λ x. mkpair x (h x)) xs)}.
   Π x: S. {h x ≃ recursion a x}
 = λ fext. Λ X. λ a. λ h. λ hom. λ x.

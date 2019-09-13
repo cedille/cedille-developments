@@ -11,14 +11,15 @@
    -}
 
 import functor.
-module Parigot (F: ★ ➔ ★) (fmap: Fmap ·F)
-               {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
+import utils.
+
+module parigot/encoding
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import recType.
 import cast.
 import functorThms · F fmap -fmapId -fmapCompose.
-import sigma.
-import top.
 
 recU     ◂ Top = β{λ alg. λ x. x alg}.
 inU      ◂ Top = β{λ xs. λ alg. alg (fmap (λ x. mkpair x (recU alg x)) xs)}.
@@ -40,12 +41,12 @@ R ◂ ★ = Rec ·RF.
 rollR   ◂ RF ·R ➔ R = elimCast -(recRoll -monoRF).
 unrollR ◂ R ➔ RF ·R = elimCast -(recUnroll -monoRF).
 
-rec ◂ ∀ X: ★. Alg ·R ·X ➔ R ➔ X =
+recursion ◂ ∀ X: ★. Alg ·R ·X ➔ R ➔ X =
   Λ X. λ alg. λ r. (unrollR r).1 alg.
-_ : {rec ≃ recU} = β.
+_ : {recursion ≃ recU} = β.
 
 inR1 ◂ F ·R ➔ ∀ X: ★. Alg ·R ·X ➔ X =
-  λ rs. Λ X. λ alg. alg (fmap (λ r: R. mkpair r (rec alg r)) rs).
+  λ rs. Λ X. λ alg. alg (fmap (λ r: R. mkpair r (recursion alg r)) rs).
 
 reflectionInR1 ◂ Π xs: F ·R. {reflectU (inR1 xs) ≃ inR1 xs} =
   λ rs. ρ+ (fmapCompose ·R (snd ·R ·Top) (λ r. mkpair r (β{reflectU r})) rs) -
@@ -55,13 +56,9 @@ reflectionInR1 ◂ Π xs: F ·R. {reflectU (inR1 xs) ≃ inR1 xs} =
 in ◂ F ·R ➔ R = λ rs. rollR [inR1 rs , ρ (reflectionInR1 rs) - β{inR1 rs}].
 _ : {in ≃ inU} = β.
 
-out ◂ R ➔ F ·R = rec (fmap (fst ·R ·(F ·R))).
+out ◂ R ➔ F ·R = recursion (fmap (fst ·R ·(F ·R))).
 
-PrfAlgGen ◂ Π R: ★. (F ·R ➔ R) ➔ (R ➔ ★) ➔ ★ =
-  λ R: ★. λ in: F ·R ➔ R. λ P: R ➔ ★.
-  Π d: F ·(Sigma ·R ·P). P (in (fmap (proj1 ·R ·P) d)).
-
-PrfAlg ◂ (R ➔ ★) ➔ ★ = PrfAlgGen ·R in.
+PrfAlg ◂ (R ➔ ★) ➔ ★ = λ P: R ➔ ★. Π d: F ·(Sigma ·R ·P). P (in (fmap (proj1 ·R ·P) d)).
 
 Inductive ◂ R ➔ ★ = λ r: R. ∀ P: R ➔ ★. PrfAlg ·P ➔ P r.
 
@@ -76,7 +73,7 @@ inI2 ◂ Π xs: F ·I. Inductive (inI1 xs) = λ xs. Λ P. λ alg.
 
 inI ◂ F ·I ➔ I = λ xs. [ inI1 xs , inI2 xs].
 
-reflectI ◂ R ➔ I = λ x. rec (λ xs. inI (fmap (snd ·R ·I) xs)) x.
+reflectI ◂ R ➔ I = λ x. recursion (λ xs. inI (fmap (snd ·R ·I) xs)) x.
 
 _ : {reflectI ≃ reflectU} = β.
 
@@ -85,5 +82,5 @@ castI ◂ Cast ·R ·I = intrCast -reflectI -(λ r. (unrollR r).2).
 induction ◂ ∀ P: R ➔ ★. PrfAlg ·P ➔ Π x: R. P x =
   Λ P. λ alg. λ x. (elimCast -castI x).2 alg.
 
-_ : {induction ≃ rec} = β.
+_ : {induction ≃ recursion} = β.
 

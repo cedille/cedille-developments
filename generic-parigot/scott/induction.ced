@@ -1,0 +1,71 @@
+import functor.
+import cast.
+import recType.
+import utils.
+
+module scott/induction
+  (F : ★ ➔ ★) (fmap : Fmap · F)
+  {fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap}.
+
+import functorThms · F fmap -fmapId -fmapCompose.
+
+import scott/encoding ·F fmap -fmapId -fmapCompose.
+-- import scott2 ·F fmap -fmapId -fmapCompose.
+-- import parigot2 as P ·F fmap -fmapId -fmapCompose.
+-- import sigma.
+
+unwrapIotaAlg ◂ ∀ Y: ★. ∀ P: S ➔ ★. Wrap ·(ι x: S. Y ➔ Y ➔ P x) ➔ S =
+  Λ P. Λ Y. λ w. (unwrap w).1.
+
+PrfAlg' ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★.
+  ∀ Y: ★. Π d: F ·(Wrap ·(ι x: S. Y ➔ Y ➔ P x)). Y ➔
+  P (in (fmap (unwrapIotaAlg ·Y ·P) d)).
+
+InductiveS ◂ S ➔ ★ = λ s: S.
+  ∀ P: S ➔ ★. PrfAlg' ·P ➔ PrfAlg' ·P ➔ P s.
+
+I ◂ ★ = ι x: S. InductiveS x.
+
+castI2S ◂ Cast ·I ·S =
+  intrCast -(λ x. x.1) -(λ x. β).
+
+wrapSInd ◂ ∀ P: S ➔ ★. I ➔ Wrap ·(ι x: S. PrfAlg' ·P ➔ PrfAlg' ·P ➔ P x) =
+  Λ P. λ s. wrap [ s.1 , s.2 ·P ].
+
+inSInd ◂ F ·I ➔ I = λ xs.
+  [ in (cast -(MonoFunctor castI2S) xs)
+  , Λ P. λ alg1. λ alg2.
+    ρ ς (fmapIdFromCompose (unwrap ·I) (wrap ·I) -(λ x. β) xs) -
+    alg1 (fmap (wrapSInd ·P) xs) alg2 ].
+
+_ : {inSInd ≃ in} = β.
+
+toSInd ◂ Π d: S. ι x: I. {x ≃ d} = λ d.
+  wkInduction ·(λ y: S. ι x: I. {x ≃ y})
+    (λ ds. Λ s. Λ eq.
+    [unwrapSInd ◂ PrfS ·S ·(Lift ·(λ y: S. ι x: I. {x ≃ y})) ➔ I
+      = λ p. rec-wksigma p (λ t. Λ ih.
+        [eqt  : {ih ≃ t} = (ih -t.1 -β).2] -
+        [indt : InductiveS t.1 = ρ ς eqt - (ih -t.1 -β).1.2 ] -
+        [ t.1 , φ eqt - indt {t} ])] -
+    [ inSInd (fmap unwrapSInd ds) , β{in (fmap unwrap ds)} ])
+    d .
+
+castS2SInd ◂ Cast ·S ·I =
+  intrCast -(λ s. (toSInd s).1) -(λ s. (toSInd s).2).
+
+wrapSInd2Pair ◂ ∀ P: S ➔ ★. ∀ Y: ★. Y ➔ Wrap ·(ι x: S. Y ➔ Y ➔ P x) ➔ Sigma ·S ·P =
+  Λ P. Λ Y. λ y. λ w. mksigma (unwrap w).1 ((unwrap w).2 y y).
+
+PrfAlg ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★. Π d: F ·(Sigma ·S ·P). P (in (fmap (proj1 ·S ·P) d)).
+
+fromPrfAlgP ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ PrfAlg' ·P =
+  Λ P. λ a. Λ Y. λ sf. λ y.
+  ρ+ ς (fmapCompose (proj1 ·S ·P) (wrapSInd2Pair ·P y) sf)
+  - a (fmap (wrapSInd2Pair ·P y) sf).
+
+induction ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ Π s: S. P s =
+  Λ P. λ alg. λ s. (cast -castS2SInd s).2 (fromPrfAlgP alg) (fromPrfAlgP alg).
+
+recursion ◂ ∀ X: ★. (F ·(Pair ·S ·X) ➔ X) ➔ S ➔ X =
+  Λ X. induction ·(λ x: S. X).

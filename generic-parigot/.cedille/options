@@ -1,3 +1,6 @@
-import-directories =
- "."
- .
+import-directories = "." .
+use-cede-files = false.
+make-rkt-files = false.
+generate-logs = false.
+show-qualified-vars = false.
+erase-types = true.

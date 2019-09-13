@@ -1,4 +1,4 @@
-{- In Cedille 1.1 (not released yet as of this writing), you can work
+1.1 (not released yet as of this writing), you can work
    directly with constructors and (shallow) pattern-matching recursion
    as in systems like Coq or Agda.  Here, we see how to derive these
    things and related proof principles from the development in

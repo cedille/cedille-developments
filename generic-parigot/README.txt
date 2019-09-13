@@ -5,14 +5,17 @@ Background files:
   functor.ced     -- Statements of identity and composition laws for (the morphism part of) a functor (type Fmap)
   functorThms.ced -- Proof that the identity law for a functor implies it is monotonic (in the sense of recType)
 
-Main file:
+Main files:
 
   parigot.ced     -- generic derivation of the Parigot encoding for any functor
+  scott.ced       -- generic derivation of the Parigot encoding for any functor
 
 Positive example:
 
-  natFunctor.ced  -- the standard functor for defining the natural numbers
-  nat.ced         -- derivation of recursion and induction for Nat, by instantiating the parigot.ced module
+  utils/natFunctor.ced      -- the standard functor for defining the natural numbers
+  parigot/examples/nat.ced  -- derivation of recursion and induction for Parigot-encoded naturals, by instantiating the parigot.ced module
+  scott/examples/nat1.ced   -- direct derivation of Scott naturals, with recursion
+  scott/examples/nat2.ced   -- derivation of recursion and induction for Scott-encoded naturals, by instantiating the scott.ced module
 
 Negative example:
 

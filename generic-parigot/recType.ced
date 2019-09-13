@@ -1,4 +1,4 @@
-module RecType (F : ★ ➔ ★).
+module recType (F : ★ ➔ ★).
 
 import cast.
 
@@ -14,8 +14,6 @@ recRoll ◂ Mono ➾ Cast ·(F ·Rec) ·Rec
   intrCast
     -(λ xs. Λ X. Λ c. cast -c (cast -(mono (recCast -c)) xs))
     -(λ xs. β).
--- recRoll ◂ Mono ➾ Cast ·(F ·Rec) ·Rec =
---   Λ mono. [ λ x. Λ X. Λ c. elimCast -(castTrans -(mono (recCast -c)) -c) x , β ].
 
 recUnroll ◂ Mono ➾ Cast ·Rec ·(F ·Rec) =
   Λ mono. recCast -(mono (recRoll -mono)).

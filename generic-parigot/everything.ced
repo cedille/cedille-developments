@@ -1,0 +1,26 @@
+module everything.
+
+-- utilies
+import utils.
+
+-- recursive types
+import cast.
+import recType.
+
+-- functors
+import functor.
+import functorThms.
+
+-- generic derivation of Parigot-encoded data
+import parigot as P.
+
+-- examples of Parigot-encoded data
+import parigot/examples/nat as NP.
+
+-- generic derivation of Scott-encoded data
+import scott as S.
+
+-- examples of Scott-encoded data
+import scott/examples/nat1 as NS1. -- derived directly
+import scott/examples/nat2 as NS2. -- using the generic development
+

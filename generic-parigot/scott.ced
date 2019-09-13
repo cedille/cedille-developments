@@ -1,0 +1,9 @@
+import functor.
+
+module scott
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import public scott/encoding  ·F fmap -fmapId -fmapCompose.
+import public scott/induction ·F fmap -fmapId -fmapCompose.
+import public scott/props     ·F fmap -fmapId -fmapCompose.

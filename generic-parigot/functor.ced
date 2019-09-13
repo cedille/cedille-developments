@@ -1,4 +1,4 @@
-module Functor (F : ★ ➔ ★).
+module functor (F : ★ ➔ ★).
 
 Fmap ◂ ★ = ∀ X: ★. ∀ Y: ★. (X ➔ Y) ➔ (F ·X ➔ F ·Y).
 

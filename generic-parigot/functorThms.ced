@@ -21,15 +21,13 @@ fmapIdFromCompose ◂ ∀ X: ★. ∀ Y: ★. ∀ Z: ★.
   ρ+ (fmapId ·X ·Z (λ x. f (g x)) (λ x. eqComp x) xs) -
   β.
 
-import top.
-import wksigma.
+import utils.
 
 fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F ·X. {fmap unwrap (fmap wrap fx) ≃ fx} =
   Λ X. λ fx. ρ+ (fmapCompose (unwrap ·X) (wrap ·X) fx) -
              ρ+ (fmapId · X · Top (λ s. β{unwrap (wrap s)}) (λ x. β) fx) -
              β .
 
-import sigma.
 
 fmapProj1Sigma ◂ ∀ X: ★. ∀ A: ★. ∀ B: A ➔ ★.
   Π f: X ➔ A. Π g: Π x: X. B (f x). Π fx: F ·X.
