@@ -3,16 +3,16 @@ module scott/examples/nat1.
 import recType.
 import cast.
 
-NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X : ★. X ➔ (N ➔ X) ➔ X.
+NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ X.
 
 zeroF ◂ ∀ N: ★. NatF ·N =
-  Λ R . Λ X . λ z . λ s . z.
+  Λ R. Λ X. λ z. λ s. z.
 
 sucF ◂ ∀ N: ★. N ➔ NatF ·N =
   Λ R. λ r. Λ X. λ z. λ s. s r.
 
 MonoNatF ◂ Mono ·NatF = Λ X. Λ Y. λ c.
-  intrCast -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (cast -c r))) -(λ n. β).
+  intrCast -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (elimCast -c r))) -(λ n. β).
 
 InductiveNatF : Π N: ★. NatF ·N ➔ ★ = λ N: ★. λ n: NatF ·N.
   ∀ P: NatF ·N ➔ ★. P (zeroF ·N) ➔
@@ -20,10 +20,10 @@ InductiveNatF : Π N: ★. NatF ·N ➔ ★ = λ N: ★. λ n: NatF ·N.
 
 NatFI ◂ ★ ➔ ★ = λ N: ★. ι x: NatF ·N. InductiveNatF ·N x.
 
-MonoNatFI ◂ Mono · NatFI = Λ R1. Λ R2. λ c.
+MonoNatFI ◂ Mono ·NatFI = Λ R1. Λ R2. λ c.
   intrCast
     -(λ n. [ cast -(MonoNatF c) n.1 , Λ P. λ z. λ s.
-         n.2 · (λ x : NatF · R1. P (cast -(MonoNatF c) x)) z
+         n.2 ·(λ x: NatF ·R1. P (cast -(MonoNatF c) x)) z
            (λ r. Λ pf. s [ cast -c r.1 , cast -(MonoNatF c) r.2] -pf)])
     -(λ _. β).
 
@@ -38,7 +38,7 @@ sucFI ◂ Π n: Nat. InductiveNatF ·Nat (sucF n)
 = λ n. Λ P. λ z. λ s. s [ n , (unrollNat n).1 ] -((unrollNat n).2 z s).
 suc ◂ Nat ➔ Nat = λ n. rollNat [ sucF n , sucFI n ] .
 
-pred ◂ Nat ➔ Nat = λ n. (unrollNat n).1 n (λ p. p).
+pred ◂ Nat ➔ Nat = λ n. (unrollNat n).1 zero (λ p. p).
 
 _ : { pred (suc zero) ≃ zero } = β.
 _ : Π x: Nat. { pred (suc x) ≃ x } = λ x. β.
@@ -53,3 +53,6 @@ inductionNat ◂ Π n: Nat. ∀ P: Nat ➔ ★.
   (unrollNat n).2 ·(LiftNat ·P) (Λ _. Λ _. z)
     (λ r. Λ ih. Λ m. Λ eq. s r.1 -(ih -r.1 -β)) -n -β.
 
+_ ◂ Π n: Nat. {n ≃ n zero suc} = λ n.
+  inductionNat n ·(λ x: Nat. {x ≃ x zero suc})
+    β (λ m. Λ pf. β) .
