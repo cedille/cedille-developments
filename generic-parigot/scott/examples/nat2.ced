@@ -3,7 +3,7 @@ import utils.
 module scott/examples/nat2.
 
 import scott/encoding as S ·NatF NatFmap -NatFmapId -NatFmapCompose.
-import scott/induction as SI ·NatF NatFmap -NatFmapId -NatFmapCompose.
+import scott-rec/induction as SI ·NatF NatFmap -NatFmapId -NatFmapCompose.
 
 Nat ◂ ★ = S.S.
 

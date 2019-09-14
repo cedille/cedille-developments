@@ -2,14 +2,14 @@ import functor.
 import cast.
 import utils.
 
-module scott/props
+module scott-rec/props
   (F: ★ ➔ ★) (fmap: Fmap ·F)
   {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
 import functorThms ·F fmap -fmapId -fmapCompose.
 
 import scott/encoding  ·F fmap -fmapId -fmapCompose.
-import scott/induction ·F fmap -fmapId -fmapCompose.
+import scott-rec/induction ·F fmap -fmapId -fmapCompose.
 
 
 -- cancellation (computation) law

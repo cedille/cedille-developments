@@ -20,6 +20,9 @@ import parigot/examples/nat as NP.
 -- generic derivation of Scott-encoded data
 import scott as S.
 
+-- augmentation of above with standard recursion, induction
+import scott-rec as SR.
+
 -- examples of Scott-encoded data
 import scott/examples/nat1 as NS1. -- derived directly
 import scott/examples/nat2 as NS2. -- using the generic development

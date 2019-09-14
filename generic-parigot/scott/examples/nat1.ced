@@ -1,4 +1,4 @@
-module scott-nat.
+module scott/examples/nat1.
 
 import recType.
 import cast.
@@ -40,6 +40,9 @@ suc ◂ Nat ➔ Nat = λ n. rollNat [ sucF n , sucFI n ] .
 
 pred ◂ Nat ➔ Nat = λ n. (unrollNat n).1 n (λ p. p).
 
+_ : { pred (suc zero) ≃ zero } = β.
+_ : Π x: Nat. { pred (suc x) ≃ x } = λ x. β.
+
 LiftNat ◂ (Nat ➔ ★) ➔ NatF · Nat ➔ ★ =
   λ P : Nat ➔ ★. λ x : NatF · Nat.
   ∀ m : Nat. ∀ eq : {m ≃ x}. P (φ eq - m {x}).
@@ -50,67 +53,3 @@ inductionNat ◂ Π n: Nat. ∀ P: Nat ➔ ★.
   (unrollNat n).2 ·(LiftNat ·P) (Λ _. Λ _. z)
     (λ r. Λ ih. Λ m. Λ eq. s r.1 -(ih -r.1 -β)) -n -β.
 
--- Scott Nat recursor
--- ==================================================
-
-NatRZ ◂ ★ ➔ ★ = λ X: ★. ∀ Z: ★. ∀ S: ★. Z ➔ S ➔ Nat ➔ X.
-NatRS ◂ ★ ➔ ★ = λ X: ★.
-  ∀ Z: ★. ∀ S: ★. (Z ➔ S ➔ Z ➔ S ➔ Nat ➔ X) ➔ Z ➔ S ➔ Nat ➔ X.
-NatR ◂ ★ = ∀ X: ★.
-  NatRZ ·X ➔ NatRS ·X ➔ NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ X.
-
-zeroR ◂ NatR = Λ P. λ z. λ s. λ t. λ m. z t m.
-sucR ◂ NatR ➔ NatR = λ n. Λ P. λ z. λ s. λ t. λ m. s (n · P) t m.
-
-toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n} = λ n.
-  inductionNat n · (λ y : Nat. ι x : NatR. {x ≃ y})
-    [zeroR , β{zero}]
-    (λ m. Λ r. [ sucR (φ r.2 - r.1 {m} ) , β{suc m} ]).
-
-toNatR! ◂ Cast · Nat · NatR =
-  intrCast -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
-
-recNatBase ◂ ∀ X : ★. X ➔ NatRZ · X =
-  Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ n. x.
-
-recNatStep ◂ ∀ X : ★. X ➔ (Nat ➔ X ➔ X) ➔ NatRS · X =
-  Λ X. λ x. λ f. Λ Z. Λ S. λ n. λ z. λ s. λ m.
-  f (pred m) (n z s z s (pred m)).
-
-recNat ◂ ∀ X : ★. Nat ➔ X ➔ (Nat ➔ X ➔ X) ➔ X =
-  Λ X. λ n. λ x. λ f.
-  (cast -toNatR! n)
-    (recNatBase x) (recNatStep x f)
-    (recNatBase x) (recNatStep x f) n.
-
-{- computation laws satisfied by beta-equivalences, though not by beta-reduction -}
-recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
-              {recNat zero x f ≃ x} =
-  Λ X. Λ x. Λ f. β.
-
-recNatCompS ◂ ∀ X: ★. ∀ n: Nat. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
-              {recNat (suc n) x f ≃ f n (recNat n x f)} =
-  Λ X. Λ n. Λ x. Λ f. β.
-
--- example:
-
-add ◂ Nat ➔ Nat ➔ Nat = λ m. λ n. recNat m n (λ p. λ s. suc s).
-sumFrom ◂ Nat ➔ Nat = λ m. recNat m zero (λ p. λ s. suc (add p s)).
-
-_ ◂ ∀ m: Nat. {add zero m ≃ m} = Λ m. β.
-_ ◂ ∀ m: Nat. ∀ n: Nat. {add (suc m) n ≃ suc (add m n)} = Λ m. Λ n. β.
-
-_ ◂ {sumFrom zero ≃ zero} = β.
-_ ◂ ∀ m: Nat. {sumFrom (suc m) ≃ add (suc m) (sumFrom m)} = Λ m. β.
-
-num1 = suc zero.
-num2 = suc num1.
-
-_ ◂ {add num2 num2 ≃ suc (suc num2)} = β.
-_ ◂ {sumFrom num2 ≃ suc num2} = β.
-
-
-minus ◂ Nat ➔ Nat ➔ Nat
-= λ m. λ n. recNat n m (λ _. λ m. pred m).
-
-_ ◂ {minus (suc (add num2 num2)) (suc num2) ≃ num2} = β.

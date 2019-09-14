@@ -3,16 +3,13 @@ import cast.
 import recType.
 import utils.
 
-module scott/induction
+module scott-rec/induction
   (F : ★ ➔ ★) (fmap : Fmap · F)
   {fmapId : FmapId · F fmap}{fmapCompose : FmapCompose · F fmap}.
 
 import functorThms · F fmap -fmapId -fmapCompose.
 
 import scott/encoding ·F fmap -fmapId -fmapCompose.
--- import scott2 ·F fmap -fmapId -fmapCompose.
--- import parigot2 as P ·F fmap -fmapId -fmapCompose.
--- import sigma.
 
 unwrapIotaAlg ◂ ∀ Y: ★. ∀ P: S ➔ ★. Wrap ·(ι x: S. Y ➔ Y ➔ P x) ➔ S =
   Λ P. Λ Y. λ w. (unwrap w).1.

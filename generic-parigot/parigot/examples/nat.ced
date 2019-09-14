@@ -2,22 +2,22 @@ import utils.
 
 module parigot/examples/nat.
 
-import parigot/encoding as R ·NatF NatFmap -NatFmapId -NatFmapCompose.
+import parigot as P ·NatF NatFmap -NatFmapId -NatFmapCompose.
 
-Nat ◂ ★ = R.R.
+Nat ◂ ★ = P.P.
 
-zero ◂ Nat = R.in (in1 unit).
-suc  ◂ Nat ➔ Nat = λ n. R.in (in2 n).
+zero ◂ Nat = P.in (in1 unit).
+suc  ◂ Nat ➔ Nat = λ n. P.in (in2 n).
 
 pred ◂ Nat ➔ Nat
-= λ n. rec-Sum (R.out n) (λ _. n) (λ p. p).
+= λ n. rec-Sum (P.out n) (λ _. n) (λ p. p).
 
 _ ◂ {pred (suc zero) ≃ zero} = β.
 _ ◂ Π x: Nat. {pred (suc x) ≃ x} = λ x. β.
 
 natRec ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat ➔ X
 = Λ X. λ x. λ f.
-  R.recursion (λ xs. rec-Sum xs (λ _. x) (λ p. rec-pair p (λ m. λ x. f m x))) .
+  P.recursion (λ xs. rec-Sum xs (λ _. x) (λ p. rec-pair p (λ m. λ x. f m x))) .
 
 natRecZ ◂ ∀ X: ★. ∀ x: X. ∀ f: (Nat ➔ X ➔ X). {natRec x f zero ≃ x}
 = Λ X. Λ x. Λ f. β.
@@ -27,11 +27,11 @@ natRecS ◂ ∀ X: ★. ∀ x: X. ∀ f: (Nat ➔ X ➔ X). ∀ n: Nat. {natRec 
 
 natInd ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π n: Nat. P n ➔ P (suc n)) ➔ Π n: Nat. P n
 = Λ P. λ b. λ s.
-  R.induction (λ xs.
+  P.induction (λ xs.
     ind-Sum xs
-     ·(λ x: Sum ·Unit ·(Sigma ·Nat ·P). P (R.in (NatFmap (proj1 ·Nat ·P) x)))
+     ·(λ x: Sum ·Unit ·(Sigma ·Nat ·P). P (P.in (NatFmap (proj1 ·Nat ·P) x)))
       (λ u. ρ (eta-Unit u) - b)
-      (λ p. ind-sigma p ·(λ x: Sigma ·Nat ·P. P (R.in (NatFmap (proj1 ·Nat ·P) (in2 x))))
+      (λ p. ind-sigma p ·(λ x: Sigma ·Nat ·P. P (P.in (NatFmap (proj1 ·Nat ·P) (in2 x))))
        (λ m. λ x. s m x))).
 
 -- iteration
