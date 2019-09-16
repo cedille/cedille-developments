@@ -1,49 +1,62 @@
-import utils.
+import cast.
+import recType.
+import utils/top.
 
 module parigot/examples/nat.
 
-import parigot as P ·NatF NatFmap -NatFmapId -NatFmapCompose.
+zeroU       ◂ Top = β{λ z. λ s. z}.
+sucU        ◂ Top = β{λ n. λ z. λ s. s n (n z s)}.
+recNatU     ◂ Top = β{λ x. λ f. λ n. n x f}.
+reflectNatU ◂ Top = β{recNatU zeroU (λ _. λ m. sucU m)}.
 
-Nat ◂ ★ = P.P.
+NatF ◂ ★ ➔ ★ = λ N: ★.
+  ι n: ∀ X: ★. X ➔ (N ➔ X ➔ X) ➔ X. {reflectNatU n ≃ n}.
 
-zero ◂ Nat = P.in (in1 unit).
-suc  ◂ Nat ➔ Nat = λ n. P.in (in2 n).
+monoNatF ◂ Mono ·NatF
+= Λ N1. Λ N2. λ c.
+  intrCast
+    -(λ n. [ Λ X. λ z. λ s. n.1 z (λ m. λ x. s (elimCast -c m) x) , n.2 ])
+    -(λ _. β) .
 
-pred ◂ Nat ➔ Nat
-= λ n. rec-Sum (P.out n) (λ _. n) (λ p. p).
+Nat ◂ ★ = Rec ·NatF.
+rollNat   ◂ NatF ·Nat ➔ Nat = elimCast -(recRoll -monoNatF).
+unrollNat ◂ Nat ➔ NatF ·Nat = elimCast -(recUnroll -monoNatF).
 
-_ ◂ {pred (suc zero) ≃ zero} = β.
-_ ◂ Π x: Nat. {pred (suc x) ≃ x} = λ x. β.
+zero ◂ Nat = rollNat [ Λ X. λ z. λ s. z , β{zeroU} ].
+suc  ◂ Nat ➔ Nat = λ n.
+  rollNat [ Λ X. λ z. λ s. s n ((unrollNat n).1 z s)
+          , ρ+ (unrollNat n).2 - β{sucU n} ].
 
-natRec ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat ➔ X
-= Λ X. λ x. λ f.
-  P.recursion (λ xs. rec-Sum xs (λ _. x) (λ p. rec-pair p (λ m. λ x. f m x))) .
+recNat ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat ➔ X
+= Λ X. λ x. λ f. λ n. (unrollNat n).1 x f.
 
-natRecZ ◂ ∀ X: ★. ∀ x: X. ∀ f: (Nat ➔ X ➔ X). {natRec x f zero ≃ x}
-= Λ X. Λ x. Λ f. β.
+pred ◂ Nat ➔ Nat = recNat zero (λ m. λ _. m).
 
-natRecS ◂ ∀ X: ★. ∀ x: X. ∀ f: (Nat ➔ X ➔ X). ∀ n: Nat. {natRec x f (suc n) ≃ f n (natRec x f n)}
-= Λ X. Λ x. Λ f. Λ n. β.
+InductiveNat ◂ Nat ➔ ★ = λ x: Nat.
+  ∀ P: Nat ➔ ★. P zero ➔ (Π n: Nat. P n ➔ P (suc n)) ➔ P x.
 
-natInd ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π n: Nat. P n ➔ P (suc n)) ➔ Π n: Nat. P n
-= Λ P. λ b. λ s.
-  P.induction (λ xs.
-    ind-Sum xs
-     ·(λ x: Sum ·Unit ·(Sigma ·Nat ·P). P (P.in (NatFmap (proj1 ·Nat ·P) x)))
-      (λ u. ρ (eta-Unit u) - b)
-      (λ p. ind-sigma p ·(λ x: Sigma ·Nat ·P. P (P.in (NatFmap (proj1 ·Nat ·P) (in2 x))))
-       (λ m. λ x. s m x))).
+NatI ◂ ★ = ι x: Nat. InductiveNat x.
+
+zeroI ◂ NatI = [ zero , Λ P. λ z. λ s. z ].
+sucI  ◂ NatI ➔ NatI = λ n. [ suc n.1 , Λ P. λ z. λ s. s n.1 (n.2 z s) ].
+
+reflectNat ◂ Nat ➔ NatI = recNat zeroI (λ _. sucI).
+
+toNatI ◂ Cast ·Nat ·NatI =
+  intrCast -reflectNat -(λ n. (unrollNat n).2).
+
+inductionNat ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π n: Nat. P n ➔ P (suc n)) ➔ Π n: Nat. P n
+= Λ P. λ z. λ s. λ n.
+  (elimCast -toNatI n).2 z s.
+
+_ : {inductionNat ≃ recNat} = β.
 
 -- iteration
-add ◂ Nat ➔ Nat ➔ Nat
-= λ m. λ n. natRec m (λ _. λ x. suc x) n.
-
-mult ◂ Nat ➔ Nat ➔ Nat
-= λ m. λ n. natRec m (λ _. λ x. add n x) zero.
+add ◂ Nat ➔ Nat ➔ Nat = ● .
+mult ◂ Nat ➔ Nat ➔ Nat = ● .
 
 -- recursion
-fac ◂ Nat ➔ Nat
-= λ n. natRec n (λ m. λ x. mult (suc m) x) (suc zero).
+fac ◂ Nat ➔ Nat = ● .
 
-addZRight ◂ Π n: Nat. {add n zero ≃ n}
-= natInd ·(λ x: Nat. {add x zero ≃ x}) β (λ n. λ pf. ρ pf - β).
+-- proof
+addZRight ◂ Π n: Nat. {add n zero ≃ n} = ●.
