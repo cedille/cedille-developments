@@ -12,6 +12,16 @@ import scott/encoding  ·F fmap -fmapId -fmapCompose.
 import scott-rec/induction ·F fmap -fmapId -fmapCompose.
 
 
+-- computation law for standard discriminator
+case' : ∀ X: ★. (F ·S ➔ X) ➔ S ➔ X
+= Λ X. λ a. case (λ xs. a (fmap (unwrap ·S) xs)).
+
+caseComp' : ∀ X: ★. Π a: F ·S ➔ X. Π xs: F ·S. {case' a (in xs) ≃ a xs}
+= Λ X. λ a. λ xs.
+   ρ+ (fmapCompose (unwrap ·S) (wrap ·S) xs)
+ - ρ+ (fmapId (λ x: S. unwrap (wrap x)) (λ _. β) xs)
+ - β.
+
 -- cancellation (computation) law
 cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: PrfAlg ·P.
   {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
