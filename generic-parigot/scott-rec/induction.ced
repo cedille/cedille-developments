@@ -40,8 +40,8 @@ _ : {inSInd ≃ in} = β.
 toSInd ◂ Π d: S. ι x: I. {x ≃ d} = λ d.
   wkInduction ·(λ y: S. ι x: I. {x ≃ y})
     (λ ds. Λ s. Λ eq.
-    [unwrapSInd ◂ PrfS ·S ·(Lift ·(λ y: S. ι x: I. {x ≃ y})) ➔ I
-      = λ p. rec-wksigma p (λ t. Λ ih.
+    [unwrapSInd ◂ PrfS ·S ·(LiftS ·(λ y: S. ι x: I. {x ≃ y})) ➔ I
+      = λ p. elimWkSigma p (λ t. Λ ih.
         [eqt  : {ih ≃ t} = (ih -t.1 -β).2] -
         [indt : InductiveS t.1 = ρ ς eqt - (ih -t.1 -β).1.2 ] -
         [ t.1 , φ eqt - indt {t} ])] -

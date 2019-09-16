@@ -16,4 +16,4 @@ ind-Unit ◂ Π x : Unit. ∀ P : Unit ➔ ★. P unit ➔ P x =
   λ x. Λ P. λ u. ρ ς x.2.1 - (x.2.2 · Unit · P -unit u).
 
 eta-Unit ◂ Π x : Unit. {x ≃ unit}
- = λ x. ind-Unit x · (λ x : Unit. {x ≃ unit}) β.
+ = λ x. ind-Unit x ·(λ x: Unit. {x ≃ unit}) β.
