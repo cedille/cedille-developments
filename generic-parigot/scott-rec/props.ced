@@ -72,7 +72,7 @@ lambek2 ◂ Π x: S. Lambek2 x = λ x.
   induction ·Lambek2 (λ xs. ρ+ (lambek1 (fmap (proj1 ·S ·Lambek2) xs)) - β) x.
 
 -- Initiality
-initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.
+unique ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.
   Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap (λ x. mkpair x (h x)) xs)}.
   Π x: S. {h x ≃ recursion a x}
 = λ fext. Λ X. λ a. λ h. λ hom. λ x.
@@ -89,3 +89,15 @@ initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.
                (λ p. mkpair (proj1 p) (recursion a (proj1 p)))
                (λ p. ρ+ (proj2 p) - β) xs) -
           β) x.
+
+fold ◂ ∀ X: ★. (F ·X ➔ X) ➔ S ➔ X
+= Λ X. λ a. λ x. recursion (λ xs. a (fmap (snd ·S ·X) xs)) x .
+
+initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·X ➔ X.
+  Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap h xs)}.
+  Π x: S. {h x ≃ fold a x}
+= λ fext. Λ X. λ a. λ h. λ hom. λ x .
+  unique fext ·X
+    (λ xs. a (fmap (snd ·S ·X) xs)) h
+    (λ xs. ρ+ (fmapCompose (snd ·S ·X) (λ x: S. mkpair x (h x)) xs) - hom xs)
+    x .
