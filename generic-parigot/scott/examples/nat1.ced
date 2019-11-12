@@ -28,8 +28,8 @@ monoNatFI ◂ Mono ·NatFI = Λ R1. Λ R2. λ c.
     -(λ _. β).
 
 Nat ◂ ★ = Rec ·NatFI.
-rollNat   = elimCast -(recRoll -monoNatFI).
-unrollNat = elimCast -(recUnroll -monoNatFI).
+rollNat   ◂ NatFI ·Nat ➔ Nat = elimCast -(recRoll -monoNatFI).
+unrollNat ◂ Nat ➔ NatFI ·Nat = elimCast -(recUnroll -monoNatFI).
 
 zeroFI ◂ WkInductiveNatF ·Nat (zeroF ·Nat) = Λ P. λ z. λ s. z.
 zero ◂ Nat = rollNat [ zeroF ·Nat , zeroFI ] .
