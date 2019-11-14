@@ -1,1 +1,24 @@
-module scott-rec/examples/list.
+import utils.
+
+module scott-rec/examples/list (A: ★).
+
+import scott/encoding as      S
+  ·(ListF ·A) (ListFmap ·A) -(ListFmapId ·A) -(ListFmapCompose ·A).
+import scott-rec/induction as SI
+  ·(ListF ·A) (ListFmap ·A) -(ListFmapId ·A) -(ListFmapCompose ·A).
+
+List ◂ ★ = S.S.
+nil ◂ List = S.in (in1 unit).
+cons ◂ A ➔ List ➔ List
+= λ hd. λ tl. S.in (in2 (mkpair hd tl)).
+
+indList ◂ ∀ Q: List ➔ ★. Q nil ➔
+  (Π hd: A. Π tl: List. Q tl ➔ Q (cons hd tl)) ➔ Π l: List. Q l
+= Λ Q. λ n. λ c.
+  SI.induction ·Q
+    (λ xs.
+     θ<xs> (ind-Sum xs)
+       (λ u. ρ (eta-Unit u) - n)
+       (λ p.
+        θ<p> (ind-pair p)
+          (λ hd. λ tl. c hd (proj1 tl) (proj2 tl)))) .
