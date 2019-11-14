@@ -1,5 +1,6 @@
 module utils.
 
+import public utils/listFunctor.
 import public utils/natFunctor.
 import public utils/sigma.
 import public utils/sum.

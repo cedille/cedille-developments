@@ -1,0 +1,22 @@
+import utils.
+
+module parigot/examples/list (A : ★).
+
+import parigot/encoding as P
+  ·(ListF ·A) (ListFmap ·A) -(ListFmapId ·A) -(ListFmapCompose ·A).
+
+List ◂ ★ = P.P .
+nil ◂ List = P.in (in1 unit) .
+cons ◂ A ➔ List ➔ List
+= λ hd. λ tl. P.in (in2 (mkpair hd tl)) .
+
+indList ◂ ∀ Q: List ➔ ★. Q nil ➔
+  (Π hd: A. Π tl: List. Q tl ➔ Q (cons hd tl)) ➔ Π l: List. Q l
+= Λ Q. λ n. λ c.
+  P.induction ·Q
+    (λ xs.
+     θ<xs> (ind-Sum xs)
+       (λ u. ρ (eta-Unit u) - n)
+       (λ p.
+        θ<p> (ind-pair p)
+          (λ hd. λ tl. c hd (proj1 tl) (proj2 tl)))) .

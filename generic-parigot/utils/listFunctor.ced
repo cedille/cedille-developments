@@ -19,7 +19,7 @@ ListFmapId ◂ ∀ A: ★. FmapId ·(ListF ·A) (ListFmap ·A)
     (λ _. β)
     (λ p. θ<p> (ind-pair p) (λ a. λ tl. ρ+ (ci tl) - β)).
 
-ListFMapCompose ◂ ∀ A: ★. FmapCompose ·(ListF ·A) (ListFmap ·A)
+ListFmapCompose ◂ ∀ A: ★. FmapCompose ·(ListF ·A) (ListFmap ·A)
 = Λ A. Λ X. Λ Y. Λ Z. λ f. λ g. λ x.
   θ<x> (ind-Sum x)
     (λ _. β)
