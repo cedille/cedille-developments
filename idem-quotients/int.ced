@@ -9,11 +9,9 @@ data PreInt : ★ =
   | psucc : PreInt ➔ PreInt
   | ppred : PreInt ➔ PreInt.
 
+-- These are trivially false, so a hole is used in place of a proof.
 spCancel : Π p: PreInt. {psucc (ppred p) ≃ p} = ●.
--- This is false
-
 psCancel : Π p: PreInt. {ppred (psucc p) ≃ p} = ●.
--- This is false
 
 psucc' : PreInt ➔ PreInt
 = λ p. μ' p {
@@ -36,63 +34,65 @@ integer : PreInt ➔ PreInt
   | ppred x ➔ ppred' (rec x)
   }.
 
+-- We show the canonical members of `integer` by explicitly constructing them
+-- using iteration of ppred or psucc
 iterate : ∀ X: ★. Nat ➔ (X ➔ X) ➔ X ➔ X =
   Λ X. λ n. μ it. n {
   | zero ➔ λ f. λ x. x
   | succ n ➔ λ f. λ x. f (it n f x)
   }.
 
-integerLem1 : Π p: PreInt. Or ·(ι x: Nat. { iterate x ppred pzero ≃ integer p}) ·(ι x: Nat. { iterate x psucc pzero ≃ integer p }) =
-  λ p. μ ih. p {
-  | pzero ➔ injl [ zero , β{zero} ]
+integerLemSuccMotive : Nat ➔ PreInt ➔ ★
+= λ x: Nat. λ p: PreInt.
+  {iterate x ppred pzero ≃ integer p} ➾ Or
+    ·(ι z: Nat. {iterate z ppred pzero ≃ integer (psucc p)})
+    ·(ι z: Nat. {iterate z psucc pzero ≃ integer (psucc p)}).
+
+integerLemPredMotive : Nat ➔ PreInt ➔ ★
+= λ x: Nat. λ p: PreInt.
+  {iterate x psucc pzero ≃ integer p} ➾ Or
+    ·(ι z: Nat. {iterate z ppred pzero ≃ integer (ppred p)})
+    ·(ι z: Nat. {iterate z psucc pzero ≃ integer (ppred p)}).
+
+integerLem1 : Π p: PreInt. Or
+	    ·(ι x: Nat. {iterate x ppred pzero ≃ integer p})
+	    ·(ι x: Nat. {iterate x psucc pzero ≃ integer p})
+= λ p. μ ih. p {
+  | pzero ➔ injl [zero, β{zero}]
   | psucc x ➔ [ret = ih x ] - μ' ret {
-    | injl l ➔ μ' l.1 @(λ l: Nat. {iterate l ppred pzero ≃ integer x} ➾ Or ·(ι x1 : Nat . { iterate x1 ppred pzero ≃ integer (psucc x) }) ·(ι x1 : Nat . { iterate x1 psucc pzero ≃ integer (psucc x) })) {
-      | zero ➔ Λ eq. injr [ succ zero , (ρ ς eq @ x1 . { iterate (succ zero) psucc pzero ≃ psucc' x1 }
-                                 - χ
-                                     { iterate (succ zero) psucc pzero ≃ psucc'
-                                       (iterate zero ppred pzero) }
-                                     - β{succ zero}) ]
-      | succ l' ➔ Λ eq. injl [ l' , (ρ ς eq @ x1 . { iterate l' ppred pzero ≃ psucc' x1 }
-                                   - χ
-                                       { iterate l' ppred pzero ≃ psucc'
-                                         (iterate (succ l') ppred pzero) }
-                                       - β{l'}) ]
+    | injl l ➔ μ' l.1 @ λ l: Nat. integerLemSuccMotive l (to/PreInt -isType/ih x) {
+      | zero ➔ Λ eq.
+        injr [succ zero,
+	  ρ ς eq @ z. {iterate (succ zero) psucc pzero ≃ psucc' z}
+          - β{succ zero}]
+      | succ l' ➔ Λ eq.
+        injl [l',
+	  ρ ς eq @ z. {iterate l' ppred pzero ≃ psucc' z}
+          - β{l'}]
       } -l.2
     | injr r ➔
-      [lem : { psucc' (iterate r psucc pzero) ≃ psucc (iterate r psucc pzero) } = μ' r.1 { zero ➔ β | succ r' ➔ β } ] -
-      injr [ succ r.1
-           , ρ ς r.2 @ x1 . { psucc (iterate r psucc pzero) ≃ psucc' x1 } -
-             χ { psucc (iterate r psucc pzero) ≃ psucc' (iterate r psucc pzero) } -
-             ρ lem - β{succ r}
-           ]
+      [lem : {psucc' (iterate r psucc pzero) ≃ psucc (iterate r psucc pzero)}
+        = μ' r.1 {zero ➔ β | succ r' ➔ β}]
+      - injr [succ r.1,
+        ρ ς r.2 @ z. {psucc (iterate r psucc pzero) ≃ psucc' z}
+        - ρ lem - β{succ r}]
     }
   | ppred y ➔ [ret = ih y] - μ' ret {
-    | injl l ➔ μ' l.1 @(λ l: Nat. {iterate l ppred pzero ≃ integer y} ➾ Or ·(ι x : Nat . { iterate x ppred pzero ≃ integer (ppred y) }) ·(ι x : Nat . { iterate x psucc pzero ≃ integer (ppred y) })) {
-      | zero ➔ Λ eq. injl [ succ zero , (ρ ς eq @ x . { iterate (succ zero) ppred pzero ≃ ppred' x }
-                                 - χ
-                                     { iterate (succ zero) ppred pzero ≃ ppred'
-                                       (iterate zero ppred pzero) }
-                                     - β{succ zero}) ]
-      | succ l' ➔ Λ eq. injl [ succ (succ l') , (ρ ς eq @ x . { iterate (succ (succ l')) ppred pzero ≃ ppred' x }
-                                         - χ
-                                             { iterate
-                                               (succ (succ l'))
-                                               ppred
-                                               pzero ≃ ppred'
-                                               (iterate (succ l') ppred pzero) }
-                                             - β{succ (succ l')}) ]
-      } -l.2
-    | injr r ➔ μ' r.1 @(λ r: Nat. { iterate r psucc pzero ≃ integer (to/PreInt y) } ➾ Or ·(ι x : Nat . { iterate x ppred pzero ≃ integer (ppred y) }) ·(ι x : Nat . { iterate x psucc pzero ≃ integer (ppred y) })) {
-      | zero ➔ Λ eq. injl [ succ zero , (ρ ς eq @ x . { iterate (succ zero) ppred pzero ≃ ppred' x }
-                                 - χ
-                                     { iterate (succ zero) ppred pzero ≃ ppred'
-                                       (iterate zero psucc pzero) }
-                                     - β{succ zero}) ]
-      | succ r' ➔ Λ eq. injr [ r' , (ρ ς eq @ x . { iterate r' psucc pzero ≃ ppred' x }
-                                   - χ
-                                       { iterate r' psucc pzero ≃ ppred'
-                                         (iterate (succ r') psucc pzero) }
-                                       - β{r'}) ]
+    | injl l ➔
+      [lem : {ppred' (iterate l ppred pzero) ≃ ppred (iterate l ppred pzero)}
+        = μ' l.1 {zero ➔ β | succ l' ➔ β}]
+      - injl [succ l.1,
+        ρ ς l.2 @ z. {ppred (iterate l ppred pzero) ≃ ppred' z}
+        - ρ lem - β{succ l}]
+    | injr r ➔ μ' r.1 @ λ r: Nat. integerLemPredMotive r (to/PreInt -isType/ih y) {
+      | zero ➔ Λ eq.
+        injl [succ zero,
+	  ρ ς eq @ z. {iterate (succ zero) ppred pzero ≃ ppred' z}
+          - β{succ zero}]
+      | succ r' ➔ Λ eq.
+        injr [r',
+	  ρ ς eq @ x . { iterate r' psucc pzero ≃ ppred' x }
+          - β{r'}]
       } -r.2
     }
   }.
@@ -123,6 +123,7 @@ eqSS : Π p: PreInt. Equations (psucc (psucc p))
   | ppred x ➔ equations (psucc (psucc (ppred x))) β β
   }.
 
+-- Now we can show that the equations we need hold for psucc' and ppred'
 canonEq : Π p: PreInt. Equations (integer p)
 = λ p. [split = integerLem1 p] - μ' split {
   | injl e ➔ [n = e.1] - [e: {iterate n ppred pzero ≃ integer p} = e.2]
@@ -208,18 +209,18 @@ ps : Π i: Int. {ipred (isucc i) ≃ i}
   - ρ+ (eqPS i.1) - β.
 
 psuccCanon : Π x: PreInt. {integer (psucc x) ≃ psucc x} ➔ {integer x ≃ x}
-= λ x. λ eq. [eq2 : {ppred' (psucc' (integer x)) ≃ ppred' (psucc x)} = ρ ς eq - ρ (psuccRec x) - β]
-  - [equations = canonEq x]
-  - [eq3 : {ppred' (psucc' (integer x)) ≃ x} = ρ eq2 - β]
-  - [eq4 : {integer x ≃ x} = ρ ς (eqPS x) - ρ eq3 - β]
-  - ρ eq4 - β.
+= λ x. λ eq.
+  [eq : {ppred' (psucc' (integer x)) ≃ ppred' (psucc x)} = ρ ς eq - ρ (psuccRec x) - β]
+  - [eq : {ppred' (psucc' (integer x)) ≃ x} = ρ eq - β]
+  - [eq : {integer x ≃ x} = ρ ς (eqPS x) - ρ eq - β]
+  - ρ eq - β.
 
 ppredCanon : Π x: PreInt. {integer (ppred x) ≃ ppred x} ➔ {integer x ≃ x}
-= λ x. λ eq. [eq2 : {psucc' (ppred' (integer x)) ≃ psucc' (ppred x)} = ρ ς eq - ρ (ppredRec x) - β]
-  - [equations = canonEq x]
-  - [eq3 : {psucc' (ppred' (integer x)) ≃ x} = ρ eq2 - β]
-  - [eq4 : {integer x ≃ x} = ρ ς (eqSP x) - ρ eq3 - β]
-  - ρ eq4 - β.
+= λ x. λ eq.
+  [eq : {psucc' (ppred' (integer x)) ≃ psucc' (ppred x)} = ρ ς eq - ρ (ppredRec x) - β]
+  - [eq : {psucc' (ppred' (integer x)) ≃ x} = ρ eq - β]
+  - [eq : {integer x ≃ x} = ρ ς (eqSP x) - ρ eq - β]
+  - ρ eq - β.
 
 induct : ∀ P: Int ➔ ★. P izero ➔
   (Π x: Int. P x ➔ P (isucc x)) ➔
