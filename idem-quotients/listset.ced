@@ -62,10 +62,11 @@ distinctConsEqRec : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
     - [t' = to/List -isType/ih t]
     - μ' (find eq h (distinct eq t')) @ λ j: Bool. {find eq h (distinct eq t) ≃ j}
       ➾ {find eq a (distinctCons eq h (distinct eq t)) ≃ true} {
-      | tt ➔ Λ w. ρ+ w - χ({find eq a (distinct eq t) ≃ true})
-      - ρ k' - ρ w - β
-      | ff ➔ Λ w. ρ+ w - χ({find eq a (cons h (distinct eq t)) ≃ true})
-      - ρ+ k - β 
+      | tt ➔ Λ w. ρ+ w - ρ+ k' - ρ+ w - β
+      | ff ➔ Λ w. ρ+ w - μ rec. (to/List -isType/ih t) {
+        | nil ➔ ρ+ k - β
+	| cons h' t' ➔ ρ+ k - β
+        }
       } -β
     | ff ➔ Λ k.
       [e: {find eq a t ≃ true} = ρ ς e - ρ+ k - β]
@@ -73,9 +74,9 @@ distinctConsEqRec : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
     - [t' = to/List -isType/ih t]
     - μ' (find eq h (distinct eq t')) @ λ j: Bool. {find eq h (distinct eq t) ≃ j}
       ➾ {find eq a (distinctCons eq h (distinct eq t)) ≃ true} {
-      | tt ➔ Λ w. ρ+ w - χ({find eq a (distinct eq t) ≃ true})
+      | tt ➔ Λ w. ρ (distinctConsEqTrue eq h (distinct eq t') w)
       - ρ (ih t e) - β
-      | ff ➔ Λ w. ρ+ w - χ({find eq a (cons h (distinct eq t)) ≃ true})
+      | ff ➔ Λ w. ρ (distinctConsEqFalse eq h (distinct eq t') w)
       - ρ+ k - χ({find eq a (distinct eq t) ≃ true})
       - ρ (ih t e) - β
       } -β
@@ -104,7 +105,7 @@ distinctConsCommute : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
   - ρ (distinctConsPromote eq a list) - β.
 
 distinctIdem : ∀ A: ★. Π eq: EqFn·A. Π list: List·A.
-		    {distinct eq (distinct eq list) ≃ distinct eq list}
+  {distinct eq (distinct eq list) ≃ distinct eq list}
 = Λ A. λ eq. λ list. μ ih. list {
   | nil ➔ β
   | cons h t ➔ [t' = to/List -isType/ih t]
@@ -128,11 +129,9 @@ insert : ∀ A: ★. Π eq: EqFn·A. A ➔ ListSet·A eq ➔ ListSet·A eq
 = Λ A. λ eq. λ a. λ l. [distinctCons eq a l.1,
   ρ (distinctConsCommute eq a l.1) - ρ l.2 - β{distinctCons eq a l}].
 
-
 eqEven : EqFn·Even
 = [λ x. λ y. eqNat x.1 y.1,
    λ x. λ y. Λ eq. ρ (eqNatSubst x.1 y.1 -eq) - β{eqNat x y}].
-
 
 _ : List·Nat ➔ ListSet·Even eqEven ➔ ★
 = λ l1: List·Nat. λ l2: ListSet·Even eqEven. {l1 ≃ l2}.
@@ -142,7 +141,3 @@ _ : List·Nat ➔ ListSet·Even eqEven ➔ ★
   Id·(List·Nat)
     l1
     (map (qcoerce -evenIdemFn) (qcoerce -(distinctIdemFn eqEven) l2)).
-
-
--- _ : Π l1: List·Nat. Π l2: ListSet·Even eqEven. Id·(List·Nat) l1 (map (λ x: Even. x.1) l2.1)
--- = ●.
