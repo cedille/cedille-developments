@@ -7,7 +7,7 @@ More detailed instructions for each approach are documented below.
 ## Debian Package
 
 The debian package `cedille-deb-pkg.deb` can be installed by downloading and double clicking it.
-After it is installed your `~/.emacs` file must be updated to contain `(require 'cedille-mode)`.
+After it is installed, add `(require 'cedille-mode)` to your `~/.emacs` file.
 
 ## MacOS App Bundle
 The macos dmg `cedille-macos-pkg.dmg` can be installed by downloading, double clicking, and moving the Cedille app to an appropriate location on your machine.
