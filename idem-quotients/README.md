@@ -25,6 +25,7 @@ The following instructions assume a fresh Ubuntu 19.04 instance:
 2. Make sure you have GHC installed (`sudo apt install ghc`) (version 8.4.4 was used in testing)
 3. Make sure you have Cabal installed (`sudo apt install cabal-install`)
 4. Make sure binaries installed with Cabal are in your `PATH` (`export PATH=$PATH:~/.cabal/bin` in `.bashrc` or equivalent for your shell)
+5. Update Cabal (`cabal update`)
 5. Install alex (`cabal install alex`) (version 3.2.5 was used in testing)
 6. Install happy (`cabal install happy`) (version 1.19.12 was used in testing)
 7. Install Agda (`cabal install Agda`) (version 2.6.0.1 was used in testing)
