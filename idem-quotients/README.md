@@ -28,11 +28,14 @@ The following instructions assume a fresh Ubuntu 19.04 instance:
 5. Update Cabal (`cabal update`)
 5. Install alex (`cabal install alex`) (version 3.2.5 was used in testing)
 6. Install happy (`cabal install happy`) (version 1.19.12 was used in testing)
-7. Install Agda (`cabal install Agda`) (version 2.6.0.1 was used in testing)
+7. Install IEEE754 Library (`cabal install --lib ieee754`)
+   1. This dependency may already be installed, but may not be if you are building on a different version of Linux (from what we have tested) or on MacOS
+   2. The library, specifically, is what is needed (hence `--lib`). If you attempt to install as an executable (`cabal install ieee654`) Cabal will mention that you probably wanted to use `--lib` as there are no executables
+8. Install Agda (`cabal install Agda`) (version 2.6.0.1 was used in testing)
    1. You might be missing libraries needed to build Agda (e.g. zlib `sudo apt install zlib1g-dev`) make sure to install any missing libraries until the build goes through
    2. You **should not** install Agda via the debian package as this will not include files needed for building binaries with Agda
-8. In the `cedille-src-pkg` directory run `make`
-9. Add the following to your `~/.emacs` file:
+9. In the `cedille-src-pkg` directory run `make`
+10. Add the following to your `~/.emacs` file:
 ```
 (setq cedille-path "/path/to/cedille-src-pkg/")
 (add-to-list 'load-path cedille-path)
