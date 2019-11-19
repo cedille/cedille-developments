@@ -7,13 +7,13 @@ import unit.
 NatF ◂ ★ ➔ ★ = λ X: ★ . Sum ·Unit ·X.
 
 NatFmap ◂ Fmap ·NatF = Λ X. Λ Y. λ f. λ d.
-  rec-Sum d (λ u . in1 u) (λ x . in2 (f x)).
+  recSum d (λ u . in1 u) (λ x . in2 (f x)).
 
 NatFmapId ◂ FmapId ·NatF NatFmap =
-  Λ X. Λ Y. λ c. λ ci. λ x. θ<x> (ind-Sum x) (λ a . β) (λ b . ρ+ (ci b) - β).
+  Λ X. Λ Y. λ c. λ ci. λ x. θ<x> (indSum x) (λ a . β) (λ b . ρ+ (ci b) - β).
 
 NatFmapCompose ◂ FmapCompose ·NatF NatFmap =
-  Λ X. Λ Y. Λ Z. λ f. λ g. λ x. θ<x> (ind-Sum x) (λ _ . β) (λ b . β).
+  Λ X. Λ Y. Λ Z. λ f. λ g. λ x. θ<x> (indSum x) (λ _ . β) (λ b . β).
 
 NatFmapExt ◂ FmapExt ·NatF NatFmap =
-  Λ X. Λ Y. λ f. λ g. λ ext. λ n. θ<n> (ind-Sum n) (λ _. β) (λ b. ρ+ (ext b) - β).
+  Λ X. Λ Y. λ f. λ g. λ ext. λ n. θ<n> (indSum n) (λ _. β) (λ b. ρ+ (ext b) - β).

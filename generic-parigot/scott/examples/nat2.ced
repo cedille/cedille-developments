@@ -11,16 +11,16 @@ zero ◂ Nat = S.in (in1 unit).
 
 suc  ◂ Nat ➔ Nat = λ n. S.in (in2 n).
 
-pred ◂ Nat ➔ Nat = λ n. S.case (λ xs. rec-Sum xs (λ _. n) (unwrap ·Nat)) n.
+pred ◂ Nat ➔ Nat = λ n. S.case (λ xs. recSum xs (λ _. n) (unwrap ·Nat)) n.
   -- λ n.
   -- (S.unrollS n).1 (λ nf. rec-Sum nf (λ _. n) (λ w. unwrap w)).
 
 indNat ◂ Π n: Nat. ∀ P: Nat ➔ ★.
   P zero ➔ (Π m: Nat. P m ➔ P (suc m)) ➔ P n =
   λ n. Λ P. λ z. λ s. SI.induction ·P (λ nf.
-    ind-Sum nf ·(λ x: NatF ·(Sigma ·Nat ·P). P (S.in (NatFmap (proj1 ·Nat ·P) x)))
-      (λ u. ρ (eta-Unit u) - z)
-      (λ p. θ<p> (ind-sigma p) (λ n. λ pf. s n pf))) n.
+    indSum nf ·(λ x: NatF ·(Sigma ·Nat ·P). P (S.in (NatFmap (proj1 ·Nat ·P) x)))
+      (λ u. ρ (etaUnit u) - z)
+      (λ p. θ<p> (indSigma p) (λ n. λ pf. s n pf))) n.
 
 
 recNat ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat➔ X =

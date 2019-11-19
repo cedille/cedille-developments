@@ -9,24 +9,25 @@ ListF ◂ ★ ➔ ★ ➔ ★ = λ A: ★. λ L: ★. Sum ·Unit ·(Pair ·A ·L
 
 ListFmap ◂ ∀ A: ★. Fmap ·(ListF ·A)
 = Λ A. Λ X. Λ Y. λ f. λ l.
-  rec-Sum l
+  recSum l
     (λ u. in1 u)
-    (λ p. in2 (rec-pair p (λ a. λ tl. mkpair a (f tl)))).
+    (λ p. in2 (recPair p (λ a. λ tl. mkpair a (f tl)))).
 
 ListFmapId ◂ ∀ A: ★. FmapId ·(ListF ·A) (ListFmap ·A)
-= Λ A. Λ X. Λ Y. λ c. λ ci. λ x.
-  θ<x> (ind-Sum x)
+= Λ A. Λ X. Λ Y. λ c. λ ci. λ l.
+  indSum l ·(λ x: ListF ·A ·X. {ListFmap c x ≃ x})
     (λ _. β)
-    (λ p. θ<p> (ind-pair p) (λ a. λ tl. ρ+ (ci tl) - β)).
+    (λ p. θ<p> (indPair p) (λ a. λ tl. ρ+ (ci tl) - β)).
 
-ListFMapCompose ◂ ∀ A: ★. FmapCompose ·(ListF ·A) (ListFmap ·A)
-= Λ A. Λ X. Λ Y. Λ Z. λ f. λ g. λ x.
-  θ<x> (ind-Sum x)
+ListFmapCompose ◂ ∀ A: ★. FmapCompose ·(ListF ·A) (ListFmap ·A)
+= Λ A. Λ X. Λ Y. Λ Z. λ f. λ g. λ l.
+  indSum l ·(λ x: ListF ·A ·X. {ListFmap f (ListFmap g x) ≃ ListFmap (λ y. f (g y)) x})
     (λ _. β)
-    (λ p. θ<p> (ind-pair p) (λ a. λ tl. β)).
+    (λ p. θ<p> (indPair p) (λ a. λ tl. β)).
 
 ListFmapExt ◂ ∀ A: ★. FmapExt ·(ListF ·A) (ListFmap ·A)
-= Λ A. Λ X. Λ Y. λ f. λ g. λ ext. λ x.
-  θ<x> (ind-Sum x)
+= Λ A. Λ X. Λ Y. λ f. λ g. λ ext. λ l.
+  indSum l ·(λ x: ListF ·A ·X. {ListFmap f x ≃ ListFmap g x})
     (λ _. β)
-    (λ p. θ<p> (ind-pair p) (λ a. λ b. ρ+ (ext b) - β)).
+    (λ p. indPair p ·(λ x: Pair ·A ·X. {ListFmap f (in2 x) ≃ ListFmap g (in2 x)})
+            (λ hd. λ tl. ρ+ (ext tl) - β)).

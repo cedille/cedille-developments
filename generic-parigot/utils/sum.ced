@@ -15,18 +15,18 @@ in1 ◂ ∀ A : ★ . ∀ B : ★ . A ➔ Sum · A · B = Λ A . Λ B . λ a . [
 
 in2 ◂ ∀ A : ★ . ∀ B : ★ . B ➔ Sum · A · B = Λ A . Λ B . λ b . [ cin2 · A · B b , [β{cin2 b} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pb b ]].
 
-ind-Sum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
+indSum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
           ∀ P : Sum · A · B ➔ ★ .
           (Π a : A . P (in1 · A · B a)) ➔ (Π b : B . P (in2 · A · B b)) ➔
           P x =
   Λ A . Λ B . λ x . Λ P . λ pa . λ pb .
     ρ ς x.2.1 - (x.2.2 · (Sum · A · B) · P -(in1 · A · B) -(in2 · A · B) pa pb) .
 
-rec-Sum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
+recSum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
           ∀ X : ★ . (A ➔ X) ➔ (B ➔ X) ➔ X =
   Λ A . Λ B . λ x . Λ X . λ pa . λ pb .
     x.1 · X pa pb .
 
-eta-Sum ◂ ∀ A: ★. ∀ B: ★. Π x: Sum ·A ·B.
-    { rec-Sum x in1 in2 ≃ x}
-  = Λ A. Λ B. λ x. θ<x> (ind-Sum x) (λ _. β) (λ _. β).
+etaSum ◂ ∀ A: ★. ∀ B: ★. Π x: Sum ·A ·B.
+    { recSum x in1 in2 ≃ x}
+  = Λ A. Λ B. λ x. θ<x> (indSum x) (λ _. β) (λ _. β).

@@ -7,7 +7,7 @@
    R         - the inductive type
    in/out    - constructing/destructing data of type R
    induction - dependent elimination on R
-   recursion - non-dependent elimination on R (special case of induction, provided for convenience)
+   rec - non-dependent elimination on R (special case of induction, provided for convenience)
    -}
 
 import functor.
@@ -41,12 +41,11 @@ P ◂ ★ = Rec ·PF.
 rollP   ◂ PF ·P ➔ P = elimCast -(recRoll -monoPF).
 unrollP ◂ P ➔ PF ·P = elimCast -(recUnroll -monoPF).
 
-recursion ◂ ∀ X: ★. AlgP ·P ·X ➔ P ➔ X =
-  Λ X. λ alg. λ x. (unrollP x).1 alg.
-_ : {recursion ≃ recU} = β.
+rec ◂ ∀ X: ★. AlgP ·P ·X ➔ P ➔ X = Λ X. λ alg. λ x. (unrollP x).1 alg.
+_ ◂ {rec ≃ recU} = β.
 
 inP1 ◂ F ·P ➔ ∀ X: ★. AlgP ·P ·X ➔ X =
-  λ xs. Λ X. λ alg. alg (fmap (λ x: P. mkpair x (recursion alg x)) xs).
+  λ xs. Λ X. λ alg. alg (fmap (λ x: P. mkpair x (rec alg x)) xs).
 
 reflectionInP1 ◂ Π xs: F ·P. {reflectU (inP1 xs) ≃ inP1 xs} =
   λ xs. ρ+ (fmapCompose ·P (snd ·P ·Top) (λ x. mkpair x (β{reflectU x})) xs) -
@@ -54,9 +53,9 @@ reflectionInP1 ◂ Π xs: F ·P. {reflectU (inP1 xs) ≃ inP1 xs} =
         β.
 
 in ◂ F ·P ➔ P = λ xs. rollP [inP1 xs , ρ (reflectionInP1 xs) - β{inP1 xs}].
-_ : {in ≃ inU} = β.
+_ ◂ {in ≃ inU} = β.
 
-out ◂ P ➔ F ·P = recursion (fmap (fst ·P ·(F ·P))).
+out ◂ P ➔ F ·P = rec (fmap (fst ·P ·(F ·P))).
 
 PrfAlgP ◂ (P ➔ ★) ➔ ★ = λ Q: P ➔ ★.
   Π xs: F ·(Sigma ·P ·Q). Q (in (fmap (proj1 ·P ·Q) xs)).
@@ -72,15 +71,14 @@ inIP2 ◂ Π xs: F ·IP. Inductive (inIP1 xs) = λ xs. Λ Q. λ alg.
   alg (fmap (λ x: IP. mksigma x.1 (x.2 ·Q alg)) xs).
 
 inIP ◂ F ·IP ➔ IP = λ xs. [ inIP1 xs , inIP2 xs].
-_ : {in ≃ inIP} = β.
+_ ◂ {in ≃ inIP} = β.
 
-reflectP ◂ P ➔ IP = λ x. recursion (λ xs. inIP (fmap (snd ·P ·IP) xs)) x.
+reflectP ◂ P ➔ IP = λ x. rec (λ xs. inIP (fmap (snd ·P ·IP) xs)) x.
+_ ◂ {reflectP ≃ reflectU} = β.
 
 castP ◂ Cast ·P ·IP = intrCast -reflectP -(λ r. (unrollP r).2).
 
 induction ◂ ∀ Q: P ➔ ★. PrfAlgP ·Q ➔ Π x: P. Q x =
   Λ Q. λ alg. λ x. (elimCast -castP x).2 alg.
-
-_ : {reflectP ≃ reflectU} = β.
-_ : {induction ≃ recursion} = β.
+_ ◂ {induction ≃ rec} = β.
 

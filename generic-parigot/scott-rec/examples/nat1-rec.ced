@@ -14,38 +14,35 @@ NatRS ◂ ★ ➔ ★ = λ X: ★.
 NatR ◂ ★ = ∀ X: ★.
   NatRZ ·X ➔ NatRS ·X ➔ NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ X.
 
-zeroR ◂ NatR = Λ P. λ z. λ s. λ t. λ m. z t m.
-sucR ◂ NatR ➔ NatR = λ n. Λ P. λ z. λ s. λ t. λ m. s (n · P) t m.
+zeroR ◂ NatR = Λ P. λ z1. λ s1. λ z2. λ s2. z1 z2 s2.
+sucR ◂ NatR ➔ NatR = λ n. Λ X. λ z1. λ s1. λ z2. λ s2. s1 (n ·X) z2 s2.
 
-toNatR ◂ Π n : Nat. ι x : NatR. {x ≃ n} = λ n.
-  inductionNat n · (λ y : Nat. ι x : NatR. {x ≃ y})
+toNatR' ◂ Π n: Nat. ι x: NatR. {x ≃ n} =
+  wkInductionNat ·(λ y: Nat. ι x: NatR. {x ≃ y})
     [zeroR , β{zero}]
     (λ m. Λ r. [ sucR (φ r.2 - r.1 {m} ) , β{suc m} ]).
 
-toNatR! ◂ Cast · Nat · NatR =
-  intrCast -(λ n. (toNatR n).1) -(λ n. (toNatR n).2).
+toNatR ◂ Cast ·Nat ·NatR
+= intrCast -(λ n. (toNatR' n).1) -(λ n. (toNatR' n).2).
 
-recNatBase ◂ ∀ X : ★. X ➔ NatRZ · X =
-  Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ n. x.
+recNatBase ◂ ∀ X: ★. X ➔ NatRZ ·X
+= Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ n. x.
 
-recNatStep ◂ ∀ X : ★. X ➔ (Nat ➔ X ➔ X) ➔ NatRS · X =
-  Λ X. λ x. λ f. Λ Z. Λ S. λ n. λ z. λ s. λ m.
+recNatStep ◂ ∀ X : ★. X ➔ (Nat ➔ X ➔ X) ➔ NatRS ·X
+= Λ X. λ x. λ f. Λ Z. Λ S. λ n. λ z. λ s. λ m.
   f (pred m) (n z s z s (pred m)).
 
-recNat ◂ ∀ X : ★. Nat ➔ X ➔ (Nat ➔ X ➔ X) ➔ X =
-  Λ X. λ n. λ x. λ f.
-  (cast -toNatR! n)
-    (recNatBase x) (recNatStep x f)
-    (recNatBase x) (recNatStep x f) n.
+recNat ◂ ∀ X: ★. Nat ➔ X ➔ (Nat ➔ X ➔ X) ➔ X
+= Λ X. λ n. λ x. λ f.
+  (elimCast -toNatR n) (recNatBase x) (recNatStep x f) (recNatBase x) (recNatStep x f) n.
 
 {- computation laws satisfied by beta-equivalences, though not by beta-reduction -}
-recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
-              {recNat zero x f ≃ x} =
-  Λ X. Λ x. Λ f. β.
+recNatCompZ ◂ ∀ X: ★. ∀ x: X. ∀ f: Nat ➔ X ➔ X. {recNat zero x f ≃ x}
+= Λ X. Λ x. Λ f. β.
 
 recNatCompS ◂ ∀ X: ★. ∀ n: Nat. ∀ x: X. ∀ f: Nat ➔ X ➔ X.
-              {recNat (suc n) x f ≃ f n (recNat n x f)} =
-  Λ X. Λ n. Λ x. Λ f. β.
+  {recNat (suc n) x f ≃ f n (recNat n x f)}
+= Λ X. Λ n. Λ x. Λ f. β.
 
 -- example:
 

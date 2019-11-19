@@ -26,19 +26,19 @@ caseComp' : ∀ X: ★. Π a: F ·S ➔ X. Π xs: F ·S. {case' a (in xs) ≃ a 
 cancellation ◂ ∀ P: S ➔ ★. Π xs: F ·S. Π a: PrfAlg ·P.
   {induction a (in xs) ≃ a (fmap (λ x. mksigma x (induction a x)) xs)}
 = Λ P. λ xs. λ alg.
-  ρ+ (fmapCompose (wrapSInd2Pair ·P (fromPrfAlgP alg))
-        (wrapSInd ·P) (fcast -castS2SInd xs)) -
+  ρ+ (fmapCompose (repackIndS ·P (fromPrfAlg alg))
+        (wrapIndS ·P) (fcast -toI xs)) -
   β.
 
 -- reflection law
-reflect ◂ S ➔ S = λ x: S. recursion (λ xs. in (fmap (snd ·S ·S) xs)) x.
+reflect ◂ S ➔ S = λ x: S. rec (λ xs. in (fmap (snd ·S ·S) xs)) x.
 Reflection ◂ Π X: ★. X ➔ ★ = λ X: ★. λ x: X. {reflect x ≃ x}.
 Ref ◂ ★ = ι x: S. Reflection ·S x.
 
 castRef ◂ Cast ·(Sigma ·S ·(Reflection ·S)) ·(Sigma ·Ref ·(Reflection ·Ref)) =
   intrCast
-    -(λ p. rec-sigma p (λ x. λ p. mksigma [ x , ρ+ p - β{x} ] p))
-    -(λ p. eta-sigma p).
+    -(λ p. recSigma p (λ x. λ p. mksigma [ x , ρ+ p - β{x} ] p))
+    -(λ p. etaSigma p).
 
 refFun1 ◂ F ·(Sigma ·S ·(Reflection ·S)) ➔ F ·Ref = λ xs.
   fmap (proj1 ·Ref ·(Reflection ·Ref)) (elimCast -(MonoFunctor castRef) xs).
@@ -74,24 +74,24 @@ lambek2 ◂ Π x: S. Lambek2 x = λ x.
 -- Initiality
 unique ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.
   Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap (λ x. mkpair x (h x)) xs)}.
-  Π x: S. {h x ≃ recursion a x}
+  Π x: S. {h x ≃ rec a x}
 = λ fext. Λ X. λ a. λ h. λ hom. λ x.
-  induction ·(λ x: S. {h x ≃ recursion a x}) (
-    λ xs. ρ (hom (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs)) -
-          ρ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x }))
+  induction ·(λ x: S. {h x ≃ rec a x}) (
+    λ xs. ρ (hom (fmap (proj1 ·S ·(λ x: S. { h x ≃ rec a x })) xs)) -
+          ρ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ rec a x }))
               (λ x: S. mkpair x (h x)) (λ p. proj1 p) xs) -
           ρ (cancellation ·(λ x: S. X)
-              (fmap (proj1 ·S ·(λ x: S. { h x ≃ recursion a x })) xs) a) -
-          ρ+ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x }))
-               (λ x: S. mkpair x (recursion a x)) (λ x. proj1 x) xs) -
-          ρ+ (fext ·(Sigma ·S ·(λ x: S. { h x ≃ recursion a x })) ·(Pair ·S ·X)
+              (fmap (proj1 ·S ·(λ x: S. { h x ≃ rec a x })) xs) a) -
+          ρ+ (fmapCompose ·(Sigma ·S ·(λ x: S. { h x ≃ rec a x }))
+               (λ x: S. mkpair x (rec a x)) (λ x. proj1 x) xs) -
+          ρ+ (fext ·(Sigma ·S ·(λ x: S. { h x ≃ rec a x })) ·(Pair ·S ·X)
                (λ p. mkpair (proj1 p) (h (proj1 p)))
-               (λ p. mkpair (proj1 p) (recursion a (proj1 p)))
+               (λ p. mkpair (proj1 p) (rec a (proj1 p)))
                (λ p. ρ+ (proj2 p) - β) xs) -
           β) x.
 
 fold ◂ ∀ X: ★. (F ·X ➔ X) ➔ S ➔ X
-= Λ X. λ a. λ x. recursion (λ xs. a (fmap (snd ·S ·X) xs)) x .
+= Λ X. λ a. λ x. rec (λ xs. a (fmap (snd ·S ·X) xs)) x .
 
 initial ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·X ➔ X.
   Π h: S ➔ X. Π hom: Π xs: F ·S. {h (in xs) ≃ a (fmap h xs)}.

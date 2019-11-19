@@ -55,7 +55,7 @@ _ ◂ {inductionNat ≃ recNat} = β.
 add ◂ Nat ➔ Nat ➔ Nat = λ m. λ n. recNat n (λ _. λ s. suc s) m .
 
 -- recursion
-sumFrom ◂ Nat ➔ Nat = recNat zero (λ m. λ s. add m s).
+sumFrom ◂ Nat ➔ Nat = recNat zero (λ m. λ s. add (suc m) s).
 
 -- proof
 addZRight ◂ Π n: Nat. {add n zero ≃ n}
