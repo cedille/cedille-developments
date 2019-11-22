@@ -20,22 +20,14 @@ You must grant these exceptions for `cedille-mode` to work.
 
 ## Building From Source
 The git repository can be cloned but it is recommend that the source package `cedille-src-pkg.zip` be downloaded and used instead.
-The following instructions assume a fresh Ubuntu 19.04 instance:
-1. First, make sure your locale is set correctly (`localectl set-locale LANG="en_US.UTF-8"`). As long as it is a `UTF-8` locale it will work. A reboot is required for this to fully take effect.
-2. Make sure you have GHC installed (`sudo apt install ghc`) (version 8.4.4 was used in testing)
-3. Make sure you have Cabal installed (`sudo apt install cabal-install`)
-4. Make sure binaries installed with Cabal are in your `PATH` (`export PATH=$PATH:~/.cabal/bin` in `.bashrc` or equivalent for your shell)
-5. Update Cabal (`cabal update`)
-5. Install alex (`cabal install alex`) (version 3.2.5 was used in testing)
-6. Install happy (`cabal install happy`) (version 1.19.12 was used in testing)
-7. Install IEEE754 Library (`cabal install --lib ieee754`)
-   1. This dependency may already be installed, but may not be if you are building on a different version of Linux (from what we have tested) or on MacOS
-   2. The library, specifically, is what is needed (hence `--lib`). If you attempt to install as an executable (`cabal install ieee654`) Cabal will mention that you probably wanted to use `--lib` as there are no executables
-8. Install Agda (`cabal install Agda`) (version 2.6.0.1 was used in testing)
-   1. You might be missing libraries needed to build Agda (e.g. zlib `sudo apt install zlib1g-dev`) make sure to install any missing libraries until the build goes through
-   2. You **should not** install Agda via the debian package as this will not include files needed for building binaries with Agda
-9. In the `cedille-src-pkg` directory run `make`
-10. Add the following to your `~/.emacs` file:
+
+1. Install C libraries *zlib** and *ncurses** for building Agda
+    - `apt install zlib1g-dev libncurses5-dev` on Ubuntu for example
+    - On MacOS these may already be available if you have xcode libraries installed
+2. In the `cedille-src-pkg` directory:
+    - Run `stack build Agda alex happy`
+    - Run `stack build --copy-bins --local-bin-path .`
+3. Add the following to your `~/.emacs` file, changing the path to match your system
 ```
 (setq cedille-path "/path/to/cedille-src-pkg/")
 (add-to-list 'load-path cedille-path)
