@@ -41,7 +41,7 @@ castRef ◂ Cast ·(Sigma ·S ·(Reflection ·S)) ·(Sigma ·Ref ·(Reflection �
     -(λ p. etaSigma p).
 
 refFun1 ◂ F ·(Sigma ·S ·(Reflection ·S)) ➔ F ·Ref = λ xs.
-  fmap (proj1 ·Ref ·(Reflection ·Ref)) (elimCast -(MonoFunctor castRef) xs).
+  fmap (proj1 ·Ref ·(Reflection ·Ref)) (fcast -castRef xs).
 
 refFun2 ◂ Wrap ·Ref ➔ S = λ w. reflect (unwrap w).1.
 

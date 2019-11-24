@@ -8,21 +8,21 @@ NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ X.
 zeroF ◂ ∀ N: ★. NatF ·N = Λ R. Λ X. λ z. λ s. z.
 sucF ◂ ∀ N: ★. N ➔ NatF ·N = Λ R. λ r. Λ X. λ z. λ s. s r.
 
-monoNatF ◂ Mono ·NatF = Λ X. Λ Y. λ c.
-  intrCast -(λ nf. Λ X. λ z. λ s. nf z (λ r. s (elimCast -c r))) -(λ n. β).
-
 WkInductiveNatF : Π N: ★. NatF ·N ➔ ★ = λ N: ★. λ n: NatF ·N.
   ∀ P: NatF ·N ➔ ★. P (zeroF ·N) ➔
   (Π m: (ι x: N. NatF ·N). P m.2 ➾ P (sucF m.1)) ➔ P n.
 
 NatFI ◂ ★ ➔ ★ = λ N: ★. ι x: NatF ·N. WkInductiveNatF ·N x.
 
-monoNatFI ◂ Mono ·NatFI = Λ R1. Λ R2. λ c.
+monoNatF ◂ Mono ·NatF = Λ X. Λ Y. λ c.
+  intrCast -(λ n. Λ Z. λ z. λ s. n z (λ r. s (elimCast -c r))) -(λ n. β).
+
+monoNatFI ◂ Mono ·NatFI = Λ X. Λ Y. λ c.
   intrCast
     -(λ n. [ elimCast -(monoNatF c) n.1
            , Λ P. λ z. λ s.
-             n.2 ·(λ x: NatF ·R1. P (elimCast -(monoNatF c) x)) z
-               (λ r. Λ pf. s [ elimCast -c r.1 , elimCast -(monoNatF c) r.2] -pf) ])
+             n.2 ·(λ x: NatF ·X. P (elimCast -(monoNatF c) x)) z
+               (λ r. s [ elimCast -c r.1 , elimCast -(monoNatF c) r.2 ]) ])
     -(λ _. β).
 
 Nat ◂ ★ = Rec ·NatFI.

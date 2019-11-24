@@ -4,10 +4,10 @@ import utils/top.
 
 module parigot/examples/nat.
 
-zeroU       ◂ Top = β{λ z. λ s. z}.
-sucU        ◂ Top = β{λ n. λ z. λ s. s n (n z s)}.
 recNatU     ◂ Top = β{λ x. λ f. λ n. n x f}.
-reflectNatU ◂ Top = β{recNatU zeroU (λ _. λ m. sucU m)}.
+zeroU       ◂ Top = β{λ z. λ s. z}.
+sucU        ◂ Top = β{λ n. λ z. λ s. s n (recNatU z s n)}.
+reflectNatU ◂ Top = β{recNatU zeroU (λ _. sucU)}.
 
 NatF ◂ ★ ➔ ★ = λ N: ★.
   ι n: ∀ X: ★. X ➔ (N ➔ X ➔ X) ➔ X. {reflectNatU n ≃ n}.
@@ -49,7 +49,7 @@ inductionNat ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π n: Nat. P n ➔ P (suc n)) �
 = Λ P. λ z. λ s. λ n.
   (elimCast -toNatI n).2 z s.
 
-_ ◂ {inductionNat ≃ recNat} = β.
+  _ ◂ {inductionNat ≃ recNat} = β.
 
 -- iteration
 add ◂ Nat ➔ Nat ➔ Nat = λ m. λ n. recNat n (λ _. λ s. suc s) m .

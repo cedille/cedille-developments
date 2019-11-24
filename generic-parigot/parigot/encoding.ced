@@ -30,7 +30,7 @@ PF  ◂ ★ ➔ ★ = λ P: ★. ι x: ∀ X: ★. AlgP ·P ·X ➔ X. {reflectU
 
 castFPair1 ◂ ∀ P1: ★. ∀ P2: ★. Cast ·P1 ·P2 ➔
   ∀ X: ★. Cast ·(F ·(Pair ·P1 ·X)) ·(F ·(Pair ·P2 ·X))
-= Λ P1. Λ P2. λ c. Λ X. MonoFunctor (MonoPair1 c).
+= Λ P1. Λ P2. λ c. Λ X. monoFunctor (MonoPair1 c).
 
 monoPF ◂ Mono ·PF = Λ P1. Λ P2. λ c.
   intrCast -(λ x. [ Λ X. λ alg. x.1 (λ xs. alg (elimCast -(castFPair1 c ·X) xs))
