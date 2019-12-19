@@ -1,0 +1,245 @@
+module nat.
+
+import bool.
+
+data Nat : ★ =
+  | zero : Nat
+  | succ : Nat ➔ Nat.
+
+n0 : Nat = zero.
+n1 : Nat = succ n0.
+n2 : Nat = succ n1.
+n3 : Nat = succ n2.
+n4 : Nat = succ n3.
+n5 : Nat = succ n4.
+n6 : Nat = succ n5.
+n7 : Nat = succ n6.
+n8 : Nat = succ n7.
+n9 : Nat = succ n8.
+
+{-
+  add n m
+  add 0 m = m
+  add (S n) m = S (add n m)
+-}
+add : Nat ➔ Nat ➔ Nat
+= λ n. λ m. μ rec. n {
+  | zero ➔ m
+  | succ n' ➔ succ (rec n')
+  }.
+
+addZeroRight : Π n: Nat. {add n zero ≃ n}
+= λ n. μ ih. n @(λ x: Nat. {add x zero ≃ x}) {
+  | zero ➔ β
+  | succ n ➔ ρ (ih n) @ x. {succ x ≃ succ n} - β
+  }.
+
+add-succ-right : Π m: Nat. Π n: Nat. {add m (succ n) ≃ succ (add m n)}
+  = λ m. λ n. μ ih. m @(λ x: Nat. {add x (succ n) ≃ succ (add x n)}) {
+  | zero ➔ β
+  | succ m ➔ ρ (ih m) @ x. {succ x ≃ succ (add (succ m) n)} - β
+  }.
+
+addComm : Π m: Nat. Π n: Nat. {add m n ≃ add n m}
+  = λ m. λ n. μ ih. m @(λ x: Nat. {add x n ≃ add n x}) {
+  | zero ➔ ς (addZeroRight n)
+  | succ m ➔ [eq = ih m]
+  - ρ (add-succ-right n (to/Nat -isType/ih m))
+    @ x. {succ (add m n) ≃ x}
+  - ρ eq
+    @ x. {succ x ≃ succ (add n m)}
+  - β
+  }.
+
+addAssoc : Π a: Nat. Π b: Nat. Π c: Nat. {add a (add b c) ≃ add (add a b) c}
+= λ a. λ b. λ c. μ ih. a @(λ x: Nat. {add x (add b c) ≃ add (add x b) c}) {
+  | zero ➔ β
+  | succ a' ➔ ρ+ (ih a') - β
+  }.
+
+sum : Nat ➔ Nat
+= λ n. μ rec. n {
+  | zero ➔ zero
+  | succ n ➔ [n' = to/Nat -isType/rec n]
+    - add (succ n') (rec n)
+  }.
+
+-- ∀ R: ★. Is/Nat·R ➾ ...
+
+{-
+pred : Nat ➔ Nat
+= λ n. μ' n {
+  | zero ➔ zero
+  | succ n ➔ n
+  }.
+-}
+
+{-
+  mult n m
+  mult 0 m = 0
+  mult (S n) m = add m (mult n m)
+-}
+mult : Nat ➔ Nat ➔ Nat
+= λ n. λ m. μ rec. n {
+  | zero ➔ n0
+  | succ n' ➔ add m (rec n')
+  }.
+
+{-
+  exp n m
+  exp n 0 = 1
+  exp n (S m) = mult n (exp n m)
+-}
+exp : Nat ➔ Nat ➔ Nat
+= λ n. λ m. μ rec. m {
+  | zero ➔ n1
+  | succ m' ➔ mult n (rec m')
+  }.
+
+{-
+  eq-nat n m
+  eq-nat 0 0 = tt
+  eq-nat 0 (S m) = ff
+  eq-nat (S n) 0 = ff
+  eq-nat (S n) (S m) = eq-nat n m
+-}
+eqNat : Nat ➔ Nat ➔ Bool
+= λ n. μ rec. n {
+  | zero ➔ λ m. μ' m {
+    | zero ➔ tt
+    | succ m' ➔ ff
+    }
+  | succ n' ➔ λ m. μ' m {
+    | zero ➔ ff
+    | succ m' ➔ rec n' m'
+    }
+  }.
+
+eqNatSubst : Π x: Nat. Π y: Nat. {eqNat x y ≃ true} ➾ {x ≃ y}
+= λ x. μ ih. x {
+  | zero ➔ λ y. μ' y {
+    | zero ➔ Λ eq. β
+    | succ m ➔ Λ eq. δ - eq
+    }
+  | succ n ➔ λ y. μ' y {
+    | zero ➔ Λ eq. δ - eq
+    | succ m ➔ Λ eq. [eq: {eqNat n m ≃ true} = ρ ς eq - β]
+    - ρ (ih n m -eq) - β
+    }
+  }.
+
+{-
+  lt n m
+  lt 0 0 = ff
+  lt 0 (S n) = tt
+  lt (S n) 0 = ff
+  lt (S n) (S m) = lt n m
+-}
+lt : Nat ➔ Nat ➔ Bool
+= λ n. μ rec. n {
+  | zero ➔ λ m. μ' m {
+    | zero ➔ ff
+    | succ m' ➔ tt
+    }
+  | succ n' ➔ λ m. μ' m {
+    | zero ➔ ff
+    | succ m' ➔ rec n' m'
+    }
+  }.
+
+{-
+  lte n m
+  lte 0 0 = tt
+  lte 0 (S m) = tt
+  lte (S n) 0 = ff
+  lte (S n) (S m) = lte n m
+-}
+lte : Nat ➔ Nat ➔ Bool
+= λ n. μ rec. n {
+  | zero ➔ λ m. μ' m {
+    | zero ➔ tt
+    | succ m' ➔ ff
+    }
+  | succ n' ➔ λ m. μ' m {
+    | zero ➔ ff
+    | succ m' ➔ rec n' m'
+    }
+  }.
+
+gt : Nat ➔ Nat ➔ Bool
+= λ n. λ m. not (lte n m).
+
+gte : Nat ➔ Nat ➔ Bool
+= λ n. λ m. not (lt n m).
+
+pred' : ∀ R: ★. Is/Nat·R ➾ R ➔ R
+= Λ R. Λ w. λ n. μ'<w> n {
+  | zero ➔ n
+  | succ n' ➔ n'
+  }.
+
+pred : Nat ➔ Nat = pred' -is/Nat.
+
+{-
+  minus n m
+  minus n 0 = n
+  minus n (S m) = pred (minus n m) 
+-}
+minus' : ∀ R: ★. Is/Nat·R ➾ R ➔ Nat ➔ R
+= Λ R. Λ w. λ n. λ m. μ rec. m {
+  | zero ➔ n
+  | succ m' ➔ pred' -w (rec m')
+  }.
+
+minus : Nat ➔ Nat ➔ Nat = minus' -is/Nat.
+
+minusZLeft : Π n: Nat. {minus zero n ≃ zero}
+= λ n. μ ih. n @(λ x: Nat. {minus zero x ≃ zero}) {
+  | zero ➔ β
+  | succ n ➔ ρ (ih n) @ x. {pred x ≃ zero} - β
+  }.
+
+minusPLeft : Π m: Nat. Π n: Nat. {minus (pred m) n ≃ pred (minus m n)}
+  = λ m. λ n. μ ih. n @(λ x: Nat. {minus (pred m) x ≃ pred (minus m x)}) {
+  | zero ➔ β
+  | succ n ➔ ρ (ih n) @ x. {pred x ≃ pred (pred (minus m n))} - β
+  }.
+
+minusSS : Π m: Nat. Π n: Nat. {minus (succ m) (succ n) ≃ minus m n}
+  = λ m. λ n. ρ ς (minusPLeft (succ m) n) @ x. {x ≃ minus m n} - β.
+
+ltNZ : Π n: Nat. {lt n zero ≃ ff}
+= λ n. μ' n @(λ x: Nat. {lt x zero ≃ ff}) {
+  | zero ➔ β
+  | succ n ➔ β
+  }.
+
+lt-ff-succ-ff : Π m: Nat. Π n: Nat. {lt m n ≃ ff} ➔ {lt (succ m) n ≃ ff}
+= λ m. μ ih. m @(λ x: Nat. Π n: Nat. {lt x n ≃ ff} ➔ {lt (succ x) n ≃ ff}) {
+  | zero ➔ λ n. μ' n @(λ x: Nat. {lt zero x ≃ ff} ➔ {lt (succ zero) x ≃ ff}) {
+    | zero ➔ λ _. β
+    | succ n ➔ λ eq. δ - eq
+    }
+  | succ m ➔ λ n. μ' n @(λ x: Nat. {lt (succ m) x ≃ ff} ➔ {lt (succ (succ m)) x ≃ ff}) {
+    | zero ➔ λ _. β
+    | succ n ➔ λ eq: {lt m n ≃ ff}. ih m n eq
+    }
+  }.
+
+lt-ff-succ-minus : Π m: Nat. Π n: Nat. {lt m n ≃ ff} ➔ {succ (minus m n) ≃ minus (succ m) n}
+= λ m. μ ih. m @(λ x: Nat. Π n: Nat. {lt x n ≃ ff} ➔ {succ (minus x n) ≃ minus (succ x) n}) {
+  | zero ➔ λ n. μ' n @(λ x: Nat. {lt zero x ≃ ff} ➔ {succ (minus zero x) ≃ minus (succ zero) x}) {
+    | zero ➔ λ _. β
+    | succ n ➔ λ eq. δ - eq
+    }
+  | succ m ➔ λ n. μ' n @(λ x: Nat. {lt (succ m) x ≃ ff} ➔ {succ (minus (succ m) x) ≃ minus (succ (succ m)) x}) {
+    | zero ➔ λ _. β
+    | succ n ➔ λ eq: {lt m n ≃ ff}.
+      ρ (minusSS (to/Nat -isType/ih m) n)
+      @ x . {succ x ≃ minus (succ (succ m)) (succ n)}
+    - ρ (minusSS (succ (to/Nat -isType/ih m)) n)
+      @ x. {succ (minus m n) ≃ x}
+    - ih m n eq
+    }
+  }.
+

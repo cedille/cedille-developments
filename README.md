@@ -24,3 +24,7 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Author: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
 * Refactored version of the [ITP'18 development](efficient-mendler),
   see the [README](efficient-mendler-prime/README.md)
+
+## [Quotients by Idempotent Functions in Cedille](idem-quotients)
+* Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
+* Venue: [TFP'19](https://www.tfp2019.org/)

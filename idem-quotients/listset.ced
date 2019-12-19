@@ -1,0 +1,143 @@
+module listset.
+
+import quotient-defs.
+import bool.
+import nat.
+import parity.
+import uip.
+
+data List (A: ★) : ★ =
+  | nil : List
+  | cons : A ➔ List ➔ List.
+
+map : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ List·A ➔ List·B
+= Λ A. Λ B. λ f. λ l. μ rec. l {
+  | nil ➔ nil·B
+  | cons h t ➔ cons (f h) (rec t)
+  }.
+
+EqFn : ★ ➔ ★
+= λ A: ★. ι f: A ➔ A ➔ Bool. (Π a: A. Π b: A. {f a b ≃ true} ➾ {a ≃ b}).
+
+find : ∀ A: ★. EqFn·A ➔ A ➔ List·A ➔ Bool
+= Λ A. λ eq. λ a. λ l. μ rec. l {
+  | nil ➔ false
+  | cons h t ➔ if (eq.1 a h)
+    true
+    (rec t)
+  }.
+
+distinctCons : ∀ A: ★. EqFn·A ➔ A ➔ List·A ➔ List·A
+= Λ A. λ eq. λ a. λ l. μ' (find eq a l) {
+  | tt ➔ l
+  | ff ➔ cons a l
+  }.
+
+distinctConsEqFalse : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π l: List·A.
+  {find eq a l ≃ false} ➔ {distinctCons eq a l ≃ cons a l}
+= Λ A. λ eq. λ a. λ l. λ eq. ρ+ eq - β.
+
+distinctConsEqTrue : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π l: List·A.
+  {find eq a l ≃ true} ➔ {distinctCons eq a l ≃ l}
+= Λ A. λ eq. λ a. λ l. λ eq. ρ+ eq - β.
+
+distinct : ∀ A: ★. EqFn·A ➔ List·A ➔ List·A
+= Λ A. λ eq. λ l. μ rec. l {
+  | nil ➔ nil·A
+  | cons a l ➔ distinctCons eq a (rec l)
+  }.
+
+distinctConsRec : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
+  {distinct eq (cons a list) ≃ distinctCons eq a (distinct eq list)}
+= Λ A. λ eq. λ a. λ list. β.
+
+distinctConsEqRec : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
+  {find eq a list ≃ true} ➔ {find eq a (distinct eq list) ≃ true}
+= Λ A. λ eq. λ a. λ l. μ ih. l {
+  | nil ➔ λ e. δ - e
+  | cons h t ➔ λ e. μ' (eq.1 a h) @ λ i: Bool. {eq a h ≃ i}
+    ➾ {find eq a (distinct eq (cons h t)) ≃ true} {
+    | tt ➔ Λ k. [k' = eq.2 a h -k]
+    - χ({find eq a (distinctCons eq h (distinct eq t)) ≃ true})
+    - [t' = to/List -isType/ih t]
+    - μ' (find eq h (distinct eq t')) @ λ j: Bool. {find eq h (distinct eq t) ≃ j}
+      ➾ {find eq a (distinctCons eq h (distinct eq t)) ≃ true} {
+      | tt ➔ Λ w. ρ+ w - ρ+ k' - ρ+ w - β
+      | ff ➔ Λ w. ρ+ w - μ rec. (to/List -isType/ih t) {
+        | nil ➔ ρ+ k - β
+	| cons h' t' ➔ ρ+ k - β
+        }
+      } -β
+    | ff ➔ Λ k.
+      [e: {find eq a t ≃ true} = ρ ς e - ρ+ k - β]
+    - χ({find eq a (distinctCons eq h (distinct eq t)) ≃ true})
+    - [t' = to/List -isType/ih t]
+    - μ' (find eq h (distinct eq t')) @ λ j: Bool. {find eq h (distinct eq t) ≃ j}
+      ➾ {find eq a (distinctCons eq h (distinct eq t)) ≃ true} {
+      | tt ➔ Λ w. ρ (distinctConsEqTrue eq h (distinct eq t') w)
+      - ρ (ih t e) - β
+      | ff ➔ Λ w. ρ (distinctConsEqFalse eq h (distinct eq t') w)
+      - ρ+ k - χ({find eq a (distinct eq t) ≃ true})
+      - ρ (ih t e) - β
+      } -β
+    } -β
+  }.
+
+distinctConsPromote : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
+  {distinct eq (cons a list) ≃ distinct eq (distinctCons eq a list)}
+= Λ A. λ eq. λ a. λ l. μ' l {
+  | nil ➔ β
+  | cons h t ➔ μ' (find eq a (cons h t)) @ λ x: Bool. {find eq a (cons h t) ≃ x}
+    ➾ {distinct eq (cons a (cons h t)) ≃ distinct eq (distinctCons eq a (cons h t))} {
+    | tt ➔ Λ e. ρ (distinctConsEqTrue eq a (cons h t) e)
+    - ρ (distinctConsRec eq a (cons h t))
+    - [e' = distinctConsEqRec eq a (cons h t) e]
+    - ρ (distinctConsEqTrue eq a (distinct eq (cons h t)) e')
+    - β
+    | ff ➔ Λ e. ρ (distinctConsEqFalse eq a (cons h t) e)
+    - β
+    } -β
+  }.
+
+distinctConsCommute : ∀ A: ★. Π eq: EqFn·A. Π a: A. Π list: List·A.
+  {distinct eq (distinctCons eq a list) ≃ distinctCons eq a (distinct eq list)}
+= Λ A. λ eq. λ a. λ list. ρ ς (distinctConsRec eq a list)
+  - ρ (distinctConsPromote eq a list) - β.
+
+distinctIdem : ∀ A: ★. Π eq: EqFn·A. Π list: List·A.
+  {distinct eq (distinct eq list) ≃ distinct eq list}
+= Λ A. λ eq. λ list. μ ih. list {
+  | nil ➔ β
+  | cons h t ➔ [t' = to/List -isType/ih t]
+    - ρ (distinctConsPromote eq h t')
+    - ρ (distinctConsCommute eq h t')
+    - ρ (distinctConsCommute eq h (distinct eq t'))
+    - ρ (ih t)
+    - β
+  }.
+
+distinctIdemFn : ∀ A: ★. Π eq: EqFn·A. IdemFn·(List·A)
+= Λ A. λ eq. [ distinct eq , λ l. ρ+ (distinctIdem eq l) - β{distinct eq l} ].
+
+ListSet : Π A: ★. EqFn·A ➔ ★
+= λ A: ★. λ eq: EqFn·A. ι list: List·A. {distinct eq list ≃ list}.
+
+empty : ∀ A: ★. Π eq: EqFn·A. ListSet·A eq
+= Λ A. λ eq. [nil·A, β{nil}].
+
+insert : ∀ A: ★. Π eq: EqFn·A. A ➔ ListSet·A eq ➔ ListSet·A eq
+= Λ A. λ eq. λ a. λ l. [distinctCons eq a l.1,
+  ρ (distinctConsCommute eq a l.1) - ρ l.2 - β{distinctCons eq a l}].
+
+eqEven : EqFn·Even
+= [λ x. λ y. eqNat x.1 y.1,
+   λ x. λ y. Λ eq. ρ (eqNatSubst x.1 y.1 -eq) - β{eqNat x y}].
+
+_ : List·Nat ➔ ListSet·Even eqEven ➔ ★
+= λ l1: List·Nat. λ l2: ListSet·Even eqEven. {l1 ≃ l2}.
+
+_ : List·Nat ➔ ListSet·Even eqEven ➔ ★
+= λ l1: List·Nat. λ l2: ListSet·Even eqEven.
+  Id·(List·Nat)
+    l1
+    (map (qcoerce -evenIdemFn) (qcoerce -(distinctIdemFn eqEven) l2)).

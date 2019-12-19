@@ -1,0 +1,15 @@
+module quotient-defs.
+
+IdemFn : ★ ➔ ★
+= λ A: ★. ι f: A ➔ A. Π a: A. {f (f a) ≃ f a}.
+
+Quotient : Π A: ★. IdemFn·A ➔ ★
+= λ A: ★. λ f: IdemFn·A. ι a: A. {f a ≃ a}.
+
+qcoerce : ∀ A: ★. ∀ f: IdemFn·A. Quotient·A f ➔ A
+= Λ A. Λ f. λ q. q.1.
+
+qcoerceId : {qcoerce ≃ λ q. q} = β.
+
+qcanon : ∀ A: ★. Π f: IdemFn·A. A ➔ Quotient·A f
+= Λ A. λ f. λ a. [x = f.1 a] - [x, ρ (f.2 a) - β{x}].

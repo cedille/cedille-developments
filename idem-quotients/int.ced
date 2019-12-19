@@ -1,0 +1,255 @@
+module int-ind.
+
+import nat.
+import pair.
+import or.
+
+data PreInt : ★ =
+  | pzero : PreInt
+  | psucc : PreInt ➔ PreInt
+  | ppred : PreInt ➔ PreInt.
+
+-- These are trivially false, so a hole is used in place of a proof.
+spCancel : Π p: PreInt. {psucc (ppred p) ≃ p} = ●.
+psCancel : Π p: PreInt. {ppred (psucc p) ≃ p} = ●.
+
+psucc' : PreInt ➔ PreInt
+= λ p. μ' p {
+  | pzero ➔ psucc pzero
+  | psucc x ➔ psucc (psucc x)
+  | ppred x ➔ x
+  }.
+
+ppred' : PreInt ➔ PreInt
+= λ p. μ' p {
+  | pzero ➔ ppred pzero
+  | psucc x ➔ x
+  | ppred x ➔ ppred (ppred x)
+  }.
+
+integer : PreInt ➔ PreInt
+= λ p. μ rec. p {
+  | pzero ➔ pzero
+  | psucc x ➔ psucc' (rec x)
+  | ppred x ➔ ppred' (rec x)
+  }.
+
+-- We show the canonical members of `integer` by explicitly constructing them
+-- using iteration of ppred or psucc
+iterate : ∀ X: ★. Nat ➔ (X ➔ X) ➔ X ➔ X =
+  Λ X. λ n. μ it. n {
+  | zero ➔ λ f. λ x. x
+  | succ n ➔ λ f. λ x. f (it n f x)
+  }.
+
+integerLemSuccMotive : Nat ➔ PreInt ➔ ★
+= λ x: Nat. λ p: PreInt.
+  {iterate x ppred pzero ≃ integer p} ➾ Or
+    ·(ι z: Nat. {iterate z ppred pzero ≃ integer (psucc p)})
+    ·(ι z: Nat. {iterate z psucc pzero ≃ integer (psucc p)}).
+
+integerLemPredMotive : Nat ➔ PreInt ➔ ★
+= λ x: Nat. λ p: PreInt.
+  {iterate x psucc pzero ≃ integer p} ➾ Or
+    ·(ι z: Nat. {iterate z ppred pzero ≃ integer (ppred p)})
+    ·(ι z: Nat. {iterate z psucc pzero ≃ integer (ppred p)}).
+
+integerLem1 : Π p: PreInt. Or
+	    ·(ι x: Nat. {iterate x ppred pzero ≃ integer p})
+	    ·(ι x: Nat. {iterate x psucc pzero ≃ integer p})
+= λ p. μ ih. p {
+  | pzero ➔ injl [zero, β{zero}]
+  | psucc x ➔ [ret = ih x ] - μ' ret {
+    | injl l ➔ μ' l.1 @ λ l: Nat. integerLemSuccMotive l (to/PreInt -isType/ih x) {
+      | zero ➔ Λ eq.
+        injr [succ zero,
+	  ρ ς eq @ z. {iterate (succ zero) psucc pzero ≃ psucc' z}
+          - β{succ zero}]
+      | succ l' ➔ Λ eq.
+        injl [l',
+	  ρ ς eq @ z. {iterate l' ppred pzero ≃ psucc' z}
+          - β{l'}]
+      } -l.2
+    | injr r ➔
+      [lem : {psucc' (iterate r psucc pzero) ≃ psucc (iterate r psucc pzero)}
+        = μ' r.1 {zero ➔ β | succ r' ➔ β}]
+      - injr [succ r.1,
+        ρ ς r.2 @ z. {psucc (iterate r psucc pzero) ≃ psucc' z}
+        - ρ lem - β{succ r}]
+    }
+  | ppred y ➔ [ret = ih y] - μ' ret {
+    | injl l ➔
+      [lem : {ppred' (iterate l ppred pzero) ≃ ppred (iterate l ppred pzero)}
+        = μ' l.1 {zero ➔ β | succ l' ➔ β}]
+      - injl [succ l.1,
+        ρ ς l.2 @ z. {ppred (iterate l ppred pzero) ≃ ppred' z}
+        - ρ lem - β{succ l}]
+    | injr r ➔ μ' r.1 @ λ r: Nat. integerLemPredMotive r (to/PreInt -isType/ih y) {
+      | zero ➔ Λ eq.
+        injl [succ zero,
+	  ρ ς eq @ z. {iterate (succ zero) ppred pzero ≃ ppred' z}
+          - β{succ zero}]
+      | succ r' ➔ Λ eq.
+        injr [r',
+	  ρ ς eq @ x . { iterate r' psucc pzero ≃ ppred' x }
+          - β{r'}]
+      } -r.2
+    }
+  }.
+
+psuccRec : Π p: PreInt. {integer (psucc p) ≃ psucc' (integer p)}
+= λ p. β.
+
+ppredRec : Π p: PreInt. {integer (ppred p) ≃ ppred' (integer p)}
+= λ p. β.
+
+data Equations : PreInt ➔ ★ =
+  | equations : Π p: PreInt.
+    {psucc' (ppred' p) ≃ p} ➔
+    {ppred' (psucc' p) ≃ p} ➔
+    Equations p.
+
+eqPP : Π p: PreInt. Equations (ppred (ppred p))
+= λ p. μ' p {
+  | pzero ➔ equations (ppred (ppred pzero)) β β
+  | psucc x ➔ equations (ppred (ppred (psucc x))) β β
+  | ppred x ➔ equations (ppred (ppred (ppred x))) β β
+  }.
+
+eqSS : Π p: PreInt. Equations (psucc (psucc p))
+= λ p. μ' p {
+  | pzero ➔ equations (psucc (psucc pzero)) β β
+  | psucc x ➔ equations (psucc (psucc (psucc x))) β β
+  | ppred x ➔ equations (psucc (psucc (ppred x))) β β
+  }.
+
+-- Now we can show that the equations we need hold for psucc' and ppred'
+canonEq : Π p: PreInt. Equations (integer p)
+= λ p. [split = integerLem1 p] - μ' split {
+  | injl e ➔ [n = e.1] - [e: {iterate n ppred pzero ≃ integer p} = e.2]
+  - ρ ς e - μ' n {
+    | zero ➔ equations pzero β β
+    | succ n ➔ μ' n {
+      | zero ➔ equations (ppred pzero) β β
+      | succ n ➔ χ (Equations (ppred (ppred (iterate n ppred pzero))))
+      - eqPP (iterate n ppred pzero)
+      }
+    }
+  | injr e ➔ [n = e.1] - [e: {iterate n psucc pzero ≃ integer p} = e.2]
+  - ρ ς e - μ' n {
+    | zero ➔ equations pzero β β
+    | succ n ➔ μ' n {
+      | zero ➔ equations (psucc pzero) β β
+      | succ n ➔ χ (Equations (psucc (psucc (iterate n psucc pzero))))
+      - eqSS (iterate n psucc pzero)
+      }
+    }
+  }.
+
+EqSP : PreInt ➔ ★ = λ p: PreInt. {psucc' (ppred' p) ≃ p}.
+eqSP : Π p: PreInt. EqSP (integer p)
+= λ p. μ' (canonEq p) {
+  | equations p x y ➔ ρ x - β
+  }.
+
+EqPS : PreInt ➔ ★ = λ p: PreInt. {ppred' (psucc' p) ≃ p}.
+eqPS : Π p: PreInt. EqPS (integer p)
+= λ p. μ' (canonEq p) {
+  | equations p x y ➔ ρ y - β
+  }.
+
+ppredPromote : Π p: PreInt. {integer (ppred p) ≃ integer (ppred' p)}
+= λ p. ρ (ppredRec p) - μ' p {
+  | pzero ➔ β
+  | psucc x ➔ [eq = canonEq x] - ρ (psuccRec x) - ρ (eqPS x) - β
+  | ppred x ➔ ρ ς (ppredRec (ppred x)) - β
+  }.
+
+psuccPromote : Π p: PreInt. {integer (psucc p) ≃ integer (psucc' p)}
+= λ p. ρ (psuccRec p) - μ' p {
+  | pzero ➔ β
+  | psucc x ➔ ρ ς (psuccRec (psucc x)) - β
+  | ppred x ➔ [eq = canonEq x] - ρ (ppredRec x) - ρ (eqSP x) - β
+  }.
+
+psuccCommute : Π p: PreInt. {integer (psucc' p) ≃ psucc' (integer p)}
+= λ p. ρ ς (psuccRec p) - ρ (psuccPromote p) - β.
+
+ppredCommute : Π p: PreInt. {integer (ppred' p) ≃ ppred' (integer p)}
+= λ p. ρ ς (ppredRec p) - ρ (ppredPromote p) - β.
+
+integerIdem : Π p: PreInt. {integer (integer p) ≃ integer p}
+= λ p. μ ih. p {
+  | pzero ➔ β
+  | psucc x ➔ [x' = to/PreInt -isType/ih x]
+  - χ({integer (psucc' (integer x)) ≃ psucc' (integer x)})
+  - ρ (psuccCommute (integer x')) - ρ (ih x) - β
+  | ppred x ➔ [x' = to/PreInt -isType/ih x]
+  - χ({integer (ppred' (integer x)) ≃ ppred' (integer x)})
+  - ρ (ppredCommute (integer x')) - ρ (ih x) - β
+  }.
+
+Int : ★ = ι p: PreInt. {integer p ≃ p}.
+
+izero : Int
+= [pzero, β{pzero}].
+
+isucc : Int ➔ Int
+= λ p. [psucc' p.1, ρ (psuccCommute p.1) - ρ p.2 - β{psucc' p}].
+
+ipred : Int ➔ Int
+= λ p. [ppred' p.1, ρ (ppredCommute p.1) - ρ p.2 - β{ppred' p}].
+
+sp : Π i: Int. {isucc (ipred i) ≃ i}
+= λ i. [equations = canonEq i.1] - ρ ς i.2
+  - ρ+ (eqSP i.1) - β.
+
+ps : Π i: Int. {ipred (isucc i) ≃ i}
+= λ i. [equations = canonEq i.1] - ρ ς i.2
+  - ρ+ (eqPS i.1) - β.
+
+psuccCanon : Π x: PreInt. {integer (psucc x) ≃ psucc x} ➔ {integer x ≃ x}
+= λ x. λ eq.
+  [eq : {ppred' (psucc' (integer x)) ≃ ppred' (psucc x)} = ρ ς eq - ρ (psuccRec x) - β]
+  - [eq : {ppred' (psucc' (integer x)) ≃ x} = ρ eq - β]
+  - [eq : {integer x ≃ x} = ρ ς (eqPS x) - ρ eq - β]
+  - ρ eq - β.
+
+ppredCanon : Π x: PreInt. {integer (ppred x) ≃ ppred x} ➔ {integer x ≃ x}
+= λ x. λ eq.
+  [eq : {psucc' (ppred' (integer x)) ≃ psucc' (ppred x)} = ρ ς eq - ρ (ppredRec x) - β]
+  - [eq : {psucc' (ppred' (integer x)) ≃ x} = ρ eq - β]
+  - [eq : {integer x ≃ x} = ρ ς (eqSP x) - ρ eq - β]
+  - ρ eq - β.
+
+induct : ∀ P: Int ➔ ★. P izero ➔
+  (Π x: Int. P x ➔ P (isucc x)) ➔
+  (Π y: Int. P y ➔ P (ipred y)) ➔
+  Π i: Int. P i
+= Λ P. λ z. λ s. λ p. λ i. μ ih. i.1
+  @ λ k: PreInt. ∀ e: {integer k ≃ k}. P [k, ρ e - β{k}] {
+  | pzero ➔ Λ e. z
+  | psucc x ➔ Λ eq. [x' = to/PreInt -isType/ih x]
+  - [f = psuccCanon x' eq]
+  - [pf = s [x', ρ f - β{x}] (ih x -f)]
+  - [k : {psucc x ≃ isucc x} = ρ ς eq @ r. {r ≃ isucc x}
+    - ρ ς f @ r. {integer (psucc x) ≃ isucc r} - β]
+  - ρ k - pf
+  | ppred x ➔ Λ eq. [x' = to/PreInt -isType/ih x]
+  - [f = ppredCanon x' eq]
+  - [pf = p [x', ρ f - β{x}] (ih x -f)]
+  - [k : {ppred x ≃ ipred x} = ρ ς eq @ r. {r ≃ ipred x}
+    - ρ ς f @ r. {integer (ppred x) ≃ ipred r} - β]
+  - ρ k - pf
+  } -i.2.
+
+iadd : Int ➔ Int ➔ Int
+= λ x. λ y. induct·(λ x: Int. Int) y
+  (λ a. λ b. isucc b)
+  (λ a. λ b. ipred b)
+  x.
+
+_ : {iadd izero (isucc izero) ≃ isucc izero} = β.
+_ : {iadd (isucc izero) izero ≃ isucc izero} = β.
+_ : {iadd (isucc izero) (isucc izero) ≃ isucc (isucc izero)} = β.
+_ : {iadd (isucc (isucc izero)) (ipred izero) ≃ isucc izero} = β.

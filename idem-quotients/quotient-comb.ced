@@ -1,0 +1,58 @@
+import quotient-defs.
+import pair.
+import or.
+
+module quotient-comb (A: ★) (B: ★) (fa: IdemFn·A) (fb: IdemFn·B).
+QA : ★ = Quotient·A fa.
+QB : ★ = Quotient·B fb.
+
+idemfn-pair : IdemFn·(Pair·A·B)
+= [f: Pair·A·B ➔ Pair·A·B = λ p. μ' p {
+    pair a b ➔ pair (fa.1 a) (fb.1 b)
+  }]
+- [f, λ p. μ' p
+    @ (λ x: Pair·A·B. {f (f x) ≃ f x}) {
+    | pair a b ➔
+      ρ+ (fa.2 a)
+      - ρ (fb.2 b)
+      - β{pair (fa a) (fb b)}
+  }].
+
+quotient-pair : QA ➔ QB ➔ Quotient·(Pair·A·B) idemfn-pair
+= λ a. λ b. [pair a.1 b.1, ρ+ a.2 - ρ b.2 - β{pair a b}].
+
+idemfn-or : IdemFn·(Or·A·B)
+= [f: Or·A·B ➔ Or·A·B = λ p. μ' p {
+    | injl a ➔ injl (fa.1 a)
+    | injr b ➔ injr (fb.1 b)
+  }]
+- [f, λ p. μ' p
+    @ (λ x: Or·A·B. {f (f x) ≃ f x}) {
+    | injl a ➔ ρ+ (fa.2 a) - β{injl (fa a)}
+    | injr b ➔ ρ+ (fb.2 b) - β{injr (fb b)}
+  }].
+
+quotient-or-left : QA ➔ Quotient·(Or·A·B) idemfn-or
+= λ a. [injl a.1, ρ+ a.2 - β{injl a}].
+
+quotient-or-right : QB ➔ Quotient·(Or·A·B) idemfn-or
+= λ b. [injr b.1, ρ+ b.2 - β{injr b}].
+
+Compatible : (A ➔ A) ➔ ★ = λ f: A ➔ A. ∀ a: A. {f (fa a) ≃ fa (f a)}.
+
+idemfn-nest : Π f: IdemFn·A. Compatible f.1 ➾ IdemFn·A
+= λ f. Λ c. [λ a. f.1 (fa.1 a),
+  λ a. ρ+ (c -a)
+  - ρ (fa.2 (f.1 a))
+  - ρ ς (c -a)
+  - ρ (f.2 (fa.1 a))
+  - β{f (fa a)}].
+
+quotient-nest : Π f: IdemFn·A. ∀ c: Compatible f.1. Quotient·A fa
+  ➔ Quotient·A (idemfn-nest f -c)
+= λ f. Λ c. λ q. [f.1 q.1,
+  ρ+ (c -(f.1 q.1))
+  - ρ (f.2 q.1)
+  - ρ ς (c -q.1)
+  - ρ q.2
+  - β{f q}].

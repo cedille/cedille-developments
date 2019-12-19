@@ -1,0 +1,15 @@
+import quotient-defs.
+
+module uip.
+
+eqRep : ∀ A: ★. Π a: A. Π b: A. {a ≃ b} ➔ {a ≃ b}
+= Λ A. λ a. λ b. λ eq. ρ eq - β.
+
+eqRepIdemFn : ∀ A: ★. Π a: A. Π b: A. IdemFn·{a ≃ b}
+= Λ A. λ a. λ b. [ eqRep a b , λ eq. β ].
+
+Id : Π A: ★. A ➔ A ➔ ★
+= λ A: ★. λ a: A. λ b: A. Quotient·{a ≃ b} (eqRepIdemFn a b).
+
+UIP : ∀ A: ★. Π a: A. Π b: A. Π p: Id·A a b. Π q: Id·A a b. Id·(Id·A a b) p q
+= Λ A. λ a. λ b. λ p. λ q. [ρ ς p.2 - ρ ς q.2 - β, β].
