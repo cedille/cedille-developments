@@ -1,4 +1,5 @@
 import functor.
+import cast.
 import utils.
 
 module parigot/props
@@ -7,6 +8,9 @@ module parigot/props
 
 import parigot/encoding ·F fmap -fmapId -fmapCompose.
 import functorThms ·F fmap -fmapId -fmapCompose.
+
+norm ◂ Cast ·P ·(AlgP ·P ·Unit ➔ Unit)
+= intrCast -(λ x. (unrollP x).1 ·Unit) -(λ _. β) .
 
 cancellation ◂ ∀ X: ★. Π xs: F ·P. Π a: AlgP ·P ·X.
   { rec a (in xs) ≃ a (fmap (λ r. mkpair r (rec a r)) xs) } =

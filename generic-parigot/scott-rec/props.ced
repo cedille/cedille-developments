@@ -11,12 +11,14 @@ import functorThms ·F fmap -fmapId -fmapCompose.
 import scott/encoding  ·F fmap -fmapId -fmapCompose.
 import scott-rec/induction ·F fmap -fmapId -fmapCompose.
 
+norm ◂ Cast ·S ·(AlgS ·S ·Unit ➔ Unit)
+= intrCast -(λ x. (unrollS x).1 ·Unit) -(λ _. β) .
 
 -- computation law for standard discriminator
-case' : ∀ X: ★. (F ·S ➔ X) ➔ S ➔ X
+case' ◂ ∀ X: ★. (F ·S ➔ X) ➔ S ➔ X
 = Λ X. λ a. case (λ xs. a (fmap (unwrap ·S) xs)).
 
-caseComp' : ∀ X: ★. Π a: F ·S ➔ X. Π xs: F ·S. {case' a (in xs) ≃ a xs}
+caseComp' ◂ ∀ X: ★. Π a: F ·S ➔ X. Π xs: F ·S. {case' a (in xs) ≃ a xs}
 = Λ X. λ a. λ xs.
    ρ+ (fmapCompose (unwrap ·S) (wrap ·S) xs)
  - ρ+ (fmapId (λ x: S. unwrap (wrap x)) (λ _. β) xs)
@@ -63,13 +65,14 @@ reflection ◂ Π x: S. Reflection ·S x = λ x.
           β) x.
 
 -- Lambek's lemmas
-Lambek1 ◂ F ·S ➔ ★ = λ x: F ·S. { out (in x) ≃ x}.
-lambek1 ◂ Π x: F ·S. Lambek1 x = λ x.
-  fmapIdFromCompose (unwrap ·S) (wrap ·S) -(λ x. β) x.
+lambek1 ◂ Π xs: F ·S. { out (in xs) ≃ xs } = λ xs.
+  ρ+ (fmapCompose (unwrap ·S) (wrap ·S) xs) -
+  ρ+ (fmapId (λ x: S. unwrap (wrap x)) (λ _. β) xs) -
+  β .
 
-Lambek2 ◂ S ➔ ★ = λ x: S. { in (out x) ≃ x }.
-lambek2 ◂ Π x: S. Lambek2 x = λ x.
-  induction ·Lambek2 (λ xs. ρ+ (lambek1 (fmap (proj1 ·S ·Lambek2) xs)) - β) x.
+lambek2 ◂ Π x: S. { in (out x) ≃ x } = λ x.
+  induction ·(λ x: S. { in (out x) ≃ x })
+    (λ xs. ρ+ (lambek1 (fmap (proj1 ·S ·(λ x: S. { in (out x) ≃ x })) xs)) - β) x.
 
 -- Initiality
 unique ◂ FmapExt ·F fmap ➔ ∀ X: ★. Π a: F ·(Pair ·S ·X) ➔ X.

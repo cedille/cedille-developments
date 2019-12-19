@@ -13,27 +13,12 @@ monoFunctor ◂ Mono ·F = Λ X. Λ Y. λ c.
 fcast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B =
   Λ A. Λ B. Λ c. elimCast -(monoFunctor c).
 
-fmapIdFromCompose ◂ ∀ X: ★. ∀ Y: ★. ∀ Z: ★.
-  Π f: Y ➔ Z. Π g: X ➔ Y. (Π x: X. {f (g x) ≃ x}) ➾
-  Π xs: F ·X. {fmap f (fmap g xs) ≃ xs}
-= Λ X. Λ Y. Λ Z. λ f. λ g. Λ eqComp. λ xs.
-  ρ+ (fmapCompose f g xs) -
-  ρ+ (fmapId ·X ·Z (λ x. f (g x)) (λ x. eqComp x) xs) -
-  β.
-
 import utils.
 
 fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F ·X. {fmap unwrap (fmap wrap fx) ≃ fx} =
   Λ X. λ fx. ρ+ (fmapCompose (unwrap ·X) (wrap ·X) fx) -
              ρ+ (fmapId · X · Top (λ s. β{unwrap (wrap s)}) (λ x. β) fx) -
              β .
-
-
-fmapProj1Sigma ◂ ∀ X: ★. ∀ A: ★. ∀ B: A ➔ ★.
-  Π f: X ➔ A. Π g: Π x: X. B (f x). Π fx: F ·X.
-  {fmap proj1 (fmap (λ x. mksigma (f x) (g x)) fx) ≃ fmap f fx}
-= Λ X. Λ A. Λ B. λ f. λ g. λ fx.
-  ρ+ (fmapCompose (proj1 ·A ·B) (λ x: X. mksigma (f x) (g x)) fx) - β.
 
 fmapFstPair ◂ ∀ A: ★. ∀ B: ★. Π f: A ➔ B. Π xs: F ·A.
   {fmap fst (fmap (λ x. mkpair x (f x)) xs) ≃ xs}
