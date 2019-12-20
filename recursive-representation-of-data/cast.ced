@@ -12,4 +12,5 @@ intrCast ◂ ∀ A: ★. ∀ B: ★. ∀ f: A ➔ B. (Π a: A. {f a ≃ a}) ➾ 
 castRefl ◂ ∀ A: ★. Cast ·A ·A = Λ A. [ λ x. x , β ].
 
 castTrans ◂ ∀ A: ★. ∀ B: ★. ∀ C: ★. Cast ·A ·B ➾ Cast ·B ·C ➾ Cast ·A ·C
-= Λ A. Λ B. Λ C. Λ c1. Λ c2. intrCast -(λ x. elimCast -c2 (elimCast -c1 x)) -(λ x. β).
+= Λ A. Λ B. Λ C. Λ c1. Λ c2.
+  intrCast -(λ x. elimCast -c2 (elimCast -c1 x)) -(λ x. β).

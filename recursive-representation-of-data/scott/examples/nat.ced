@@ -1,12 +1,12 @@
-module scott/examples/nat1.
+module scott/examples/nat.
 
 import recType.
 import cast.
 
 NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ X.
 
-zeroF ◂ ∀ N: ★. NatF ·N = Λ R. Λ X. λ z. λ s. z.
-sucF ◂ ∀ N: ★. N ➔ NatF ·N = Λ R. λ r. Λ X. λ z. λ s. s r.
+zeroF ◂ ∀ N: ★. NatF ·N = Λ N. Λ X. λ z. λ s. z.
+sucF ◂ ∀ N: ★. N ➔ NatF ·N = Λ N. λ n. Λ X. λ z. λ s. s n.
 
 WkInductiveNatF : Π N: ★. NatF ·N ➔ ★ = λ N: ★. λ n: NatF ·N.
   ∀ P: NatF ·N ➔ ★. P (zeroF ·N) ➔

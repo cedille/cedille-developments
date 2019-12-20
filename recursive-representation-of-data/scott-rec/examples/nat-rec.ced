@@ -3,7 +3,7 @@ import recType.
 
 module scott-rec/examples/nat1-rec.
 
-import scott/examples/nat1.
+import scott/examples/nat.
 
 -- Scott Nat recursor
 -- ==================================================

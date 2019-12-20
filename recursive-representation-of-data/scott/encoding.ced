@@ -1,15 +1,3 @@
-{- Scott-encoded inductive datatypes.
-
-
-   This development is generic in a functor.
-
-   The interface you should use is:
-
-   S         - the inductive type
-   in/out    - constructing/destructing data of type C
-   Induction - dependent elimination on C
-   -}
-
 import functor.
 import utils.
 

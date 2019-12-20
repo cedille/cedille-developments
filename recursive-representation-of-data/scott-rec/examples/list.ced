@@ -17,8 +17,8 @@ indList ◂ ∀ Q: List ➔ ★. Q nil ➔
 = Λ Q. λ n. λ c.
   SI.induction ·Q
     (λ xs.
-     θ<xs> (ind-Sum xs)
-       (λ u. ρ (eta-Unit u) - n)
+     θ<xs> (indSum xs)
+       (λ u. ρ (etaUnit u) - n)
        (λ p.
-        θ<p> (ind-pair p)
+        θ<p> (indPair p)
           (λ hd. λ tl. c hd (proj1 tl) (proj2 tl)))) .

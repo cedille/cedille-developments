@@ -1,0 +1,21 @@
+* Monotone Recursive Types and Recursive Data Representation in Cedille
+
+  Under consideration for the /Journal of Mathematical Structures in Computer
+  Science/
+
+  All code can be checked from [[file:everything.ced][everything.ced]].
+
+** Utilities
+
+    - [[file:cast.ced][cast.ced]]: type coercions
+    - [[file:recType.ced][recType.ced]]: monotone recursive types in Cedille
+    - [[file:functor.ced][functor.ced]]: functors and the associated identity and composition laws
+    - [[file:functorThms.ced][functorThms.ced]]: some useful lemmas about functors, including the relation
+      between functorality and positivity
+    - [[file:utils.ced][utils.ced]]: useful datatypes (dependent products, unit) and signature
+      functors (lists)
+
+** Main files
+
+   TODO
+
