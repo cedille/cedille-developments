@@ -5,6 +5,32 @@ module scott-rec/examples/nat1-rec.
 
 import scott/examples/nat.
 
+{- alternative proof taken from "Programming with proofs: a second order type theory" [Par88] -}
+import utils/top.
+
+lem
+: ∀ X: Nat ➔ ★. Π alpha: X zero. Π beta: (Π y: Nat. X y ➔ X (suc y)).
+  Π tau: Top. { tau zero ≃ alpha } ➔ (Π n: Nat. { tau (suc n) ≃ beta n (tau n) }) ➔
+  Π n: Nat. ι x: X n. { x ≃ tau n }
+= Λ X. λ alpha. λ beta. λ tau. λ eq1. λ eq2.
+  wkInductionNat ·(λ y: Nat. ι x: X y. { x ≃ tau y })
+    ([ alpha , ρ eq1 - β{alpha} ])
+    (λ m. Λ ih. [ beta m (φ ih.2 - ih.1 {tau m}) , ρ ς (eq2 m) - β{beta m (tau m)} ]) .
+
+iota : ∀ X: Nat ➔ ★. X zero ➔ Top
+= Λ X. λ a. β{λ _. a}.
+
+rho  : ∀ X: Nat ➔ ★. X zero ➔ (Π y: Nat. X y ➔ X (suc y)) ➔ Top
+= Λ X. λ a. λ b. β{λ y. λ r. b y (y (iota a) r r)}.
+
+tau : ∀ X: Nat ➔ ★. X zero ➔ (Π y: Nat. X y ➔ X (suc y)) ➔ Top
+= Λ X. λ a. λ b. β{λ x. x (iota a) (rho a b) (rho a b)}.
+
+rec : ∀ X: Nat ➔ ★. X zero ➔ (Π m: Nat. X m ➔ X (suc m)) ➔ Π n: Nat. X n
+= Λ X. λ a. λ b. λ n.
+  [lm = lem a b (tau a b) β (λ n. β) n]
+- φ lm.2 - lm.1 {tau a b n} .
+
 -- Scott Nat recursor
 -- ==================================================
 

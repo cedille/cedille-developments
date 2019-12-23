@@ -76,9 +76,9 @@ _ ◂ {in ≃ inIP} = β.
 reflectP ◂ P ➔ IP = λ x. rec (λ xs. inIP (fmap (snd ·P ·IP) xs)) x.
 _ ◂ {reflectP ≃ reflectU} = β.
 
-castP ◂ Cast ·P ·IP = intrCast -reflectP -(λ r. (unrollP r).2).
+toIP ◂ Cast ·P ·IP = intrCast -reflectP -(λ r. (unrollP r).2).
 
 induction ◂ ∀ Q: P ➔ ★. PrfAlgP ·Q ➔ Π x: P. Q x =
-  Λ Q. λ alg. λ x. (elimCast -castP x).2 alg.
+  Λ Q. λ alg. λ x. (elimCast -toIP x).2 alg.
 _ ◂ {induction ≃ rec} = β.
 
