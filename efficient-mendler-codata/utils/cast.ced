@@ -1,0 +1,40 @@
+module utils/cast (I: ★).
+
+Cast : (I ➔ ★) ➔ (I ➔ ★) ➔ ★
+= λ A: I ➔ ★. λ B: I ➔ ★. ι f: ∀ i: I. A i ➔ B i. {f ≃ λ x. x}.
+
+intrCast
+: ∀ A: I ➔ ★. ∀ B: I ➔ ★.
+  ∀ f: ∀ i: I. A i ➔ B i. (∀ i: I. Π a: A i. {f a ≃ a}) ➾ Cast ·A ·B
+= Λ A. Λ B. Λ f. Λ eq. [ Λ i. λ a. φ (eq -i a) - (f -i a) {a} , β].
+
+elimCast : ∀ A: I ➔ ★. ∀ B: I ➔ ★. Cast ·A ·B ➾ ∀ i: I. A i ➔ B i
+= Λ A. Λ B. Λ c. φ c.2 - c.1 {λ x. x}.
+
+-- underscore for anonymous definitions
+_ : { intrCast ≃ λ x. x } = β .
+_ : { elimCast ≃ λ x. x } = β .
+
+castRefl : ∀ A: I ➔ ★. Cast ·A ·A
+= Λ A. intrCast -(Λ _. λ x. x) -(Λ _. λ _. β).
+
+castTrans
+: ∀ A: I ➔ ★. ∀ B: I ➔ ★. ∀ C: I ➔ ★. Cast ·A ·B ➾ Cast ·B ·C ➾ Cast ·A ·C
+= Λ A. Λ B. Λ C. Λ c1. Λ c2.
+  intrCast -(Λ i. λ a. elimCast -c2 -i (elimCast -c1 -i a)) -(Λ _. λ _. β).
+
+_ : { castRefl ≃ λ x. x } = β .
+_ : { castTrans ≃ λ x. x } = β .
+
+Mono : ((I ➔ ★) ➔ I ➔ ★) ➔ ★
+= λ F: (I ➔ ★) ➔ I ➔ ★. ∀ A: I ➔ ★. ∀ B: I ➔ ★. Cast ·A ·B ➾ Cast ·(F ·A) ·(F ·B).
+
+intrMono : ∀ F: (I ➔ ★) ➔ I ➔ ★. (∀ A: I ➔ ★. ∀ B: I ➔ ★. Cast ·A ·B ➾ Cast ·(F ·A) ·(F ·B)) ➾ Mono ·F
+= Λ F. Λ m. Λ A. Λ B. Λ c. intrCast -(elimCast -(m -c)) -(Λ i. λ a. β) .
+
+elimMono : ∀ F: (I ➔ ★) ➔ I ➔ ★. ∀ A: I ➔ ★. ∀ B: I ➔ ★.
+  Mono ·F ➾ Cast ·A ·B ➾ ∀ i: I. F ·A i ➔ F ·B i
+= Λ F. Λ A. Λ B. Λ cm. Λ c. Λ i. λ f. elimCast -(cm -c) -i f.
+
+_ : { intrMono ≃ λ x. x } = β .
+_ : { elimMono ≃ λ x. x } = β .

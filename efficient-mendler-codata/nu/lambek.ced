@@ -1,0 +1,44 @@
+import utils.
+import nu.
+
+module lambek.
+
+TF : (Unit ➔ ★) ➔ (Unit ➔ ★) = λ X: Unit ➔ ★. X.
+
+monoTF : Mono ·Unit ·TF
+= Λ X. Λ Y. Λ c.
+  intrCast -(Λ i. λ x. elimCast -c -i x) -(Λ i. λ _. β) .
+
+T : Unit ➔ ★ = Nu ·Unit ·TF monoTF.
+TCoAlgM : ★ ➔ ★ = λ X: ★. CoAlgM ·Unit ·TF monoTF ·T ·(λ _: Unit. X).
+
+tcoa : TCoAlgM ·Unit
+= Λ R. Λ c. λ v. λ ch. Λ i. λ x. ch -i x.
+
+tcoa' : CoAlgM ·Unit ·TF monoTF ·T ·T
+= Λ R. Λ c. λ v. λ ch. Λ i. λ x. elimCast -c -i (outM -monoTF -i x).
+
+t : T unit
+= unfoldM -monoTF ·(λ _: Unit. Unit) tcoa -unit unit .
+
+antiReflection : Π x: T unit. {reflectM t ≃ t } ➔ ∀ X: ★. X
+= λ x. λ eq. δ - eq .
+
+reflect : ∀ i: Unit. T i ➔ T i
+= unfoldM -monoTF ·T (Λ R. Λ c. λ v. λ ch. Λ i. λ x. elimCast -c -i (outM -monoTF -i x)) .
+
+antiReflection' :  { reflect t ≃ t } ➔ ∀ X: ★. X
+= λ eq.
+ δ
+- χ { λ f . f t (λ v . λ ch . outM) ≃ λ f. f unit tcoa }
+- eq .
+
+noLambek2 : {inM (outM t) ≃ t} ➔ ∀ X: ★. X
+= λ eq. Λ X.
+  δ X
+- χ { λ f. f (λ g. g unit tcoa) (λ v. λ ch. λ x. x)
+    ≃ λ f. f unit tcoa }
+- eq.
+
+observeLambek2 : {outM (inM (outM t)) ≃ outM t}
+= β .

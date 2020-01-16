@@ -1,0 +1,39 @@
+module Sum.
+
+cSum ◂ ★ ➔ ★ ➔ ★ = λ A : ★ . λ B : ★ . ∀ X : ★ . (A ➔ X) ➔ (B ➔ X) ➔ X .
+cin1 ◂ ∀ A : ★ . ∀ B : ★ . A ➔ cSum · A · B = Λ A . Λ B . λ a . Λ X . λ ca . λ cb . ca a .
+cin2 ◂ ∀ A : ★ . ∀ B : ★ . B ➔ cSum · A · B = Λ A . Λ B . λ b . Λ X . λ ca . λ cb . cb b .
+
+param-Sum ◂ Π A : ★ . Π B : ★ . cSum · A · B ➔ ★ =
+  λ A : ★ . λ B : ★ . λ x : cSum · A · B .
+    ∀ X : ★ . ∀ P : X ➔ ★ . ∀ ca : A ➔ X . ∀ cb : B ➔ X .
+      (Π a : A . P (ca a)) ➔ (Π b : B . P (cb b)) ➔ P (x · X ca cb).
+
+Sum ◂ ★ ➔ ★ ➔ ★ = λ A : ★ . λ B : ★ . ι x : cSum · A · B . ι _ : {x cin1 cin2 ≃ x} . param-Sum · A · B x .
+
+in1 ◂ ∀ A : ★ . ∀ B : ★ . A ➔ Sum · A · B = Λ A . Λ B . λ a . [ cin1 · A · B a , [β{cin1 a} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pa a ]].
+
+in2 ◂ ∀ A : ★ . ∀ B : ★ . B ➔ Sum · A · B = Λ A . Λ B . λ b . [ cin2 · A · B b , [β{cin2 b} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pb b ]].
+
+ind-Sum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
+          ∀ P : Sum · A · B ➔ ★ .
+          (Π a : A . P (in1 · A · B a)) ➔ (Π b : B . P (in2 · A · B b)) ➔
+          P x =
+  Λ A . Λ B . λ x . Λ P . λ pa . λ pb .
+    ρ ς x.2.1 - (x.2.2 · (Sum · A · B) · P -(in1 · A · B) -(in2 · A · B) pa pb) .
+
+indSum : ∀ A: ★. ∀ B: ★. ∀ P: Sum ·A ·B ➔ ★.
+  (Π a: A. P (in1 a)) ➔ (Π b: B. P (in2 b)) ➔ Π x: Sum ·A ·B. P x
+= Λ A. Λ B. Λ P. λ left. λ right. λ x. ind-Sum x ·P left right.
+
+rec-Sum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
+          ∀ X : ★ . (A ➔ X) ➔ (B ➔ X) ➔ X =
+  Λ A . Λ B . λ x . Λ X . λ pa . λ pb .
+    x.1 · X pa pb .
+
+elimSum : ∀ A: ★. ∀ B: ★. ∀ X: ★. (A ➔ X) ➔ (B ➔ X) ➔ Sum ·A ·B ➔ X
+= Λ A. Λ B. Λ X. λ lf. λ rh. λ x. x.1 lf rh .
+
+eta-Sum ◂ ∀ A: ★. ∀ B: ★. Π x: Sum ·A ·B.
+    { rec-Sum x in1 in2 ≃ x}
+  = Λ A. Λ B. λ x. θ<x> (ind-Sum x) (λ _. β) (λ _. β).

@@ -1,0 +1,33 @@
+import utils.
+-- import utils/unit.
+-- import utils/castidx ·Unit.
+-- import utils/sigma.
+
+module examples/streamf (A: ★).
+
+StreamF : (Unit ➔ ★) ➔ Unit ➔ ★
+= λ R: Unit ➔ ★. λ u: Unit. Pair ·A ·(R u).
+
+monoStreamF : Mono ·Unit ·StreamF =
+  intrMono -(Λ R1. Λ R2. Λ c.
+    intrCast
+      -(Λ i. λ p. intrPair (fst p) (elimCast -c -i (snd p)))
+      -(Λ i. λ a. etaPair a)) .
+
+import nu/nu ·Unit ·StreamF -monoStreamF.
+
+Stream : ★ = Nu unit.
+StreamCoAlg : ★ ➔ ★ = λ X: ★. CoAlgM ·(λ _: Unit. Stream) ·(λ _: Unit. X).
+
+head : Stream ➔ A = λ xs. fst (outM -unit xs) .
+tail : Stream ➔ Stream = λ xs. snd (outM -unit xs) .
+
+unfoldStream : ∀ X: ★. StreamCoAlg ·X ➔ X ➔ Stream
+= Λ X. λ coa. λ x.
+  unfoldM ·(λ _: Unit. X)
+    (Λ R. Λ c. λ v. λ ch. Λ i. λ y.
+     ρ (etaUnit i) -
+     coa ·(λ _: Unit. R unit)
+       -(intrCast -(Λ i. elimCast -c -unit) -(Λ i. λ x. β))
+       (Λ i. v -unit) (Λ i. ch -unit) -unit y)
+    -unit x.

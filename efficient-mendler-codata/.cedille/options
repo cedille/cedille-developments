@@ -1,0 +1,23 @@
+-- Cedille Options File
+
+-- List of directories to search for imported files in
+-- Each directory should be space-delimited and inside double quotes
+-- The current file's directory is automatically searched first, before import-directories
+-- If a filepath is relative, it is considered relative to this options file
+import-directories = ".".
+
+-- Cache navigation spans for performance
+use-cede-files = false.
+
+-- Write logs to ~/.cedille/log
+generate-logs = false.
+
+-- Print variables fully qualified
+show-qualified-vars = false.
+
+-- Print types erased
+erase-types = true.
+
+-- Preferred number of columns to pretty print elaborated files with
+pretty-print-columns = 80.
+

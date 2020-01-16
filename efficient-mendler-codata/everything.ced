@@ -1,0 +1,18 @@
+module everything .
+
+-- utility definitions, including casts and monotone recursive types
+import utils.
+
+-- the generic derivation of coinductive datatypes
+import nu/nu.
+
+-- counter-example to one half of Lambek's lemma for the derived codata
+import nu/lambek.
+
+-- examples: programming with streams
+import examples/streamf.
+import examples/stream.
+
+-- examples: proofs about generalized relations for streams
+import examples/streamrelf.
+import examples/streamrel.

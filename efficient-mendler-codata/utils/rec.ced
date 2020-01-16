@@ -1,0 +1,31 @@
+module utils/rec (I: ★) (F: (I ➔ ★) ➔ I ➔ ★).
+
+import cast ·I.
+
+Rec : I ➔ ★
+= λ i: I. ∀ X: I ➔ ★. Cast ·(F ·X) ·X ➾ X i.
+
+recFold : ∀ X: I ➔ ★. Cast ·(F ·X) ·X ➾ Cast ·Rec ·X
+= Λ X. Λ c. intrCast -(Λ i. λ x. x -c) -(Λ i. λ x. β).
+
+recIn : Mono ·F ➾ Cast ·(F ·Rec) ·Rec
+= Λ im.
+  [f : ∀ i: I. F ·Rec i ➔ Rec i
+    = Λ i. λ xs. Λ X. Λ c.
+      elimCast -c -i (elimMono -im -(recFold -c) -i xs)]
+- intrCast -f -(Λ i. λ xs. β) .
+
+recOut : Mono ·F ➾ Cast ·Rec ·(F ·Rec)
+= Λ im.
+  [f : ∀ i: I. Rec i ➔ F ·Rec i
+    = Λ i. λ x. x ·(F ·Rec) -(im -(recIn -im))]
+- intrCast -f -(Λ i. λ x. β) .
+
+recRoll : Mono ·F ➾ ∀ i: I. F ·Rec i ➔ Rec i
+= Λ im. elimCast -(recIn -im) .
+
+recUnroll : Mono ·F ➾ ∀ i: I. Rec i ➔ F ·Rec i
+= Λ im. elimCast -(recOut -im).
+
+_ : {recRoll   ≃ λ x. x} = β.
+_ : {recUnroll ≃ λ x. x} = β.

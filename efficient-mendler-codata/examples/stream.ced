@@ -1,0 +1,118 @@
+import utils.
+import streamf.
+import nu/nu.
+
+module stream.
+
+-- streams
+{- codata Stream (A: ★): ★
+-- = head : Stream ➔ A
+-- | tail : Stream ➔ Stream .
+-}
+
+-- head : ∀ A: ★. Stream ·A ➔ A
+-- = Λ A. λ xs.
+--   elimSigma ·A ·(λ _: A. Stream ·A)
+--     (λ hd. λ tl. hd)
+--     (outM -(monoStreamF ·A) -unit xs) .
+
+-- tail : ∀ A: ★. Stream ·A ➔ Stream ·A
+-- = Λ A. λ xs.
+--   elimSigma ·A ·(λ _: A. Stream ·A)
+--     (λ hd. λ tl. tl)
+--     (outM -(monoStreamF ·A) -unit xs) .
+
+-- -- nu
+-- unfoldStream
+-- : ∀ A: ★. ∀ X: ★.
+--   (∀ R: ★. CastIdx ·Unit ·(λ _: Unit. Stream ·A) ·(λ _: Unit. R) ➾ (StreamF ·A ·(λ _: Unit. R) unit ➔ R) ➔ (X ➔ R) ➔ X ➔ StreamF ·A ·(λ _: Unit. R) unit) ➔
+--   X ➔ Stream ·A
+-- = Λ A. Λ X. λ e. λ x.
+--   unfoldM -(monoStreamF ·A) ·(λ _: Unit. X)
+--     (Λ R. Λ c. λ v. λ ch. Λ i. λ y.
+--      ρ (etaUnit i) -
+--      e ·(R unit)
+--        -(intrCastIdx -(Λ i. elimCastIdx -c -unit) -(Λ i. λ a. β))
+--        (v -unit) (ch -unit) y)
+--     -unit x .
+
+-- unfoldStream' : ∀ A: ★. ∀ X: Unit ➔ ★.
+  
+
+-- regular anamorphism (coiteration)
+map : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ Stream ·A ➔ Stream ·B
+= Λ A. Λ B. λ f.
+  unfoldStream ·B ·(Stream ·A)
+    (Λ R. Λ c. λ v. λ map. Λ i. λ xs. intrPair (f (head xs)) (map -i (tail xs))) .
+{-
+head (map f xs) = f (head xs)
+tail (map f xs) = map f (tail xs)
+-}
+{- λ xs. ν map. xs {
+-- | head (map xs) ➔ f (head xs)
+-- | tail (map xs) ➔ map (tail xs)
+-- } .
+-}
+
+-- apomorphism (co-recursion)
+-- analogous to predecesor for Nat
+-- map only the head
+mapHd : ∀ A: ★. (A ➔ A) ➔ Stream ·A ➔ Stream ·A
+= Λ A. λ f.
+  unfoldStream ·A ·(Stream ·A)
+    (Λ R. Λ c. λ v. λ mapHd. Λ i. λ xs.
+     intrPair (f (head xs)) (elimCast -c -i (tail xs))) .
+{-
+head (mapHd f xs) = f (head xs)
+tail (mapHd f xs) = tail xs
+-}
+{- λ xs. ν mapHd. xs {
+-- | head (mapHd xs) ➔ f (head xs)
+-- | tail (hapHd xs) ➔
+--   from/Stream -isType/mapHd (tail xs)
+-- }
+-}
+
+-- for comparison, inefficient version using just the anamorphism
+-- not only less efficient (adding additional destroy / rebuild at each step) but also confusing!
+mapHd' : ∀ A: ★. (A ➔ A) ➔ Stream ·A ➔ Stream ·A
+= Λ A. λ f. λ xs.
+  unfoldStream ·A ·(Sum ·(Stream ·A) ·(Stream ·A))
+    (Λ R. Λ c. λ v. λ mapHd'. Λ i. λ xs'.
+     elimSum ·(Stream ·A) ·(Stream ·A)
+       (λ ys. intrPair (f (head ys)) (mapHd' -i (in2 (tail ys))))
+       (λ ys. intrPair (head ys) (mapHd' -i (in2 (tail ys)))) xs')
+    (in1 xs) .
+{-
+mapHd' f xs = go (in1 xs) where
+  go : Sum ·(Stream ·A) ·(Stream ·A) ➔ Stream ·A
+  head (go (in1 ys)) = f (head ys)
+  head (go (in2 ys)) = head ys
+  tail (go (in1 ys)) = go (in2 (tail ys))
+  tail (go (in2 ys)) = go (in2 (tai ys))
+-}
+
+-- futumorphism (course-of-arguments)
+-- pairwise exchange each element
+exch : ∀ A: ★. Stream ·A ➔ Stream ·A
+= Λ A.
+  unfoldStream ·A ·(Stream ·A)
+    (Λ R. Λ c. λ v. λ exch. Λ i. λ xs.
+       [hd1 : A = head xs]
+     - [hd2 : A = head (tail xs)]
+     - [tl  : R i = exch -i (tail (tail xs))]
+     - intrPair hd2 (v -i (intrPair hd1 tl))) .
+{-
+head (exch xs)        = head (tail xs)
+head (tail (exch xs)) = head xs
+tail (tail (exch xs)) = exch (tail (tail xs))
+-}
+{- λ xs. ν exch. xs {
+-- | head (exch xs) ➔ head (tail xs)
+-- | tail (exch xs) ➔
+--   ν' xs {
+--   | head ➔ head xs
+--   | tail ➔ exch (tail (tail xs))
+--   }
+-- }
+-}

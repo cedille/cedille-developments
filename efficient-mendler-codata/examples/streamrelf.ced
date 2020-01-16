@@ -1,0 +1,51 @@
+import utils.
+
+module examples/streamrelf (A: ★) (Rel: A ➔ A ➔ ★).
+import streamf ·A.
+
+StreamRelF
+: (Pair ·Stream ·Stream ➔ ★) ➔ Pair ·Stream ·Stream ➔ ★
+= λ R: Pair ·Stream ·Stream ➔ ★. λ p: Pair ·Stream ·Stream.
+  [xs = fst p] - [ys = snd p] -
+  Pair ·(Rel (head xs) (head ys)) ·(R (intrPair (tail xs) (tail ys))) .
+StreamRelF' : (Stream ➔ Stream ➔ ★) ➔ Stream ➔ Stream ➔ ★
+= λ R: Stream ➔ Stream ➔ ★. λ xs: Stream. λ ys: Stream.
+  StreamRelF ·(λ p: Pair ·Stream ·Stream. R (fst p) (snd p)) (intrPair xs ys) .
+
+monoStreamRelF
+: Mono ·(Pair ·Stream ·Stream) ·StreamRelF =
+  intrMono -(Λ R1. Λ R2. Λ c.
+  intrCast
+    -(Λ i. λ p.
+        [xs = fst i] - [ys = snd i]
+      - [j : Pair ·Stream ·Stream
+         = mkpair (tail xs) (tail ys)]
+      - intrPair (fst p) (elimCast -c -j (snd p)))
+    -(Λ i. λ p. etaPair p)) .
+
+import nu/nu ·(Pair ·Stream ·Stream) ·StreamRelF -monoStreamRelF.
+
+StreamRel : Stream ➔ Stream ➔ ★
+= λ xs: Stream. λ ys: Stream. Nu (intrPair xs ys).
+
+headRel : ∀ xs: Stream. ∀ ys: Stream. StreamRel xs ys ➔ Rel (head xs) (head ys)
+= Λ xs. Λ ys. λ srel. fst (outM -(intrPair xs ys) srel).
+
+tailRel : ∀ xs: Stream. ∀ ys: Stream. StreamRel xs ys ➔ StreamRel (tail xs) (tail ys)
+= Λ xs. Λ ys. λ srel. snd (outM -(intrPair xs ys) srel).
+
+unfoldStreamRel
+: ∀ X: Stream ➔ Stream ➔ ★.
+  (∀ R: Stream ➔ Stream ➔ ★.
+     (∀ xs: Stream. ∀ ys: Stream. X xs ys ➔ R xs ys) ➔
+      ∀ xs: Stream. ∀ ys: Stream. X xs ys ➔
+      StreamRelF ·(λ p: Pair ·Stream ·Stream. R (fst p) (snd p)) (mkpair xs ys)) ➔
+  ∀ xs: Stream. ∀ ys: Stream. X xs ys ➔ StreamRel xs ys
+= Λ X. λ coa. Λ xs. Λ ys. λ g.
+  unfoldM ·(λ p: Pair ·Stream ·Stream. X (fst p) (snd p))
+    (Λ R. Λ c. λ v. λ ch. Λ p. λ g'.
+     coa ·(λ xs: Stream. λ ys: Stream. R (intrPair xs ys))
+       (Λ xs. Λ ys. ch -(intrPair xs ys))
+       -(fst p) -(snd p) g')
+    -(intrPair xs ys) g .
+

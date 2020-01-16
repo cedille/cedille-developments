@@ -1,0 +1,54 @@
+import utils.
+
+module nu (I: ★) (F: (I ➔ ★) ➔ I ➔ ★) {cm: Mono ·I ·F}.
+
+CoAlgM : (I ➔ ★) ➔ (I ➔ ★) ➔ ★
+= λ C: I ➔ ★. λ X: I ➔ ★.
+  ∀ R: I ➔ ★. Cast ·I ·C ·R ➾ (∀ i: I. F ·R i ➔ R i) ➔
+  Π ch: (∀ i: I. X i ➔ R i). ∀ i: I. X i ➔ F ·R i.
+
+NuF : (I ➔ ★) ➔ I ➔ ★
+= λ C: I ➔ ★. λ i: I.
+  ∀ Y: I ➔ ★. (∀ X: I ➔ ★. X i ➔ CoAlgM ·C ·X ➔ Y i) ➔ Y i.
+
+Nu : I ➔ ★ = Rec ·I ·NuF.
+
+monoCoAlgM : ∀ X: I ➔ ★. Mono ·I ·(λ C: I ➔ ★. λ i: I. CoAlgM ·C ·X) = Λ X.
+  intrMono -(Λ C1. Λ C2. Λ c.
+    intrCast
+      -(Λ i. λ coa. Λ R. Λ c'. coa -(castTrans -c -c'))
+      -(Λ i. λ coa. β)) .
+
+monoNuF : Mono ·I ·NuF
+= intrMono -(Λ C1. Λ C2. Λ c.
+    intrCast
+      -(Λ i. λ co. Λ Y. λ f.
+        co ·Y (Λ X. λ x. λ coa.
+               f x (elimMono -(monoCoAlgM ·X) -c -i coa)))
+      -(Λ i. λ coa. β)) .
+
+nuRoll   : ∀ i: I. NuF ·Nu i ➔ Nu i = Λ i. recRoll   -monoNuF -i .
+nuUnroll : ∀ i: I. Nu i ➔ NuF ·Nu i = Λ i. recUnroll -monoNuF -i .
+
+unfoldM : ∀ X: I ➔ ★. CoAlgM ·Nu ·X ➔ ∀ i: I. X i ➔ Nu i
+= Λ X. λ coa. Λ i. λ x. nuRoll -i (Λ Y. λ f. f x coa) .
+
+inM : ∀ i: I. F ·Nu i ➔ Nu i
+= unfoldM ·(F ·Nu) (Λ R. Λ c. λ v. λ ch. Λ i. λ x. elimMono -cm -c -i x) .
+
+outM : ∀ i: I. Nu i ➔ F ·Nu i
+= Λ i. λ cod.
+  nuUnroll -i cod ·(F ·Nu)
+    (Λ X. λ x. λ coa.
+     coa -(castRefl ·I ·Nu) inM (unfoldM coa) -i x) .
+
+lambek1 : ∀ i: I. Π xs: F ·Nu i. {outM (inM xs) ≃ xs}
+= Λ i. λ xs. β .
+
+reflectM : ∀ i: I. Nu i ➔ Nu i
+= unfoldM ·Nu
+    (Λ R. Λ c. λ v. λ ch. Λ i. λ x.
+     elimMono -cm -c -i (outM -i x)).
+
+reduce : ∀ X: I ➔ ★. Π coa: CoAlgM ·Nu ·X. ∀ i: I. Π x: X i. { outM (unfoldM coa x) ≃ coa inM (unfoldM coa) x }
+= Λ X. λ coa. Λ i. λ x. β .

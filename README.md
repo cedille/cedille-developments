@@ -16,9 +16,10 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Venue: [ICFP'18](https://conf.researchr.org/home/icfp-2018)
 * Paper: https://arxiv.org/abs/1803.08150
 
-## [Generic Parigot encoding](generic-parigot)
-* Author: Aaron Stump
-* Not written up yet, but see the [README](generic-parigot/README.txt)
+## [Monotone Recursive Types and Recursive Data Representations in Cedille](recursive-representation-of-data)
+* Author: Christopher Jenkins and Aaron Stump
+* Venue: Under consideration for publication in the journal of [Mathematical Structures in Computer Science](https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science)
+* Paper: https://arxiv.org/abs/2001.02828
 
 ## [Efficient Mendler Prime](efficient-mendler-prime)
 * Author: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
@@ -28,3 +29,6 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 ## [Quotients by Idempotent Functions in Cedille](idem-quotients)
 * Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
 * Venue: [TFP'19](https://www.tfp2019.org/)
+
+## [Efficient Lambda Encodings for Mendler-style Coinductive Types in Cedille](efficient-mendler-codata)
+ * Author: Christopher Jenkins, Aaron Stump, Larry Diehl

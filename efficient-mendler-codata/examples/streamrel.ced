@@ -1,0 +1,117 @@
+import utils.
+
+module streamrel (A: ★) (Rel: A ➔ A ➔ ★).
+import streamf ·A.
+import streamrelf ·A ·Rel.
+
+Reflexive : Π A: ★. (A ➔ A ➔ ★) ➔ ★
+= λ A: ★. λ Rel: A ➔ A ➔ ★. ∀ x: A. Rel x x.
+
+Symmetric : Π A: ★. (A ➔ A ➔ ★) ➔ ★
+= λ A: ★. λ Rel: A ➔ A ➔ ★. ∀ x: A. ∀ y: A. Rel x y ➔ Rel y x .
+
+Transitive : Π A: ★. (A ➔ A ➔ ★) ➔ ★
+= λ A: ★. λ Rel: A ➔ A ➔ ★. ∀ x: A. ∀ y: A. ∀ z: A. Rel x y ➔ Rel y z ➔ Rel x z .
+
+strRefl : Reflexive ·A ·Rel ➔ Reflexive ·Stream ·StreamRel
+= λ refl. Λ xs.
+  unfoldStreamRel ·(λ xs: Stream. λ ys: Stream. {xs ≃ ys})
+    (Λ R. λ ch. Λ xs. Λ ys. λ g.
+     intrPair (ρ g - refl -(head ys)) (ch -(tail xs) -(tail ys) (ρ g - β)))
+    -xs -xs β.
+
+strSym : Symmetric ·A ·Rel ➔ Symmetric ·Stream ·StreamRel
+= λ sym. Λ xs. Λ ys. λ rel.
+  unfoldStreamRel ·(λ ys: Stream. λ xs: Stream. StreamRel xs ys)
+    (Λ R. λ ch. Λ ys. Λ xs. λ g.
+     intrPair
+       (sym -(head xs) -(head ys) (headRel -xs -ys g))
+       (ch -(tail ys) -(tail xs) (tailRel -xs -ys g)))
+    -ys -xs rel .
+
+strTrans : Transitive ·A ·Rel ➔ Transitive ·Stream ·StreamRel
+= λ tra. Λ xs. Λ ys. Λ zs. λ rel1. λ rel2.
+  [X : Stream ➔ Stream ➔ ★
+   = λ xs: Stream. λ zs: Stream.
+     ∀ Y: ★. (∀ ys: Stream. StreamRel xs ys ➔ StreamRel ys zs ➔ Y) ➔ Y]
+- unfoldStreamRel ·X
+    (Λ R. λ ch. Λ xs. Λ zs. λ g.
+     g (Λ ys. λ rel1. λ rel2.
+          [hd : Rel (head xs) (head zs)
+           = tra -(head xs) -(head ys) -(head zs)
+                 (headRel -xs -ys rel1) (headRel -ys -zs rel2)]
+        - [tl : R   (tail xs) (tail zs)
+           = ch -(tail xs) -(tail zs)
+               (Λ Y. λ f. f -(tail ys) (tailRel -xs -ys rel1) (tailRel -ys -zs rel2))]
+        - intrPair hd tl))
+    -xs -zs (Λ Y. λ f. f -ys rel1 rel2) .
+
+
+{-
+-- codata StreamRel (A: ★) (P: A ➔ A ➔ ★): Stream ·A ➔ Stream ·A ➔ ★
+-- = headRel : ∀ xs: Stream ·A. ∀ ys: Stream ·A. StreamRel xs ys ➔ P (head xs) (head ys)
+-- | tailRel : ∀ xs: Stream ·A. ∀ ys: Stream ·A. StreamRel xs ys ➔ StreamRel (tail xs) (tail ys)
+--
+-- strRefl : ∀ A: ★. P: A ➔ A ➔ ★. Reflexive ·A ·P ➔ Reflexive ·(Stream ·A) ·(StreamRel ·A ·P)
+-- = Λ A. Λ P. λ refl. Λ xs.
+--   ν strRefl. β<xs> @(λ xs: Stream ·A. λ ys: Stream ·A. λ s: {xs ≃ ys}. StreamRel ·A ·P xs ys) {
+--   | headRel -xs -ys (strRefl s) ➔ ρ s - refl -(head ys)
+--   | tailRel -xs -ys (strRefl s) ➔
+--     strRefl -(tail xs) -(tail ys) (ρ+ s - β)
+--   } .
+--
+-- strSym : ∀ A: ★. ∀ P: A ➔ A ➔ ★. Symmetric ·A ·P ➔ Symmetric ·(Stream ·A) ·(StreamRel ·A ·P)
+-- = Λ A. Λ P. λ sym. Λ xs. Λ ys. λ strRel.
+--   ν strSym. strRel @(λ xs: Stream ·A. λ ys: Stream ·A. λ s: StreamRel ·A ·P ys xs. StreamRel ·A ·P xs ys) { -- the motive is for the generator!
+--   | headBM -xs -ys (strSym bsim) ➔
+--     sym -(head ys) -(head xs)
+--   | tailBM -xs -ys (strSym bsim) ➔
+--     sym -(tail ys) -(tail xs) (tailBM -xs -ys bsim)
+--   } .
+--
+-- strTrans -- proposal 1
+-- : ∀ A: ★. ∀ P: A ➔ A ➔ ★. Transitive ·A ·P ➔ Transitive ·(Stream ·A) ·(StreamRel ·A ·P)
+-- = Λ A. λ tra. Λ xs. Λ ys. Λ zs. λ xsRys. λ ysRzs.
+r--   [X : Stream ·A ➔ Stream ·A ➔ Stream ·A ➔ ★
+--    = λ xs: Stream ·A. λ ys: Stream ·A. λ zs: Stream ·A.
+--      Pair ·(StreamRel ·A ·Rel xs ys) ·(StreamRel ·A ·Rel ys zs)]
+-- - ν strTrans. (packTm -ys ·(X xs zs) (mksigma xsRys ysRzs))
+--   @(λ xs: Stream ·A. λ zs: Stream ·A. λ s: ExistsTm ·(Stream ·A) ·(X xs ys). StreamRel ·A ·P xs zs) {
+--   | headRel -xs -zs (strTrans s) ➔
+--     unpackTm ·(Stream ·A) ·(X xs zs)
+--       (Λ ys. λ xsTzs.
+--        tra -(head xs) -(head ys) -(head zs)
+--          (headRel -xs -ys (fst xsTzs))
+--          (headRel -ys -zs (snd xsTzs)))
+--       s
+--   | tailRel -xs -zs (strTrans s) ➔
+--     unpackTm ·(Stream ·A) ·(X xs zs)
+--       (Λ ys. λ xsTzx.
+--        strTrans
+--          -(mksigma (tail xs) (tail zs))
+--          (packTm -(tail ys)
+--             (mksigma (tailRel -xs -ys (fst xsTzs)))
+--             (mksigma (tailRel -ys -zs (snd xsTzs)))))
+--   } .
+--
+--
+-- strTrans -- proposal 2
+-- : ∀ A: ★. ∀ P: A ➔ A ➔ ★. Transitive ·A ·P ➔ Transitive ·(Stream ·A) ·(StreamRel ·A ·P)
+-- = Λ A. λ tra. Λ xs. Λ ys. Λ zs. λ xsRys. λ ysRzs.
+--   [X : Stream ·A ➔ Stream ·A ➔ Stream ·A ➔ ★
+--    = λ xs: Stream ·A. λ ys: Stream ·A. λ zs: Stream ·A.
+--      Pair ·(StreamRel ·A ·Rel xs ys) ·(StreamRel ·A ·Rel ys zs)]
+-- - ν strTrans. -- -ys ; xsRys ; ysRzs
+--   @(λ xs: Stream ·A. λ zs: Stream ·A. ∀ ys: Stream ·A. StreamRel ·A ·P xs ys ➔ StreamRel ·A ·P ys zs ➔ StreamRel ·A ·P xs zs) {
+--   | headRel -xs -zs ➔ Λ ys. λ xsRys. λ ysRzs.
+--     tra
+--       -(head xs) -(head ys) -(head zs)
+--       (headRel -xs -ys xsRys)
+--       (headRel -ys -zs ysRzs)
+--   | tailRel -xs -zs ➔ Λ ys. λ xsRys. λ ysRzs.
+--     strTrans -(tail xs) -(tail zs)
+--       -(tail ys)
+--       (tailRel -xs -ys xsRys)
+--       (tailRel -ys -zs ysRzs)
+--   } -ys xsRys ysRzs
+-}
