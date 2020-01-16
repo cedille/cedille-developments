@@ -1,0 +1,27 @@
+* Efficient Lambda Encodings for Mendler-style Coinductive Types in Cedille
+
+  File [[file:everything.ced][everything.ced]] imports all code for the development
+
+** Generic derivation of coinductive datatypes
+
+   Found in [[file:nu/nu.ced][nu/nu.ced]]. The generic coinductive datatype is ~Nu~, with generator
+   ~unfoldM~, constructor ~inM~, and destructor ~outM~.
+
+   The proofs found in [[file:nu/lambek.ced][nu/lambek.ced]] point to a current gap in Cedille's theory:
+   one direction of /Lambek's lemma/ (and the codatatype reflection law) do not
+   hold for Cedille's currently intrinsic equality type, suggesting the need for
+   an /extensional/ equality type.
+
+** Examples: programming with streams
+
+   - [[file:examples/streamf.ced][examples/streamf.ced]] give the definition of the stream type as well as its
+     destructors and generator
+   - [[file:examples/stream.ced][examples/stream.ced]] show some examples of programming with streams using
+     coiteration, corecursion, and course-of-values coiteration.
+
+** Examples: proving properties of streams
+
+   - [[file:examples/streamrelf.ced][examples/streamrelf.ced]] defines the type family ~StreamRel~ of generalized
+     relations between streams
+   - [[file:examples/streamrel.ced][examples/streamrelf.ced]] shows proofs that if the relation on elements of
+     streams satisfies certain properties, those properties hold also for ~StreamRel~

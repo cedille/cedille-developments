@@ -4,41 +4,6 @@ import nu/nu.
 
 module stream.
 
--- streams
-{- codata Stream (A: ★): ★
--- = head : Stream ➔ A
--- | tail : Stream ➔ Stream .
--}
-
--- head : ∀ A: ★. Stream ·A ➔ A
--- = Λ A. λ xs.
---   elimSigma ·A ·(λ _: A. Stream ·A)
---     (λ hd. λ tl. hd)
---     (outM -(monoStreamF ·A) -unit xs) .
-
--- tail : ∀ A: ★. Stream ·A ➔ Stream ·A
--- = Λ A. λ xs.
---   elimSigma ·A ·(λ _: A. Stream ·A)
---     (λ hd. λ tl. tl)
---     (outM -(monoStreamF ·A) -unit xs) .
-
--- -- nu
--- unfoldStream
--- : ∀ A: ★. ∀ X: ★.
---   (∀ R: ★. CastIdx ·Unit ·(λ _: Unit. Stream ·A) ·(λ _: Unit. R) ➾ (StreamF ·A ·(λ _: Unit. R) unit ➔ R) ➔ (X ➔ R) ➔ X ➔ StreamF ·A ·(λ _: Unit. R) unit) ➔
---   X ➔ Stream ·A
--- = Λ A. Λ X. λ e. λ x.
---   unfoldM -(monoStreamF ·A) ·(λ _: Unit. X)
---     (Λ R. Λ c. λ v. λ ch. Λ i. λ y.
---      ρ (etaUnit i) -
---      e ·(R unit)
---        -(intrCastIdx -(Λ i. elimCastIdx -c -unit) -(Λ i. λ a. β))
---        (v -unit) (ch -unit) y)
---     -unit x .
-
--- unfoldStream' : ∀ A: ★. ∀ X: Unit ➔ ★.
-  
-
 -- regular anamorphism (coiteration)
 map : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ Stream ·A ➔ Stream ·B
 = Λ A. Λ B. λ f.
