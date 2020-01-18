@@ -8,8 +8,8 @@
    ~unfoldM~, constructor ~inM~, and destructor ~outM~.
 
    The proofs found in [[file:nu/lambek.ced][nu/lambek.ced]] point to a current gap in Cedille's theory:
-   one direction of /Lambek's lemma/ (and the codatatype reflection law) do not
-   hold for Cedille's currently intrinsic equality type, suggesting the need for
+   one direction of /Lambek's lemma/ (and the codatatype reflection law) does not
+   hold for Cedille's currently intensional equality type, suggesting the need for
    an /extensional/ equality type.
 
 ** Examples: programming with streams
