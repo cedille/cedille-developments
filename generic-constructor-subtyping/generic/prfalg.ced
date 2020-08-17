@@ -1,0 +1,32 @@
+
+import ../lib/lib.
+
+module prfalg (F: ★ ➔ ★) {mono: Monotonic ·F}.
+
+import alg ·F.
+
+PrfAlgM : Π X: ★. (X ➔ ★) ➔ (F ·X ➔ X) ➔ ★
+= λ X: ★. λ P: X ➔ ★. λ in: F ·X ➔ X.
+  ∀ R: ★. ∀ c: Cast ·R ·X. Π ih: (Π r: R. P (elimCast -c r)).
+  Π rs: F ·R. P (in (elimCast -(mono c) rs)).
+
+InductiveM : FixM ➔ ★
+= λ x: FixM. ∀ P: FixM ➔ ★. PrfAlgM ·FixM ·P inM ➔ P x.
+
+IndM : ★ = ι x: FixM. InductiveM x.
+
+toFixM : Cast ·IndM ·FixM
+= intrCast (λ x. x.1) (λ _. β).
+
+inIndM1 : F ·IndM ➔ FixM
+= λ xs. inM (elimCast -(mono toFixM) xs).
+
+_ : {inIndM1 ≃ inM} = β.
+
+inIndM2 : Π xs: F ·IndM. InductiveM (inIndM1 xs)
+= λ xs. Λ P. λ alg. alg -toFixM (λ d. d.2 alg) xs.
+
+_ : {inIndM2 ≃ inM} = β.
+
+inIndM : F ·IndM ➔ IndM
+= λ xs. [ inIndM1 xs , inIndM2 xs ].

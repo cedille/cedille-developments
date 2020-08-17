@@ -1,0 +1,32 @@
+import ../lib/lib.
+import sigsub .
+
+
+module gensigsub
+  (A1: ★) (B1: A1 ➔ Top ➔ ★ ➔ ★) {monoB1: Π a: A1. Π t: Top. Monotonic ·(B1 a t)}
+  (A2: ★) (B2: A2 ➔ Top ➔ ★ ➔ ★) {monoB2: Π a: A2. Π t: Top. Monotonic ·(B2 a t)} .
+
+import gensig as F ·A1 ·B1 -monoB1 .
+import gensig as G ·A2 ·B2 -monoB2 .
+
+-- if
+-- 1. the labels for F are a subtype of the labels for G
+-- 2. and, for every label element a and type R, the collection of constructors arguments
+--    at that label is a subtype of the collection at the same label (under inclusion) of G
+--
+-- then, F is a sub-signature of G
+
+gensigsub
+: Π c: Cast ·A1 ·A2. (Π a1: A1. ∀ R: ★. Cast ·(F.CtArgs ·R a1) ·(G.CtArgs ·R (elimCast -c a1))) ➔
+  SigSub ·F.Sig ·G.Sig
+= λ cA. λ cC. Λ R1. Λ R2. Λ cR.
+  intrCastI
+    (indSigma ·A1 ·(F.CtArgs ·R1) ·(λ x: F.Sig ·R1. ι y: G.Sig ·R2. { y ≃ x })
+      λ a1. λ ctor.
+        [lem : Cast ·(F.CtArgs ·R1 a1) ·(F.CtArgs ·R2 a1)
+          = intrCastI
+              λ x. θ<x> (indWkSigma x)
+                     (λ t. Λ b. [ intrWkSigma t -(elimCast -(monoB1 a1 t cR) b)
+                                , β{|intrWkSigma t|} ])]
+      - [ mksigma (elimCast -cA a1) (elimCast -(cC a1 ·R2) (elimCast -lem ctor)) , β{|mksigma a1 ctor|} ]) .
+

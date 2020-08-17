@@ -1,0 +1,23 @@
+import ../../lib/lib.
+
+module snat.
+
+SNatPack : Label ➔ Top ➔ ★ ➔ ★
+= λ l: Label. λ t: Top. λ R: ★.
+  Tuple3 ·({l ≃ lzero} ➔ View ·Unit t) ·({l ≃ lsucc} ➔ View ·R t) ·({lt lsucc l ≃ tt} ➔ False) .
+
+monoSNatPack : Π l: Label. Π t: Top. Monotonic ·(SNatPack l t)
+= λ l. λ t. Λ R1. Λ R2. λ c.
+  intrCastI
+    λ x. σ x {
+    | tuple3 z s a ➔
+      [s' : {l ≃ lsucc} ➔ View ·R2 t
+        = λ eq. [ elimCast -c (s eq).1 , ρ+ (s eq).2 - β{|s eq|} ]]
+    - [ tuple3 z s' a , β{|tuple3 z s a|} ]
+    } .
+
+import ../gensig ·Label ·SNatPack -monoSNatPack .
+
+SNatCtArgs : ★ ➔ Label ➔ ★ = CtArgs .
+SNat : ★ ➔ ★ = Sig .
+monoSNat = monoSig .

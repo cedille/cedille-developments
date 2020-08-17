@@ -1,0 +1,31 @@
+import ../../lib/lib.
+
+import sint .
+
+import ../ind ·SInt -monoSInt .
+
+module int .
+
+Int : ★ = IndM .
+
+izero : Int
+= inIndM
+    (mksigma lzero
+       (intrWkSigma β{|unit|}
+          -(tuple4 (λ _. viewSelf unit) (λ eq. δ - eq)
+              (λ eq. δ - eq) (λ eq. δ - eq)))) .
+
+isucc : Int ➔ Int = λ n.
+  inIndM
+    (mksigma lsucc
+       (intrWkSigma β{|n|}
+          -(tuple4 (λ eq. δ - eq) (λ _. viewSelf n)
+              (λ eq. δ - eq) (λ eq. δ - eq)))) .
+
+ipred : Int ➔ Int = λ n.
+  inIndM
+    (mksigma lpred
+       (intrWkSigma β{|n|}
+          -(tuple4 (λ eq. δ - eq) (λ eq. δ - eq)
+              (λ _. viewSelf n) (λ eq. δ - eq)))) .
+

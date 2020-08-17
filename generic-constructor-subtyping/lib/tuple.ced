@@ -1,0 +1,85 @@
+module tuple.
+
+data Tuple2 (T1:★) (T2:★) : ★ =
+  | tuple2 : T1 ➔ T2 ➔ Tuple2.
+
+t2fst : ∀ T1:★. ∀ T2:★. Tuple2·T1·T2 ➔ T1
+= Λ T1. Λ T2. λ t. σ t {
+  | tuple2 t1 t2 ➔ t1
+  }.
+
+t2snd : ∀ T1:★. ∀ T2:★. Tuple2·T1·T2 ➔ T2
+= Λ T1. Λ T2. λ t. σ t {
+  | tuple2 t1 t2 ➔ t2
+  }.
+
+data Tuple3 (T1:★) (T2:★) (T3:★) : ★ =
+  | tuple3 : T1 ➔ T2 ➔ T3 ➔ Tuple3.
+
+t3fst : ∀ T1:★. ∀ T2:★. ∀ T3:★. Tuple3·T1·T2·T3 ➔ T1
+= Λ T1. Λ T2. Λ T3. λ t. σ t {
+  | tuple3 t1 t2 t3 ➔ t1
+  }.
+
+t3snd : ∀ T1:★. ∀ T2:★. ∀ T3:★. Tuple3·T1·T2·T3 ➔ T2
+= Λ T1. Λ T2. Λ T3. λ t. σ t {
+  | tuple3 t1 t2 t3 ➔ t2
+  }.
+
+t3thd : ∀ T1:★. ∀ T2:★. ∀ T3:★. Tuple3·T1·T2·T3 ➔ T3
+= Λ T1. Λ T2. Λ T3. λ t. σ t {
+  | tuple3 t1 t2 t3 ➔ t3
+  }.
+
+data Tuple4 (T1:★) (T2:★) (T3:★) (T4:★) : ★ =
+  | tuple4 : T1 ➔ T2 ➔ T3 ➔ T4 ➔ Tuple4.
+
+t4fst : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. Tuple4·T1·T2·T3·T4 ➔ T1
+= Λ T1. Λ T2. Λ T3. Λ T4. λ t. σ t {
+  | tuple4 t1 t2 t3 t4 ➔ t1
+  }.
+
+t4snd : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. Tuple4·T1·T2·T3·T4 ➔ T2
+= Λ T1. Λ T2. Λ T3. Λ T4. λ t. σ t {
+  | tuple4 t1 t2 t3 t4 ➔ t2
+  }.
+
+t4thd : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. Tuple4·T1·T2·T3·T4 ➔ T3
+= Λ T1. Λ T2. Λ T3. Λ T4. λ t. σ t {
+  | tuple4 t1 t2 t3 t4 ➔ t3
+  }.
+
+t4forth : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. Tuple4·T1·T2·T3·T4 ➔ T4
+= Λ T1. Λ T2. Λ T3. Λ T4. λ t. σ t {
+  | tuple4 t1 t2 t3 t4 ➔ t4
+  }.
+
+data Tuple5 (T1:★) (T2:★) (T3:★) (T4:★) (T5:★) : ★ =
+  | tuple5 : T1 ➔ T2 ➔ T3 ➔ T4 ➔ T5 ➔ Tuple5.
+
+t5fst : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. ∀ T5:★. Tuple5·T1·T2·T3·T4·T5 ➔ T1
+= Λ T1. Λ T2. Λ T3. Λ T4. Λ T5. λ t. σ t {
+  | tuple5 t1 t2 t3 t4 t5 ➔ t1
+  }.
+
+t5snd : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. ∀ T5:★. Tuple5·T1·T2·T3·T4·T5 ➔ T2
+= Λ T1. Λ T2. Λ T3. Λ T4. Λ T5. λ t. σ t {
+  | tuple5 t1 t2 t3 t4 t5 ➔ t2
+  }.
+
+t5thd : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. ∀ T5:★. Tuple5·T1·T2·T3·T4·T5 ➔ T3
+= Λ T1. Λ T2. Λ T3. Λ T4. Λ T5. λ t. σ t {
+  | tuple5 t1 t2 t3 t4 t5 ➔ t3
+  }.
+
+t5forth : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. ∀ T5:★. Tuple5·T1·T2·T3·T4·T5 ➔ T4
+= Λ T1. Λ T2. Λ T3. Λ T4. Λ T5. λ t. σ t {
+  | tuple5 t1 t2 t3 t4 t5 ➔ t4
+  }.
+
+t5fifth : ∀ T1:★. ∀ T2:★. ∀ T3:★. ∀ T4:★. ∀ T5:★. Tuple5·T1·T2·T3·T4·T5 ➔ T5
+= Λ T1. Λ T2. Λ T3. Λ T4. Λ T5. λ t. σ t {
+  | tuple5 t1 t t3 t4 t5 ➔ t5
+  }.
+
+

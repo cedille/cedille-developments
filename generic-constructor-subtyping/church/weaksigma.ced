@@ -1,0 +1,14 @@
+module weaksigma.
+
+data WeakSigma (A:★) (B: A ➔ ★) : ★ =
+  | wksigma : Π a:A. B a ➾ WeakSigma.
+
+weakfst : ∀ A:★. ∀ B:A ➔ ★. WeakSigma·A·B ➔ A
+= Λ A. Λ B. λ w. σ w {
+  | wksigma a -b ➔ a
+  }.
+
+weaksnd : ∀ A:★. ∀ B:A ➔ ★. ∀ X:★. Π w:WeakSigma·A·B. (B (weakfst w) ➾ X) ➔ X
+= Λ A. Λ B. Λ X. λ w. σ w {
+  | wksigma a -b ➔ λ f. f -b
+  }.

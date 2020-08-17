@@ -1,0 +1,4 @@
+module unit .
+
+data Unit: ★
+= unit: Unit .

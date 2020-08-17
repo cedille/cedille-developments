@@ -1,0 +1,80 @@
+module utils/wksigma .
+-- import unit .
+
+cWkSigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
+  λ A : ★ . λ B : A ➔ ★ .
+    ∀ X : ★ . (Π a : A . B a ➾ X) ➔ X .
+
+mkcwksigma ◂ ∀ X : ★ . ∀ Y : X ➔ ★ . Π x : X . Y x ➾ cWkSigma · X · Y =
+ Λ X . Λ Y . λ x . Λ y . Λ Z . λ c . c x -y .
+
+param-WkSigma ◂ Π A : ★ . Π P : A ➔ ★ . cWkSigma · A · P ➔ ★ =
+  λ A : ★ . λ P : A ➔ ★ . λ x : cWkSigma · A · P .
+    ∀ X : ★ . ∀ Q : X ➔ ★ . ∀ pr : Π a : A . P a ➾ X . 
+      (Π a : A . ∀ b : P a . Q (pr a -b)) ➔ Q (x · X pr).
+
+
+WkSigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
+  λ A : ★ . λ PA : A ➔ ★ . 
+    ι d : cWkSigma · A · PA .
+    ι _ : {d mkcwksigma ≃ d} . param-WkSigma · A · PA d .
+
+intrWkSigma ◂ ∀ A: ★ . ∀ B: A ➔ ★. Π a: A. B a ➾ WkSigma ·A ·B =
+ Λ X. Λ Y. λ a. Λ b.
+ [ mkcwksigma a -b
+ , [ β{| mkcwksigma a -b |}
+   , Λ X. Λ Q. Λ pr. λ e. e a -b ] ] .
+
+elimWkSigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma ·A ·B.
+  ∀ X: ★. (Π a: A. ∀ b: B a. X) ➔ X
+= Λ A. Λ B. λ x. Λ X. λ f. x.1 f .
+
+indWkSigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma ·A ·B.
+  ∀ P: WkSigma ·A ·B ➔ ★. (Π a: A. ∀ b: B a. P (intrWkSigma a -b)) ➔ P x
+= Λ A. Λ B. λ x. Λ P. λ p.
+  ρ ς x.2.1 - (x.2.2 ·(WkSigma ·A ·B) ·P -(intrWkSigma ·A ·B) p) .
+
+etaWkSigma : ∀ A: ★. ∀ B: A ➔ ★. Π p: WkSigma ·A ·B.
+  {elimWkSigma p intrWkSigma ≃ p}
+= Λ A. Λ B. λ p. θ<p> (indWkSigma p) (λ a. Λ b. β).
+
+wkproj1 ◂ ∀ A : ★ . ∀ B : A ➔ ★ . WkSigma · A · B  ➔  A = Λ A . Λ B . λ s . s.1 · A (λ a . Λ _ . a).
+
+wksigma-beta : ∀ A: ★. ∀ B: A ➔ ★. ∀ P: WkSigma ·A ·B ➔ ★.
+  Π a: A. ∀ b: B a. Π f: Π a: A. ∀ b: B a. P (intrWkSigma a -b).
+  {elimWkSigma (intrWkSigma a -b) f ≃ f a -b}
+= Λ A. Λ B. Λ P. λ a. Λ b. λ f. β.
+
+wksigma-eta : ∀ A: ★. ∀ B: A ➔ ★. Π p: WkSigma ·A ·B.
+  {elimWkSigma p (λ a. Λ b. intrWkSigma a -b) ≃ p}
+= Λ A. Λ B. λ p. θ<p> (indWkSigma p) (λ a. Λ b. β).
+
+-- helpers for non-dependent WkSigma
+WkPair ◂ ★ ➔ ★ ➔ ★
+  = λ A: ★. λ B: ★. WkSigma ·A ·(λ _: A. B).
+
+mkwkpair ◂ ∀ A: ★. ∀ B: ★. A ➔ B ➾ WkPair ·A ·B
+  = Λ A. Λ B. λ a. Λ b. intrWkSigma a -b.
+
+wkfst ◂ ∀ A: ★. ∀ B: ★. WkPair ·A ·B ➔ A
+  = Λ A. Λ B. λ p. wkproj1 p.
+
+indWkPair ◂ ∀ A: ★. ∀ B: ★. Π x: WkPair ·A ·B.
+    ∀ P: WkPair ·A ·B ➔ ★. (Π a: A. ∀ b: B. P (mkwkpair a -b)) ➔ P x
+  = Λ A. Λ B. λ x. Λ P. λ prf. θ<x> (indWkSigma x) prf.
+
+rec-wkpair : ∀ A: ★. ∀ B: ★. WkPair ·A ·B ➔ ∀ X: ★. (A ➔ B ➾ X) ➔ X
+  = Λ A. Λ B. λ x. Λ X. λ alg. indWkPair x ·(λ _: WkPair ·A ·B. X) alg.
+
+{-
+-- wrap
+Wrap ◂ ★ ➔ ★ = λ A: ★. WkPair · A · Unit.
+
+wrap ◂ ∀ A: ★. Π a: A. Wrap · A = Λ A. λ a. mkwkpair a -unit.
+
+unwrap ◂ ∀ A: ★. Wrap · A ➔ A = Λ A. λ w. wkfst w.
+
+import cast.
+
+castWrap ◂ ∀ A: ★. ∀ B: ★. Cast · A · B ➔ Cast · (Wrap · A) · (Wrap · B) =
+  Λ A. Λ B. λ c. intrCast -(λ w. wrap (elimCast -c (unwrap w))) -(λ w. θ<w> (indWkPair w) (λ a. Λ u. β)).

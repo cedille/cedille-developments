@@ -1,0 +1,91 @@
+import ../lib/lib.
+import weaksigma.
+
+module list.
+
+ListPack' : ★ ➔ ★ ➔ Label ➔ Top ➔ ★ = λ A:★. λ X:★. λ l:Label. λ t:Top. Tuple2
+  ·({l ≃ lnil} ➾ View·X t)
+  ·({l ≃ lcons} ➾ View·(A ➔ X ➔ X) t).
+
+List' : ★ ➔ ★ = λ A:★. ∀ X:★. (Π l:Label. WeakSigma·Top·(λ t:Top. ListPack'·A·X l t)) ➔ X.
+
+nil' : ∀ A:★. List'·A
+= Λ A. Λ X. λ f. [ctors = f lnil]
+  - [t = weakfst ctors]
+  - [n = weaksnd·Top·(ListPack'·A·X lnil)·X ctors (Λ i. retype t -(t2fst i -β))]
+  - n.
+
+cons' : ∀ A:★. A ➔ List'·A ➔ List'·A
+= Λ A. λ a. λ l. Λ X. λ f. [ctors = f lcons]
+  - [t = weakfst ctors]
+  - [c = weaksnd·Top·(ListPack'·A·X lcons)·(A ➔ X ➔ X) ctors (Λ i. retype t -(t2snd i -β))]
+  - c a (l f).
+
+ListIndPack : Π A:★. (List'·A ➔ ★) ➔ Label ➔ Top ➔ ★ = λ A:★. λ P:List'·A ➔ ★. λ l:Label. λ t:Top. Tuple2
+  ·({l ≃ lnil} ➾ View·(P (nil'·A)) t)
+  ·({l ≃ lcons} ➾ View·(∀ m:List'·A. Π a:A. P m ➔ P (cons' a m)) t).
+
+ListInd : Π A:★. List'·A ➔ ★ = λ A:★. λ n:List'·A. ∀ P:List'·A ➔ ★.
+  (Π l:Label. WeakSigma·Top·(λ t:Top. ListIndPack·A·P l t)) ➔ P n.
+
+List : ★ ➔ ★ = λ A:★. ι n:List'·A. ListInd·A n.
+
+nil : ∀ A:★. List·A
+= Λ A. [nil'·A, Λ P. λ f. [ctors = f lnil]
+  - [t = weakfst ctors]
+  - [n = weaksnd·Top·(ListIndPack·A·P lnil)·(P (nil'·A)) ctors (Λ i. retype t -(t2fst i -β))]
+  - n].
+
+cons : ∀ A:★. A ➔ List·A ➔ List·A
+= Λ A. λ a. λ l. [cons' a l.1, Λ P. λ f. [ctors = f lcons]
+  - [t = weakfst ctors]
+  - [c = weaksnd·Top·(ListIndPack·A·P lcons)·(∀ m:List'·A. Π a:A. P m ➔ P (cons' a m)) ctors (Λ i. retype t -(t2snd i -β))]
+  - c -l.1 a (l.2·P f)].
+
+packCast : ∀ A:★. ∀ X:★. Π l:Label. Π t:Top. Cast·(ListIndPack·A·(λ x:List'·A. X) l t)·(ListPack'·A·X l t)
+= Λ A. Λ X. λ l. λ t.
+  [lemma : ∀ X:★. Cast·(List'·A ➾ A ➔ X ➔ X)·(A ➔ X ➔ X)
+    = Λ X. intrCastI (λ f. [f -(nil'·A), β{|f|}])]
+  - intrCast (λ x. σ x {
+  | tuple2 v1 v2 ➔ tuple2 v1
+    (Λ e. viewCast -(lemma·X) -t (v2 -e))
+  }) (λ x. σ x {
+  | tuple2 v1 v2 ➔ β
+  }).
+
+pack : ∀ A:★. ∀ P:List'·A ➔ ★. Π t:Top. View·(P (nil'·A)) t
+  ➔ Π t:Top. View·(∀ m:List'·A. Π a:A. P m ➔ P (cons' a m)) t
+  ➔ Π l:Label. WeakSigma·Top·(ListIndPack·A·P l)
+= Λ A. Λ P. λ tz. λ z. λ ts. λ s. λ l.
+  [T : ★ = WeakSigma·Top·(ListIndPack·A·P l)]
+  - σ (eq l lnil) @ λ b:Bool. {eq l lnil ≃ b} ➾ T {
+  | tt ➔ Λ e. [e = exact l lnil e] - wksigma tz
+    -(tuple2 (Λ _. z)
+      (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - δ - r))
+  | ff ➔ Λ e1. [e1 = nexact l lnil e1] - σ (eq l lcons) @ λ b:Bool. {eq l lcons ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l lcons e] - wksigma ts
+      -(tuple2 (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - δ - r)
+        (Λ _. s))
+    | ff ➔ Λ e2. [e2 = nexact l lcons e2] - wksigma β
+        -(tuple2 (Λ k. explode (e1 -k)) (Λ k. explode (e2 -k)))
+    } -β
+  } -β.
+
+to : ∀ A:★. List'·A ➔ List·A
+= Λ A. λ i. i·(List·A) (λ l. [p = pack·A·(λ x:List'·A. List·A)
+  β{|nil|} (view β{|nil|} -(nil·A) -β)
+  β{|cons|} (view β{|cons|} -(Λ m:List'·A. (cons·A)) -β)
+  l] - σ p {
+  | wksigma t -i ➔ wksigma t -(cast -(packCast·A·(List·A) l t) i)
+  }).
+
+reflection : ∀ A:★. Π n:List·A. {to n.1 ≃ n}
+= Λ A. [P : List'·A ➔ ★ = λ x:List'·A. {(to x).1 ≃ x}] - λ n. n.2·P (pack·A·P
+  β (view·(P (nil'·A)) β -β -β)
+  β (view·(∀ m:List'·A. Π a:A. P m ➔ P (cons' a m)) β -(Λ m. λ a. λ k. χ({cons a (to m) ≃ cons a m}) - ρ k - β{|a k|}) -β)).
+
+induct : ∀ A:★. Π n:List·A. ∀ P:List·A ➔ ★. P (nil·A) ➔ (∀ m:List·A. Π a:A. P m ➔ P (cons a m)) ➔ P n
+= Λ A. λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:List'·A. P (to x)) (pack·A·(λ x:List'·A. P (to x))
+  β{|z|} (view·(P (to (nil'·A))) β{|z|} -z -β)
+  β{|s|} (view·(∀ m:List'·A. Π a:A. P (to m) ➔ P (to (cons' a m))) β{|s|} -(Λ m. λ a. λ k. s -(to m) a k) -β))).
+

@@ -1,0 +1,61 @@
+import ../../lib/lib.
+
+import snat .
+
+import ../ind ·SNat -monoSNat .
+
+module nat .
+
+Nat : ★ = IndM .
+
+zero : Nat
+= inIndM
+    (mksigma lzero
+       (intrWkSigma β{|unit|}
+          -(tuple3 (λ _. viewSelf unit) (λ eq. δ - eq) (λ eq. δ - eq)))) .
+
+succ : Nat ➔ Nat = λ n.
+  inIndM
+    (mksigma lsucc
+       (intrWkSigma β{|n|}
+          -(tuple3 (λ eq. δ - eq) (λ _. viewSelf n) (λ eq. δ - eq)))) .
+
+
+indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n
+= Λ P. λ z. λ s.
+  inductionM ·P
+    Λ R. Λ c. λ ih.
+    indSigma ·Label ·(λ l: Label. WkSigma ·Top ·(λ t: Top. SNatPack l t ·R))
+      ·(λ xs: SNat ·R. P (inIndM (elimCast -(monoSNat c) xs)))
+      λ l.
+      σ l @λ x: Label. Π w: WkSigma ·Top ·(λ t: Top. SNatPack x t ·R).
+                       P (inIndM (elimCast -(monoSNat c) (mksigma x w))) {
+      | l0 ➔ λ w.
+        θ<w> (indWkSigma w)
+          (λ t. Λ b.
+             [t' : Unit = retype t -(t3fst b β)]
+           - σ t'
+             @(λ x: Unit.
+               Π eq: {x ≃ t}.
+               P (inIndM
+                 (elimCast -(monoSNat c)
+                   (mksigma l0
+                     (intrWkSigma β{|x|}
+                       -(ρ eq - b)))))) {
+             | unit ➔ λ eq. z
+             } β)
+      | lnext l' ➔
+        σ l'
+        @λ x: Label.
+           Π w: WkSigma ·Top ·(λ t: Top. SNatPack (lnext x) t ·R).
+           P (inIndM (elimCast -(monoSNat c) (mksigma (lnext x) w))) {
+        | l0 ➔ λ w.
+          θ<w> (indWkSigma w)
+            (λ t: Top. Λ b.
+               [t' : R = retype t -(t3snd b β) ]
+             - s (elimCast -c t') (ih t'))
+        | lnext l'' ➔ λ w.
+          θ<w> (indWkSigma w)
+            (λ t. Λ b. δ - t3thd b β ·{λ x. λ y. x ≃ λ x. λ y. y})
+        }
+      } .

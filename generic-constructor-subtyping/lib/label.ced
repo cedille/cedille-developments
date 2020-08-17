@@ -1,0 +1,67 @@
+import bool.
+import not.
+module label.
+
+data Label : ★ =
+  | l0 : Label
+  | lnext : Label ➔ Label.
+
+eq : Label ➔ Label ➔ Bool
+= λ a. μ rec. a {
+  | l0 ➔ λ b. σ b {
+    | l0 ➔ tt
+    | lnext l ➔ ff
+    }
+  | lnext u ➔ λ b. σ b {
+    | l0 ➔ ff
+    | lnext v ➔ rec u v 
+    }
+  }.
+
+eqRefl : Π a:Label. {eq a a ≃ tt}
+= λ a. μ ih. a {
+  | l0 ➔ β
+  | lnext l ➔ [h = ih l] - ρ+ h - β
+  }.
+
+exact : Π a:Label. Π b:Label. {eq a b ≃ tt} ➔ {a ≃ b}
+= λ a. μ ih. a {
+  | l0 ➔ λ b. σ b {
+    | l0 ➔ λ e. β
+    | lnext l ➔ λ e. δ - e
+    }
+  | lnext u ➔ λ b. σ b {
+    | l0 ➔ λ e. δ - e
+    | lnext v ➔ λ e. [h = ih u v e] - ρ h - β
+    }
+  }.
+
+nexact : Π a:Label. Π b:Label. {eq a b ≃ ff} ➔ Not·{a ≃ b}
+= λ a. λ b. λ e. Λ n. [k : {eq a a ≃ ff} = ρ<2> n - ρ e - β]
+  - [r : {tt ≃ ff} = ρ ς (eqRefl a) - ρ k - β]
+  - δ - r.
+
+lte : Label ➔ Label ➔ Bool
+= λ l1.
+  μ lte. l1 {
+  | l0 ➔ λ _. tt
+  | lnext l1' ➔ λ l2.
+    σ l2 {
+    | l0 ➔ ff
+    | lnext l2' ➔ lte l1' l2'
+    }
+  } .
+
+lt : Label ➔ Label ➔ Bool
+= λ l1. lte (lnext l1) .
+
+lzero = l0.
+lsucc = lnext lzero.
+lpred = lnext lsucc.
+lratio = lnext lpred.
+lvar = lnext lratio.
+labs = lnext lvar.
+lapp = lnext labs.
+lnil = lnext lapp.
+lcons = lnext lnil.
+lbranch = lnext lcons.

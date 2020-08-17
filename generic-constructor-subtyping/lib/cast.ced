@@ -1,0 +1,26 @@
+module cast.
+
+Cast ◂ ★ ➔ ★ ➔ ★ = λ A: ★. λ B: ★. ι cast: A ➔ B. {cast ≃ λ x. x}.
+
+intrCast ◂ ∀ A: ★. ∀ B: ★. Π f: A ➔ B. (Π a: A. {f a ≃ a}) ➔ Cast ·A ·B
+= Λ A. Λ B. λ f. λ eq. [λ x. φ (eq x) - (f x) {| x |} , β].
+
+intrCastI : ∀ A: ★. ∀ B: ★. (Π x: A. ι y: B. {y ≃ x}) ➔ Cast ·A ·B
+= Λ A. Λ B. λ f. intrCast (λ x. (f x).1) (λ x. (f x).2) .
+
+elimCast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ A ➔ B
+= Λ A. Λ B. Λ c. λ a. φ (ρ c.2 - β) - (c.1 a) {| a |}.
+
+cast = elimCast.
+
+castComp ◂ ∀ A: ★. ∀ B: ★. ∀ C: ★. Cast ·A ·B ➔ Cast ·B ·C ➔ Cast ·A ·C
+= Λ A. Λ B. Λ C. λ c1. λ c2. [λ a. elimCast -c2 (elimCast -c1 a) , β].
+
+castId ◂ ∀ A: ★. Cast ·A ·A
+= Λ A. [λ a. a , β].
+
+castTrans = castComp .
+castRefl  = castId .
+
+Monotonic ◂ (★ ➔ ★) ➔ ★
+= λ F: ★ ➔ ★. ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔ Cast ·(F ·X) ·(F ·Y).

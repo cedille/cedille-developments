@@ -1,0 +1,22 @@
+
+import ../lib/lib.
+
+module gensig (A: ★) (B: A ➔ Top ➔ ★ ➔ ★) {monoB: Π a: A. Π t: Top. Monotonic ·(B a t)} .
+
+CtArgs : ★ ➔ A ➔ ★ = λ R: ★. λ a: A. WkSigma ·Top ·(λ t: Top. B a t ·R) .
+Sig : ★ ➔ ★ = λ R: ★. Sigma ·A ·(CtArgs ·R) .
+
+monoSig : Monotonic ·Sig
+= Λ R1. Λ R2. λ c.
+  intrCastI
+    (indSigma ·A ·(CtArgs ·R1)
+       ·(λ x: Sig ·R1. ι y: Sig ·R2. { y ≃ x })
+       λ a. λ b.
+         [lem: Cast ·(CtArgs ·R1 a) ·(CtArgs ·R2 a)
+           = intrCastI
+               (λ x. θ<x> (indWkSigma x)
+                       (λ t. Λ br.
+                        [ intrWkSigma t -(elimCast -(monoB a t c) br)
+                        , β{| intrWkSigma t |}]))]
+       - [ mksigma a (elimCast -lem b) , β{| mksigma a b |} ])
+    .

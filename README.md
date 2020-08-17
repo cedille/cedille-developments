@@ -32,3 +32,6 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 
 ## [Efficient Lambda Encodings for Mendler-style Coinductive Types in Cedille](efficient-mendler-codata)
  * Author: Christopher Jenkins, Aaron Stump, Larry Diehl
+
+## [Generic Zero-Cost Constructor Subtyping](generic-constructor-subtyping)
+* Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump

@@ -1,0 +1,50 @@
+
+import ../lib/lib.
+
+module ind (F: ★ ➔ ★) {mono: Monotonic ·F}.
+
+import alg ·F.
+import public prfalg ·F -mono.
+
+-- inductionMFail : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inIndM ➔ Π d: IndM. P d
+-- = Λ P. λ alg. λ d. d.2 ·P ●.
+
+
+Lift : (IndM ➔ ★) ➔ FixM ➔ ★
+= λ P: IndM ➔ ★. λ x: FixM.
+  Sigma ·IndM ·(λ y: IndM. Sigma ·{y ≃ x} ·(λ eq: {y ≃ x}. P (φ eq - y {| x |}))).
+
+IhPlus : Π R: ★. Cast ·R ·FixM ➔ (IndM ➔ ★) ➔ ★
+= λ R: ★. λ c: Cast ·R ·FixM. λ P: IndM ➔ ★.
+  Π r: R. Lift ·P (elimCast -c r).
+
+{-
+r : R, c : Cast ·R ·FixM
+proj1 (ih r) : IndM
+proj1 (proj2 (ih r)) : {proj1 (ih r) ≃ r}
+-}
+
+castIhPlus
+: ∀ R: ★. ∀ c: Cast ·R ·FixM. ∀ P: IndM ➔ ★. IhPlus ·R c ·P ➔ Cast ·R ·IndM
+= Λ R. Λ c. Λ P. λ ih.
+  intrCast (λ r. proj1 (ih r)) (λ r. proj1 (proj2 (ih r))).
+
+prfIhPlus
+: ∀ R: ★. ∀ c: Cast ·R ·FixM. ∀ P: IndM ➔ ★. Π ih: IhPlus ·R c ·P.
+  Π r: R. P (elimCast -(castIhPlus -c ih) r)
+= Λ R. Λ c. Λ P. λ ih. λ r.
+  (proj2 (proj2 (ih r))).
+
+
+convAlg : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inIndM ➔ PrfAlgM ·FixM ·(Lift ·P) inM
+= Λ P. λ alg. Λ R. Λ c. λ ih. λ xs.
+  [c'  = castIhPlus -c ih]                -- by the IH, there is a "reflection-like" identity function
+- [x   = inIndM (elimCast -(mono c') xs)] -- reflect inM xs: FixM to inIndM xs: FixIndM
+- [ih' = prfIhPlus -c ih]
+- mksigma x (mksigma β (alg ·R -c' ih' xs)).
+
+inductionM : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inIndM ➔ Π d: IndM. P d
+= Λ P. λ alg. λ d. proj2 (proj2 (d.2 (convAlg alg))).
+
+outM : IndM ➔ F ·IndM
+= inductionM ·(λ _: IndM. F ·IndM) (Λ R. Λ c. λ _. λ xs. elimCast -(mono c) xs).

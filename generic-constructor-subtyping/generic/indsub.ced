@@ -1,0 +1,19 @@
+import ../lib/lib.
+import sigsub .
+
+module indsub (F: ★ ➔ ★) {monoF: Monotonic ·F} (G: ★ ➔ ★) {monoG: Monotonic ·G} {sigsub: SigSub ·F ·G}.
+
+import ind as FixF ·F -monoF .
+import ind as FixG ·G -monoG .
+
+
+-- the least fixpoints of sub-signatures are in a subtype relation notice that
+-- no details of the particular fixpoint encoding are needed (this could
+-- probably be formalized by making them module parameters)
+indsub : Cast ·FixF.IndM ·FixG.IndM
+= intrCastI
+    (FixF.inductionM ·(λ x: FixF.IndM. ι y: FixG.IndM. { y ≃ x })
+       Λ R. Λ c. λ ih. λ xs.
+         [c' : Cast ·R ·FixG.IndM = intrCastI ih]
+       - [ FixG.inIndM (elimCast ·(F ·R) -(sigsub -c') xs) , β{| FixG.inIndM xs |} ])
+    .

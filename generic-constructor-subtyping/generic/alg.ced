@@ -1,0 +1,23 @@
+module alg (F: ★ ➔ ★).
+
+Alg : ★ ➔ ★ = λ X: ★. F ·X ➔ X.
+Fix : ★ = ∀ X: ★. Alg ·X ➔ X.
+
+fold : ∀ X: ★. Alg ·X ➔ Fix ➔ X
+= Λ X. λ alg. λ d. d alg.
+
+{- `in` not definable without requiring F is a functor -}
+
+AlgM : ★ ➔ ★ = λ X: ★. ∀ R: ★. (R ➔ X) ➔ F ·R ➔ X.
+FixM : ★ = ∀ X: ★. AlgM ·X ➔ X.
+
+foldM : ∀ X: ★. AlgM ·X ➔ FixM ➔ X
+= Λ X. λ alg. λ d. d alg.
+
+inM : F ·FixM ➔ FixM = λ ds. Λ X. λ alg. alg (foldM alg) ds.
+{- 1. We introduce our collection of subdata `ds`
+-- 2. We are given an arbitrary algebra
+-- 3. We give the algebra what it wants to compute X: something to make
+--    recursive calls with `(foldM alg)` (we may pick how to instantiate `R`) and
+--    some subdata to operate on.
+-}

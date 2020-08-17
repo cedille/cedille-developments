@@ -1,0 +1,29 @@
+module bool.
+
+data Bool : ★ =
+  | tt : Bool
+  | ff : Bool.
+
+and : Bool ➔ Bool ➔ Bool
+= λ a. λ b. σ a {
+  | tt ➔ σ b {
+    | tt ➔ tt
+    | ff ➔ ff
+    }
+  | ff ➔ σ b {
+    | tt ➔ ff
+    | ff ➔ ff
+    }
+  }.
+
+or : Bool ➔ Bool ➔ Bool
+= λ a. λ b. σ a {
+  | tt ➔ σ b {
+    | tt ➔ tt
+    | ff ➔ tt
+    }
+  | ff ➔ σ b {
+    | tt ➔ tt
+    | ff ➔ ff
+    }
+  }.

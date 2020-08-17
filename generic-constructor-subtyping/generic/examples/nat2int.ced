@@ -1,0 +1,37 @@
+import ../../lib/lib.
+
+import snat .
+import nat .
+import int .
+import sint .
+
+module nat2int .
+
+nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatCtArgs ·R l) ·(SIntCtArgs ·R l)
+= λ l. Λ R.
+  intrCastI λ x.
+    θ<x> (indWkSigma x)
+      (λ t.
+       σ l {
+       | l0 ➔ Λ b.
+         [b' : SIntPack l0 t ·R
+           = σ b { tuple3 z s a ➔ tuple4 z s (λ eq. δ - eq) (λ eq. δ - eq) } ]
+       - [ intrWkSigma t -b' , β{|intrWkSigma t|} ]
+       | lnext l' ➔
+         σ l' {
+         | l0 ➔ Λ b.
+           [b' : SIntPack lsucc t ·R
+             = σ b { tuple3 z s a ➔ tuple4 z s (λ eq. δ - eq) (λ eq. δ - eq) }]
+         - [ intrWkSigma t -b' , β{|intrWkSigma t|} ]
+         | lnext l'' ➔ Λ b.
+           [lem : False = σ b { tuple3 z s a ➔ a β }]
+         - δ - lem ·{l0 ≃ lsucc}
+         }
+       }) .
+
+import ../gensigsub ·Label ·SNatPack -monoSNatPack ·Label ·SIntPack -monoSIntPack.
+import ../indsub ·SNat -monoSNat ·SInt -monoSInt .
+
+
+nat2int : Cast ·Nat ·Int
+= indsub -(gensigsub (castRefl ·Label) nat2intPack) .
