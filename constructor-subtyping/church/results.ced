@@ -3,12 +3,21 @@ import ../lib/lib.
 import list.
 import vectree as V.
 import nat as N.
+import int as I.
 
 module results.
 
 Nat : ★ = N.Nat.
 zero = N.zero.
 succ = N.succ.
+Int : ★ = I.Int.
+
+
+_ : Cast·Nat·Int
+= intrCast
+  (λ n. N.induct n·(λ x:Nat. Int) I.zero (Λ x. λ s. I.succ s))
+  (λ n. N.induct n·(λ x:Nat. {N.induct x zero succ ≃ x}) β
+    (Λ x. λ s. χ({succ (N.induct x zero succ) ≃ succ x}) - ρ s - β)).
 
 
 length : ∀ A:★. List·A ➔ Nat
