@@ -3,92 +3,72 @@ import weaksigma.
 
 module nat.
 
-NatPack' : ★ ➔ Label ➔ Top ➔ ★ = λ X:★. λ l:Label. λ t:Top. Tuple2
-  ·({l ≃ lzero} ➾ View·X t)
-  ·({l ≃ lsucc} ➾ View·(X ➔ X) t).
+NatPack' : ★ ➔ Label ➔ ★ = λ X:★. λ l:Label. ι _:
+  {l ≃ lzero} ➾ X.
+  {l ≃ lsucc} ➾ X ➔ X.
 
-Nat' : ★ = ∀ X:★. (Π l:Label. WeakSigma·Top·(λ t:Top. NatPack'·X l t)) ➔ X.
+Nat' : ★ = ∀ X:★. (Π l:Label. NatPack'·X l) ➔ X.
 
 zero' : Nat'
 = Λ X. λ f. [ctors = f lzero]
-  - [t = weakfst ctors]
-  - [z = weaksnd·Top·(NatPack'·X lzero)·X ctors (Λ i. retype t -(t2fst i -β))]
-  - z.
+  - ctors.1 -β.
 
 succ' : Nat' ➔ Nat'
 = λ n. Λ X. λ f. [ctors = f lsucc]
-  - [t = weakfst ctors]
-  - [s = weaksnd·Top·(NatPack'·X lsucc)·(X ➔ X) ctors (Λ i. retype t -(t2snd i -β))]
+  - [s = ctors.2 -β]
   - s (n f).
 
-NatIndPack : (Nat' ➔ ★) ➔ Label ➔ Top ➔ ★ = λ P:Nat' ➔ ★. λ l:Label. λ t:Top. Tuple2
-  ·({l ≃ lzero} ➾ View·(P zero') t)
-  ·({l ≃ lsucc} ➾ View·(∀ m:Nat'. P m ➔ P (succ' m)) t).
+NatIndPack : (Nat' ➔ ★) ➔ Label ➔ ★ = λ P:Nat' ➔ ★. λ l:Label. ι _:
+  {l ≃ lzero} ➾ P zero'.
+  {l ≃ lsucc} ➾ ∀ m:Nat'. P m ➔ P (succ' m).
 
-NatInd : Nat' ➔ ★ = λ n:Nat'. ∀ P:Nat' ➔ ★. (Π l:Label. WeakSigma·Top·(λ t:Top. NatIndPack·P l t)) ➔ P n.
+NatInd : Nat' ➔ ★ = λ n:Nat'. ∀ P:Nat' ➔ ★. (Π l:Label. NatIndPack·P l) ➔ P n.
 
 Nat : ★ = ι n:Nat'. NatInd n.
 
 zero : Nat
 = [zero', Λ P. λ f. [ctors = f lzero]
-  - [t = weakfst ctors]
-  - [z = weaksnd·Top·(NatIndPack·P lzero)·(P zero') ctors (Λ i. retype t -(t2fst i -β))]
-  - z].
+  - ctors.1 -β].
 
 succ : Nat ➔ Nat
 = λ n. [succ' n.1, Λ P. λ f. [ctors = f lsucc]
-  - [t = weakfst ctors]
-  - [s = weaksnd·Top·(NatIndPack·P lsucc)·(∀ m:Nat'. P m ➔ P (succ' m)) ctors (Λ i. retype t -(t2snd i -β))]
+  - [s = ctors.2 -β]
   - s -n.1 (n.2·P f)].
 
-packCast : ∀ X:★. Π l:Label. Π t:Top. Cast·(NatIndPack·(λ x:Nat'. X) l t)·(NatPack'·X l t)
-= Λ X. λ l. λ t.
-  [lemma : ∀ X:★. Cast·(Nat' ➾ X ➔ X)·(X ➔ X)
-    = Λ X. intrCastI (λ f. [f -zero', β{|f|}])]
-  - intrCast (λ x. σ x {
-  | tuple2 v1 v2 ➔ tuple2 v1
-    (Λ e. viewCast -(lemma·X) -t (v2 -e))
-  }) (λ x. σ x {
-  | tuple2 v1 v2 ➔ β
-  }).
+explode' : ∀ X:★. False ➾ Top ➔ X
+= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {|t|}.
 
-pack : ∀ P:Nat' ➔ ★. Π t:Top. View·(P zero') t
-  ➔ Π t:Top. View·(∀ m:Nat'. P m ➔ P (succ' m)) t
-  ➔ Π l:Label. WeakSigma·Top·(NatIndPack·P l)
-= Λ P. λ tz. λ z. λ ts. λ s. λ l.
-  [T : ★ = WeakSigma·Top·(NatIndPack·P l)]
+pack : ∀ P:Nat' ➔ ★. P zero'
+  ➔ (∀ m:Nat'. P m ➔ P (succ' m))
+  ➔ Π l:Label. NatIndPack·P l
+= Λ P. λ z. λ s. λ l.
+  [T : ★ = NatIndPack·P l]
   - σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➾ T {
-  | tt ➔ Λ e. [e = exact l lzero e] - wksigma tz
-    -(tuple2 (Λ _. z)
-      (Λ k. [r:{lzero ≃ lsucc} = ρ ς e - ρ ς k - β] - δ - r))
+  | tt ➔ Λ e. [e = exact l lzero e] - [Λ _. z,
+    Λ e'. [k:{lzero ≃ lsucc} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]
   | ff ➔ Λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lsucc e] - wksigma ts
-      -(tuple2 (Λ k. [r:{lzero ≃ lsucc} = ρ ς e - ρ ς k - β] - δ - r)
-        (Λ _. s))
-    | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - wksigma β
-        -(tuple2 (Λ k. explode (e1 -k)) (Λ k. explode (e2 -k)))
+    | tt ➔ Λ e. [e = exact l lsucc e] - [Λ e'. [k:{lzero ≃ lsucc} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+      Λ _. Λ m. λ s'. s -m s']
+    | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - [Λ e. explode' -(e1 -e) β,
+      Λ e. explode' -(e2 -e) β]
     } -β
   } -β.
 
 to : Nat' ➔ Nat
-= λ i. i·Nat (λ l. [p = pack·(λ x:Nat'. Nat)
-  β{|zero|} (view β{|zero|} -zero -β)
-  β{|succ|} (view β{|succ|} -(Λ m:Nat'. succ) -β)
-  l] - σ p {
-  | wksigma t -i ➔ wksigma t -(cast -(packCast·Nat l t) i)
-  }).
+= λ i. i·Nat (λ l. [p = pack·(λ x:Nat'. Nat) zero (Λ m:Nat'. succ) l]
+  - [Λ e. p.1 -e, Λ e. p.2 -e -i]).
 
 reflection : Π n:Nat. {to n.1 ≃ n}
-= [P : Nat' ➔ ★ = λ x:Nat'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P
-  β (view·(P zero') β -β -β)
-  β (view·(∀ m:Nat'. P m ➔ P (succ' m)) β -(Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{|k|}) -β)).
+= [P : Nat' ➔ ★ = λ x:Nat'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β
+  (Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{|k|})).
 
-induct : Π n:Nat. ∀ P:Nat ➔ ★. P zero ➔ (∀ m:Nat. P m ➔ P (succ m)) ➔ P n
+induct : Π n:Nat. ∀ P:Nat ➔ ★. P zero ➔ (∀ m:Nat. P m ➔ P (succ m))  ➔ P n
 = λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:Nat'. P (to x)) (pack·(λ x:Nat'. P (to x))
-  β{|z|} (view·(P (to zero')) β{|z|} -z -β)
-  β{|s|} (view·(∀ m:Nat'. P (to m) ➔ P (to (succ' m))) β{|s|} -(Λ m. λ k. s -(to m) k) -β))).
+  z
+  (Λ m. λ k. s -(to m) k))).
 
 add : Nat ➔ Nat ➔ Nat
 = λ a. λ b. induct a·(λ x:Nat. Nat) b (Λ m. λ x. succ x).
+
 
 

@@ -3,117 +3,92 @@ import weaksigma.
 
 module int.
 
-IntPack' : ★ ➔ Label ➔ Top ➔ ★ = λ X:★. λ l:Label. λ t:Top. Tuple3
-  ·({l ≃ lzero} ➾ View·X t)
-  ·({l ≃ lsucc} ➾ View·(X ➔ X) t)
-  ·({l ≃ lpred} ➾ View·(X ➔ X) t).
+IntPack' : ★ ➔ Label ➔ ★ = λ X:★. λ l:Label. ι _:
+  {l ≃ lzero} ➾ X. ι _:
+  {l ≃ lsucc} ➾ X ➔ X.
+  {l ≃ lpred} ➾ X ➔ X.
 
-Int' : ★ = ∀ X:★. (Π l:Label. WeakSigma·Top·(λ t:Top. IntPack'·X l t)) ➔ X.
+Int' : ★ = ∀ X:★. (Π l:Label. IntPack'·X l) ➔ X.
 
 zero' : Int'
 = Λ X. λ f. [ctors = f lzero]
-  - [t = weakfst ctors]
-  - [z = weaksnd·Top·(IntPack'·X lzero)·X ctors (Λ i. retype t -(t3fst i -β))]
-  - z.
+  - ctors.1 -β.
 
 succ' : Int' ➔ Int'
 = λ n. Λ X. λ f. [ctors = f lsucc]
-  - [t = weakfst ctors]
-  - [s = weaksnd·Top·(IntPack'·X lsucc)·(X ➔ X) ctors (Λ i. retype t -(t3snd i -β))]
+  - [s = ctors.2.1 -β]
   - s (n f).
 
 pred' : Int' ➔ Int'
 = λ n. Λ X. λ f. [ctors = f lpred]
-  - [t = weakfst ctors]
-  - [p = weaksnd·Top·(IntPack'·X lpred)·(X ➔ X) ctors (Λ i. retype t -(t3thd i -β))]
+  - [p = ctors.2.2 -β]
   - p (n f).
 
-IntIndPack : (Int' ➔ ★) ➔ Label ➔ Top ➔ ★ = λ P:Int' ➔ ★. λ l:Label. λ t:Top. Tuple3
-  ·({l ≃ lzero} ➾ View·(P zero') t)
-  ·({l ≃ lsucc} ➾ View·(∀ m:Int'. P m ➔ P (succ' m)) t)
-  ·({l ≃ lpred} ➾ View·(∀ m:Int'. P m ➔ P (pred' m)) t).
+IntIndPack : (Int' ➔ ★) ➔ Label ➔ ★ = λ P:Int' ➔ ★. λ l:Label. ι _:
+  {l ≃ lzero} ➾ P zero'. ι _:
+  {l ≃ lsucc} ➾ ∀ m:Int'. P m ➔ P (succ' m).
+  {l ≃ lpred} ➾ ∀ m:Int'. P m ➔ P (pred' m).
 
-IntInd : Int' ➔ ★ = λ n:Int'. ∀ P:Int' ➔ ★. (Π l:Label. WeakSigma·Top·(λ t:Top. IntIndPack·P l t)) ➔ P n.
+IntInd : Int' ➔ ★ = λ n:Int'. ∀ P:Int' ➔ ★. (Π l:Label. IntIndPack·P l) ➔ P n.
 
 Int : ★ = ι n:Int'. IntInd n.
 
 zero : Int
 = [zero', Λ P. λ f. [ctors = f lzero]
-  - [t = weakfst ctors]
-  - [z = weaksnd·Top·(IntIndPack·P lzero)·(P zero') ctors (Λ i. retype t -(t3fst i -β))]
-  - z].
+  - ctors.1 -β].
 
 succ : Int ➔ Int
 = λ n. [succ' n.1, Λ P. λ f. [ctors = f lsucc]
-  - [t = weakfst ctors]
-  - [s = weaksnd·Top·(IntIndPack·P lsucc)·(∀ m:Int'. P m ➔ P (succ' m)) ctors (Λ i. retype t -(t3snd i -β))]
+  - [s = ctors.2.1 -β]
   - s -n.1 (n.2·P f)].
 
 pred : Int ➔ Int
 = λ n. [pred' n.1, Λ P. λ f. [ctors = f lpred]
-  - [t = weakfst ctors]
-  - [p = weaksnd·Top·(IntIndPack·P lpred)·(∀ m:Int'. P m ➔ P (pred' m)) ctors (Λ i. retype t -(t3thd i -β))]
+  - [p = ctors.2.2 -β]
   - p -n.1 (n.2·P f)].
 
-packCast : ∀ X:★. Π l:Label. Π t:Top. Cast·(IntIndPack·(λ x:Int'. X) l t)·(IntPack'·X l t)
-= Λ X. λ l. λ t.
-  [lemma : ∀ X:★. Cast·(Int' ➾ X ➔ X)·(X ➔ X)
-    = Λ X. intrCastI (λ f. [f -zero', β{|f|}])]
-  - intrCast (λ x. σ x {
-  | tuple3 v1 v2 v3 ➔ tuple3 v1
-    (Λ e. viewCast -(lemma·X) -t (v2 -e))
-    (Λ e. viewCast -(lemma·X) -t (v3 -e))
-  }) (λ x. σ x {
-  | tuple3 v1 v2 v3 ➔ β
-  }).
+explode' : ∀ X:★. False ➾ Top ➔ X
+= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {|t|}.
 
-pack : ∀ P:Int' ➔ ★. Π t:Top. View·(P zero') t
-  ➔ Π t:Top. View·(∀ m:Int'. P m ➔ P (succ' m)) t
-  ➔ Π t:Top. View·(∀ m:Int'. P m ➔ P (pred' m)) t
-  ➔ Π l:Label. WeakSigma·Top·(IntIndPack·P l)
-= Λ P. λ tz. λ z. λ ts. λ s. λ tp. λ p. λ l.
-  [T : ★ = WeakSigma·Top·(IntIndPack·P l)]
+pack : ∀ P:Int' ➔ ★. P zero'
+  ➔ (∀ m:Int'. P m ➔ P (succ' m))
+  ➔ (∀ m:Int'. P m ➔ P (pred' m))
+  ➔ Π l:Label. IntIndPack·P l
+= Λ P. λ z. λ s. λ p. λ l.
+  [T : ★ = IntIndPack·P l]
   - σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➾ T {
-  | tt ➔ Λ e. [e = exact l lzero e] - wksigma tz
-    -(tuple3 (Λ _. z)
-      (Λ k. [r:{lzero ≃ lsucc} = ρ ς e - ρ ς k - β] - δ - r)
-      (Λ k. [r:{lzero ≃ lpred} = ρ ς e - ρ ς k - β] - δ - r))
+  | tt ➔ Λ e. [e = exact l lzero e] - [Λ _. z,
+    [Λ e'. [k:{lzero ≃ lsucc} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|},
+    Λ e'. [k:{lzero ≃ lpred} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]]
   | ff ➔ Λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lsucc e] - wksigma ts
-      -(tuple3 (Λ k. [r:{lzero ≃ lsucc} = ρ ς e - ρ ς k - β] - δ - r)
-        (Λ _. s)
-	(Λ k. [r:{lsucc ≃ lpred} = ρ ς e - ρ ς k - β] - δ - r))
+    | tt ➔ Λ e. [e = exact l lsucc e] - [Λ e'. [k:{lzero ≃ lsucc} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+      [Λ _. Λ m. λ s'. s -m s',
+      Λ e'. [k:{lsucc ≃ lpred} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|}]]
     | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - σ (eq l lpred) @ λ b:Bool. {eq l lpred ≃ b} ➾ T {
-      | tt ➔ Λ e. [e = exact l lpred e] - wksigma tp
-        -(tuple3 (Λ k. [r:{lzero ≃ lpred} = ρ ς e - ρ ς k - β] - δ - r)
-	  (Λ k. [r:{lpred ≃ lsucc} = ρ ς k - ρ ς e - β] - δ - r)
-	  (Λ _. p))
-      | ff ➔ Λ e3. [e3 = nexact l lpred e3] - wksigma β
-        -(tuple3 (Λ k. explode (e1 -k)) (Λ k. explode (e2 -k)) (Λ k. explode (e3 -k)))
+      | tt ➔ Λ e. [e = exact l lpred e] - [Λ e'. [k:{lzero ≃ lpred} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|p|},
+        [Λ e'. [k:{lsucc ≃ lpred} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|p|},
+	Λ _. Λ m. λ p'. p -m p']]
+      | ff ➔ Λ e3. [e3 = nexact l lpred e3] - [Λ e'. explode' -(e1 -e') β,
+        [Λ e'. explode' -(e2 -e') β,
+	Λ e'. explode' -(e3 -e') β]]
       } -β
     } -β
   } -β.
 
 to : Int' ➔ Int
-= λ i. i·Int (λ l. [p = pack·(λ x:Int'. Int)
-  β{|zero|} (intrView β{|zero|} -zero -β)
-  β{|succ|} (intrView β{|succ|} -(Λ m:Int'. succ) -β)
-  β{|pred|} (intrView β{|pred|} -(Λ m:Int'. pred) -β)
-  l] - σ p {
-  | wksigma t -i ➔ wksigma t -(cast -(packCast·Int l t) i)
-  }).
+= λ i. i·Int (λ l. [p = pack·(λ x:Int'. Int) zero (Λ m:Int'. succ) (Λ m:Int'. pred) l]
+  - [Λ e. p.1 -e, [Λ e. p.2.1 -e -i, Λ e. p.2.2 -e -i]]).
 
 reflection : Π n:Int. {to n.1 ≃ n}
-= [P : Int' ➔ ★ = λ x:Int'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P
-  β (view·(P zero') β -β -β)
-  β (view·(∀ m:Int'. P m ➔ P (succ' m)) β -(Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{|k|}) -β)
-  β (view·(∀ m:Int'. P m ➔ P (pred' m)) β -(Λ m. λ k. χ({pred (to m) ≃ pred m}) - ρ k - β{|k|}) -β)).
+= [P : Int' ➔ ★ = λ x:Int'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β
+  (Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{|k|})
+  (Λ m. λ k. χ({pred (to m) ≃ pred m}) - ρ k - β{|k|})).
 
 induct : Π n:Int. ∀ P:Int ➔ ★. P zero ➔ (∀ m:Int. P m ➔ P (succ m)) ➔ (∀ m:Int. P m ➔ P (pred m)) ➔ P n
 = λ n. Λ P. λ z. λ s. λ p. ρ (ς (reflection n)) - (n.2·(λ x:Int'. P (to x)) (pack·(λ x:Int'. P (to x))
-  β{|z|} (view·(P (to zero')) β{|z|} -z -β)
-  β{|s|} (view·(∀ m:Int'. P (to m) ➔ P (to (succ' m))) β{|s|} -(Λ m. λ k. s -(to m) k) -β)
-  β{|p|} (view·(∀ m:Int'. P (to m) ➔ P (to (pred' m))) β{|p|} -(Λ m. λ k. p -(to m) k) -β))).
+  z
+  (Λ m. λ k. s -(to m) k)
+  (Λ m. λ k. p -(to m) k))).
 
 add : Int ➔ Int ➔ Int
 = λ a. λ b. induct a·(λ x:Int. Int) b (Λ m. λ x. succ x) (Λ m. λ x. pred x).
