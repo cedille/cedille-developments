@@ -1,0 +1,125 @@
+import ../lib/lib.
+
+module etyp.
+
+ETypPack' : ★ ➔ Label ➔ ★ = λ X:★. λ l:Label. ι _:
+  {l ≃ lnat} ➾ X. ι _:
+  {l ≃ lbase} ➾ X.
+  {l ≃ larr} ➾ X ➔ X ➔ X.
+
+ETyp' : ★ = ∀ X:★. (Π l:Label. ETypPack'·X l) ➔ X.
+
+
+nat' : ETyp'
+= Λ X. λ f. (f lnat).1 -β.
+
+base' : ETyp'
+= Λ X. λ f. (f lbase).2.1 -β.
+
+arr' : ETyp' ➔ ETyp' ➔ ETyp'
+= λ a. λ b. Λ X. λ f. [arr = (f larr).2.2 -β]
+  - arr (a f) (b f).
+
+ETypIndPack : (ETyp' ➔ ★) ➔ Label ➔ ★ = λ P:ETyp' ➔ ★. λ l:Label. ι _:
+  {l ≃ lnat} ➾ P nat'. ι _:
+  {l ≃ lbase} ➾ P base'.
+  {l ≃ larr} ➾ ∀ a:ETyp'. ∀ b:ETyp'. P a ➔ P b ➔  P (arr' a b).
+
+ETypInd : ETyp' ➔ ★ = λ n:ETyp'. ∀ P:ETyp' ➔ ★. (Π l:Label. ETypIndPack·P l) ➔ P n.
+
+ETyp : ★ = ι n:ETyp'. ETypInd n.
+
+nat : ETyp
+= [nat', Λ P. λ f. (f lnat).1 -β].
+
+base : ETyp
+= [base', Λ P. λ f. (f lbase).2.1 -β].
+
+arr : ETyp ➔ ETyp ➔ ETyp
+= λ a. λ b. [arr' a.1 b.1, Λ P. λ f. [arr = (f larr).2.2 -β]
+  - arr -a.1 -b.1 (a.2·P f) (b.2·P f)].
+
+pack : ∀ P:ETyp' ➔ ★. P nat' ➔ P base'
+  ➔ (∀ a:ETyp'. ∀ b:ETyp'. P a ➔ P b ➔ P (arr' a b))
+  ➔ Π l:Label. ETypIndPack·P l
+= Λ P. λ b. λ z. λ s. λ l.
+  [T : ★ = ETypIndPack·P l]
+  - σ (eq l lnat) @ λ b:Bool. {eq l lnat ≃ b} ➾ T {
+  | tt ➔ Λ e. [e = exact l lnat e] - [Λ _. b,
+    [Λ e'. [k:{lnat ≃ lbase} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|b|},
+    Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|b|}]]
+  | ff ➔ Λ e1. [e1 = nexact l lnat e1] - σ (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l lbase e] - [Λ e'. [k:{lbase ≃ lnat} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|},
+      [Λ _. z, Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]]
+    | ff ➔ Λ e2. [e2 = nexact l lbase e2] - σ (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
+      | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|s|},
+        [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+        Λ _. s]]
+      | ff ➔ Λ e3. [e3 = nexact l larr e3]
+      - [Λ e. explode' -(e1 -e) β, [Λ e. explode' -(e2 -e) β, Λ e. explode' -(e3 -e) β]]
+      } -β
+    } -β
+  } -β.
+
+to : ETyp' ➔ ETyp
+= λ i. i·ETyp (λ l. [p = pack·(λ x:ETyp'. ETyp) nat base (Λ a. Λ b. arr) l]
+  - [Λ e. p.1 -e, [Λ e. p.2.1 -e, Λ e. p.2.2 -e -i -i]]).
+
+reflection : Π n:ETyp. {to n.1 ≃ n}
+= [P : ETyp' ➔ ★ = λ x:ETyp'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β β
+  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{|j i|})).
+
+induct : Π n:ETyp. ∀ P:ETyp ➔ ★. P nat ➔ P base ➔ (∀ a:ETyp. ∀ b:ETyp. P a ➔ P b ➔ P (arr a b))  ➔ P n
+= λ n. Λ P. λ b. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:ETyp'. P (to x)) (pack·(λ x:ETyp'. P (to x))
+  b z
+  (Λ a. Λ b. λ i. λ j. s -(to a) -(to b) i j))).
+
+
+-- Church encodings make pattern matching a pain, so here we cheat by translating to a mendler encoding
+-- The schematic encoding uses mendler encodings, church encodings are used mostly for exposition
+data MTyp : ★ =
+  | mnat : MTyp
+  | mbase : MTyp
+  | marr : MTyp ➔ MTyp ➔ MTyp.
+
+typ_to_mtyp : ETyp ➔ MTyp
+= λ a. induct a·(λ t:ETyp. MTyp) mnat mbase (Λ _. Λ _. marr).
+
+mtyp_to_typ : MTyp ➔ ETyp
+= λ a. μ rec. a {
+  | mnat ➔ nat
+  | mbase ➔ base
+  | marr a b ➔ arr (rec a) (rec b)
+  }.
+
+mtyp_eq : MTyp ➔ MTyp ➔ Bool
+= λ a. μ rec. a {
+  | mnat ➔ λ b. σ b {
+    | mnat ➔ tt
+    | mbase ➔ ff
+    | marr _ _ ➔ ff
+    }
+  | mbase ➔ λ b. σ b {
+    | mnat ➔ ff
+    | mbase ➔ tt
+    | marr _ _ ➔ ff
+    }
+  | marr i j ➔ λ b. σ b {
+    | mnat ➔ ff
+    | mbase ➔ ff
+    | marr u v ➔ and (rec i u) (rec j v)
+    }
+  }.
+
+mtyp_eq_refl : Π a:MTyp. {mtyp_eq a a ≃ tt}
+= λ a. μ ih. a {
+  | mnat ➔ β
+  | mbase ➔ β
+  | marr i j ➔ ρ+ (ih i) - ρ+ (ih j) - β
+  }.
+
+typ_eq : ETyp ➔ ETyp ➔ Bool
+= λ a. λ b. mtyp_eq (typ_to_mtyp a) (typ_to_mtyp b).
+
+typ_eq_refl : Π a:ETyp. {typ_eq a a ≃ tt}
+= λ a. ρ (mtyp_eq_refl (typ_to_mtyp a)) - β.

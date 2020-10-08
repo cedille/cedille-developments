@@ -8,5 +8,8 @@ Not : ★ ➔ ★ = λ A: ★. A ➾ False.
 
 explode : ∀ X: ★. False ➔ X = Λ X. λ f. f ·X.
 
+explode' : ∀ X:★. False ➾ Top ➔ X
+= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {|t|}.
+
 falseIrrel : False ➾ False
 = Λ b. δ - b ·{λ x. λ y. x ≃ λ x. λ y. y}.

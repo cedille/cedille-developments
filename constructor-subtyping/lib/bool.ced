@@ -27,3 +27,21 @@ or : Bool ➔ Bool ➔ Bool
     | ff ➔ ff
     }
   }.
+
+iff : Bool ➔ Bool ➔ Bool
+= λ a. λ b. σ a {
+  | tt ➔ σ b {
+    | tt ➔ tt
+    | ff ➔ ff
+    }
+  | ff ➔ σ b {
+    | tt ➔ ff
+    | ff ➔ tt
+    }
+  }.
+
+negate : Bool ➔ Bool
+= λ a. σ a {
+  | tt ➔ ff
+  | ff ➔ tt
+  }.

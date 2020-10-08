@@ -1,5 +1,4 @@
 import ../lib/lib.
-import weaksigma.
 
 module nat.
 
@@ -34,9 +33,6 @@ succ : Nat ➔ Nat
 = λ n. [succ' n.1, Λ P. λ f. [ctors = f lsucc]
   - [s = ctors.2 -β]
   - s -n.1 (n.2·P f)].
-
-explode' : ∀ X:★. False ➾ Top ➔ X
-= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {|t|}.
 
 pack : ∀ P:Nat' ➔ ★. P zero'
   ➔ (∀ m:Nat'. P m ➔ P (succ' m))

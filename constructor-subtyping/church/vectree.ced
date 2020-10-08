@@ -1,5 +1,4 @@
 import ../lib/lib.
-import weaksigma.
 import nat as N.
 
 module vectree.
@@ -9,128 +8,41 @@ zero = N.zero.
 succ = N.succ.
 add = N.add.
 
-VecTreePack' : ★ ➔ (Nat ➔ ★) ➔ Label ➔ Top ➔ ★ = λ A:★. λ X:Nat ➔ ★. λ l:Label. λ t:Top. Tuple3
-  ·({l ≃ lnil} ➾ View·(X zero) t)
-  ·({l ≃ lcons} ➾ View·(∀ n:Nat. A ➔ X n ➔ X (succ n)) t)
-  ·({l ≃ lbranch} ➾ View·(∀ a:Nat. ∀ b:Nat. X a ➔ X b ➔ X (add a b)) t).
+VecTreePack' : ★ ➔ (Nat ➔ ★) ➔ Label ➔ ★ = λ A:★. λ X:Nat ➔ ★. λ l:Label. ι _:
+  {l ≃ lnil} ➾ X zero. ι _:
+  {l ≃ lcons} ➾ ∀ n:Nat. A ➔ X n ➔ X (succ n).
+  {l ≃ lbranch} ➾ ∀ a:Nat. ∀ b:Nat. X a ➔ X b ➔ X (add a b).
 
-VecTree' : ★ ➔ Nat ➔ ★ = λ A:★. λ n:Nat. ∀ X:(Nat ➔ ★). (Π l:Label. WeakSigma·Top·(λ t:Top. VecTreePack'·A·X l t)) ➔ X n.
+VecTree' : ★ ➔ Nat ➔ ★ = λ A:★. λ n:Nat. ∀ X:(Nat ➔ ★). (Π l:Label. VecTreePack'·A·X l) ➔ X n.
 
 nil' : ∀ A:★. VecTree'·A zero
-= Λ A. Λ X. λ f. [ctors = f lnil]
-  - [t = weakfst ctors]
-  - [n = weaksnd·Top·(VecTreePack'·A·X lnil)·(X zero) ctors (Λ i. retype t -(t3fst i -β))]
-  - n.
+= Λ A. Λ X. λ f. (f lnil).1 -β.
 
 cons' : ∀ A:★. ∀ n:Nat. A ➔ VecTree'·A n ➔ VecTree'·A (succ n)
-= Λ A. Λ n. λ a. λ l. Λ X. λ f. [ctors = f lcons]
-  - [t = weakfst ctors]
-  - [c = weaksnd·Top·(VecTreePack'·A·X lcons)·(∀ n:Nat. A ➔ X n ➔ X (succ n)) ctors (Λ i. retype t -(t3snd i -β))]
+= Λ A. Λ n. λ a. λ l. Λ X. λ f. [c = (f lcons).2.1 -β]
   - c -n a (l f).
 
 branch' : ∀ A:★. ∀ a:Nat. ∀ b:Nat. VecTree'·A a ➔ VecTree'·A b ➔ VecTree'·A (add a b)
-= Λ A. Λ a. Λ b. λ v1. λ v2. Λ X. λ f. [ctors = f lbranch]
-  - [t = weakfst ctors]
-  - [br = weaksnd·Top·(VecTreePack'·A·X lbranch)·(∀ a:Nat. ∀ b:Nat. X a ➔ X b ➔ X (add a b)) ctors (Λ i. retype t -(t3thd i -β))]
+= Λ A. Λ a. Λ b. λ v1. λ v2. Λ X. λ f. [br = (f lbranch).2.2 -β]
   - br -a -b (v1 f) (v2 f).
 
-VecTreeIndPack : Π A:★. (Π n:Nat. VecTree'·A n ➔ ★) ➔ Label ➔ Top ➔ ★ = λ A:★. λ P:Π n:Nat. VecTree'·A n ➔ ★. λ l:Label. λ t:Top. Tuple3
-  ·({l ≃ lnil} ➾ View·(P zero (nil'·A)) t)
-  ·({l ≃ lcons} ➾ View·(∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m v ➔ P (succ m) (cons' -m a v)) t)
-  ·({l ≃ lbranch} ➾ View·(∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch' -a -b v1 v2)) t).
+VecTreeIndPack : Π A:★. (Π n:Nat. VecTree'·A n ➔ ★) ➔ Label ➔ ★ = λ A:★. λ P:Π n:Nat. VecTree'·A n ➔ ★. λ l:Label. ι _:
+  {l ≃ lnil} ➾ P zero (nil'·A). ι _:
+  {l ≃ lcons} ➾ ∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m v ➔ P (succ m) (cons' -m a v). 
+  {l ≃ lbranch} ➾ ∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch' -a -b v1 v2).
 
 VecTreeInd : Π A:★. Π n:Nat. VecTree'·A n ➔ ★ = λ A:★. λ n:Nat. λ v:VecTree'·A n. ∀ P: Π n:Nat. VecTree'·A n ➔ ★.
-  (Π l:Label. WeakSigma·Top·(λ t:Top. VecTreeIndPack·A·P l t)) ➔ P n v.
+  (Π l:Label. VecTreeIndPack·A·P l) ➔ P n v.
 
 VecTree : ★ ➔ Nat ➔ ★ = λ A:★. λ n:Nat. ι v:VecTree'·A n. VecTreeInd·A n v.
 
 nil : ∀ A:★. VecTree·A zero
-= Λ A. [nil'·A, Λ P. λ f. [ctors = f lnil]
-  - [t = weakfst ctors]
-  - [n = weaksnd·Top·(VecTreeIndPack·A·P lnil)·(P zero (nil'·A)) ctors (Λ i. retype t -(t3fst i -β))]
-  - n].
+= Λ A. [nil'·A, Λ P. λ f. (f lnil).1 -β].
 
 cons : ∀ A:★. ∀ n:Nat. A ➔ VecTree·A n ➔ VecTree·A (succ n)
-= Λ A. Λ n. λ a. λ l. [cons' -n a l.1, Λ P. λ f. [ctors = f lcons]
-  - [t = weakfst ctors]
-  - [c = weaksnd·Top·(VecTreeIndPack·A·P lcons)·(∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m v ➔ P (succ m) (cons' -m a v)) ctors (Λ i. retype t -(t3snd i -β))]
+= Λ A. Λ n. λ a. λ l. [cons' -n a l.1, Λ P. λ f. [c = (f lcons).2.1 -β]
   - c -n -l.1 a (l.2·P f)].
 
 branch : ∀ A:★. ∀ a:Nat. ∀ b:Nat. VecTree·A a ➔ VecTree·A b ➔ VecTree·A (add a b)
-= Λ A. Λ a. Λ b. λ v1. λ v2. [branch'·A -a -b v1.1 v2.1, Λ P. λ f. [ctors = f lbranch]
-  - [t = weakfst ctors]
-  - [br = weaksnd·Top·(VecTreeIndPack·A·P lbranch)
-    ·(∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch' -a -b v1 v2))
-    ctors (Λ i. retype t -(t3thd i -β))]
+= Λ A. Λ a. Λ b. λ v1. λ v2. [branch'·A -a -b v1.1 v2.1, Λ P. λ f. [br = (f lbranch).2.2 -β]
   - br -a -b -v1.1 -v2.1 (v1.2·P f) (v2.2·P f)].
-
-{-
-
-packCast : ∀ A:★. ∀ X:Nat ➔ ★. Π l:Label. Π t:Top. Cast·(VecTreeIndPack·A·(λ n:Nat. λ x:VecTree'·A n. X n) l t)·(VecTreePack'·A·X l t)
-= Λ A. Λ X. λ l. λ t.
-  [lemma : ∀ X:Nat ➔ ★. Cast·(∀ n:Nat. VecTree'·A n ➾ A ➔ X n ➔ X (succ n))·(∀ n:Nat. A ➔ X n ➔ X (succ n))
-    = Λ X. intrCastI -(λ f. [Λ n. f -n -(nil·A), β{|f|}])]
-  - intrCast -(λ x. σ x {
-  | tuple3 v1 v2 v3 ➔ tuple3 v1
-    (Λ e. viewCast -(lemma·X) -t (v2 -e))
-    (Λ e. ●)
-  }) -(λ x. σ x {
-  | tuple3 v1 v2 v3 ➔ β
-  }).
-
-pack : ∀ A:★. ∀ P: Π n:Nat. VecTree'·A n ➔ ★. Π t:Top. View·(P zero (nil'·A)) t
-  ➔ Π t:Top. View·(∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m v ➔ P (succ m) (cons' -m a v)) t
-  ➔ Π t:Top. View·(∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch' -a -b v1 v2)) t
-  ➔ Π l:Label. WeakSigma·Top·(VecTreeIndPack·A·P l)
-= Λ A. Λ P. λ tni. λ ni. λ tc. λ c. λ tbr. λ br. λ l.
-  [T : ★ = WeakSigma·Top·(VecTreeIndPack·A·P l)]
-  - σ (eq l lnil) @ λ b:Bool. {eq l lnil ≃ b} ➾ T {
-  | tt ➔ Λ e. [e = exact l lnil e] - wksigma tni
-    -(tuple3 (Λ _. ni)
-      (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - δ - r)
-      (Λ k. [r:{lnil ≃ lbranch} = ρ ς e - ρ ς k - β] - δ - r))
-  | ff ➔ Λ e1. [e1 = nexact l lnil e1] - σ (eq l lcons) @ λ b:Bool. {eq l lcons ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lcons e] - wksigma tc
-      -(tuple3 (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - δ - r)
-        (Λ _. c)
-	(Λ k. [r:{lcons ≃ lbranch} = ρ ς e - ρ ς k - β] - δ - r))
-    | ff ➔ Λ e2. [e2 = nexact l lcons e2] - σ (eq l lbranch) @ λ b:Bool. {eq l lbranch ≃ b} ➾ T {
-      | tt ➔ Λ e. [e = exact l lbranch e] - wksigma tbr
-        -(tuple3 (Λ k. [r:{lbranch ≃ lnil} = ρ ς e - ρ ς k - β] - δ - r)
-          (Λ k. [r:{lcons ≃ lbranch} = ρ ς e - ρ ς k - β] - δ - r)
-  	  (Λ _. br))
-      | ff ➔ Λ e3. [e3 = nexact l lbranch e3] - wksigma β
-          -(tuple3 (Λ k. explode (e1 -k)) (Λ k. explode (e2 -k)) (Λ k. explode (e3 -k)))
-      } -β
-    } -β
-  } -β.
-
-to : ∀ A:★. ∀ n:Nat. VecTree'·A n ➔ VecTree·A n
-= Λ A. Λ n. λ i. i·(λ x:Nat. VecTree·A x) (λ l. [p = pack·A·(λ m:Nat. λ x:VecTree'·A m. VecTree·A m)
-  β{|nil|} (view β{|nil|} -(nil·A) -β)
-  β{|cons|} (view β{|cons|} -(Λ m:Nat. Λ v:VecTree'·A m. (cons·A -m)) -β)
-  β{|branch|} (view β{|branch|} -(Λ a:Nat. Λ b:Nat. Λ v1:VecTree'·A a. Λ v2:VecTree'·A b. (branch·A -a -b)) -β)
-  l] - σ p {
-  | wksigma t -i ➔ wksigma t -●
-  }).
-
-reflection : ∀ A:★. ∀ n:Nat. Π n:VecTree·A n. {to n.1 ≃ n}
-= Λ A. Λ n. [P : Π n:Nat. VecTree'·A n ➔ ★ = λ n:Nat. λ x:VecTree'·A n. {(to x).1 ≃ x}] - λ n. n.2·P (pack·A·P
-  β (view·(P zero (nil'·A)) β -β -β)
-  β (view·(∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m v ➔ P (succ m) (cons' -m a v)) β
-    -(Λ m. Λ v. λ a. λ k. χ({cons a (to v) ≃ cons a v}) - ρ k - β{|a k|}) -β)
-  β (view·(∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch' -a -b v1 v2)) β
-    -(Λ a. Λ b. Λ v1. Λ v2. λ r. λ t. ρ+ r - ρ+ t - β{|r t|}) -β)).
-
-induct : ∀ A:★. ∀ n:Nat. Π v:VecTree·A n. ∀ P:Π x:Nat. VecTree·A x ➔ ★. P zero (nil·A)
-  ➔ (∀ m:Nat. ∀ v:VecTree·A m. Π a:A. P m v ➔ P (succ m) (cons -m a v))
-  ➔ (∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree·A a. ∀ v2:VecTree·A b. P a v1 ➔ P b v2 ➔ P (add a b) (branch -a -b v1 v2))
-  ➔ P n v
-= Λ A. Λ n. λ v. Λ P. λ ni. λ c. λ br. ρ (ς (reflection -n v)) - (v.2·(λ i:Nat. λ x:VecTree'·A i. P i (to -i x)) (pack·A·(λ i:Nat. λ x:VecTree'·A i. P i (to -i x))
-  β{|ni|} (view·(P zero (to -zero (nil'·A))) β{|ni|} -ni -β)
-  β{|c|} (view·(∀ m:Nat. ∀ v:VecTree'·A m. Π a:A. P m (to -m v) ➔ P (succ m) (to -(succ m) (cons' -m a v))) β{|c|}
-    -(Λ m. Λ v. λ a. λ k. c -m -(to -m v) a k) -β)
-  β{|br|} (view·(∀ a:Nat. ∀ b:Nat. ∀ v1:VecTree'·A a. ∀ v2:VecTree'·A b. P a (to -a v1) ➔ P b (to -b v2) ➔ P (add a b) (to -(add a b) (branch' -a -b v1 v2))) β{|br|}
-    -(●)))).
-
--}

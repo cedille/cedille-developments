@@ -3,8 +3,8 @@ import sigsub .
 
 
 module gensigsub
-  (A1: ★) (B1: A1 ➔ Top ➔ ★ ➔ ★) {monoB1: Π a: A1. Π t: Top. Monotonic ·(B1 a t)}
-  (A2: ★) (B2: A2 ➔ Top ➔ ★ ➔ ★) {monoB2: Π a: A2. Π t: Top. Monotonic ·(B2 a t)} .
+  (A1: ★) (B1: A1 ➔ ★ ➔ ★) {monoB1: Π a: A1. Monotonic ·(B1 a)}
+  (A2: ★) (B2: A2 ➔ ★ ➔ ★) {monoB2: Π a: A2. Monotonic ·(B2 a)} .
 
 import gensig as F ·A1 ·B1 -monoB1 .
 import gensig as G ·A2 ·B2 -monoB2 .
@@ -24,9 +24,10 @@ gensigsub
     (indSigma ·A1 ·(F.CtArgs ·R1) ·(λ x: F.Sig ·R1. ι y: G.Sig ·R2. { y ≃ x })
       λ a1. λ ctor.
         [lem : Cast ·(F.CtArgs ·R1 a1) ·(F.CtArgs ·R2 a1)
-          = intrCastI
-              λ x. θ<x> (indWkSigma x)
+          = intrCastI (λ x. [cast -(monoB1 a1 cR) x, β{|x|}])]
+
+  {- λ x. θ<x> (indWkSigma x)
                      (λ t. Λ b. [ intrWkSigma t -(elimCast -(monoB1 a1 t cR) b)
-                                , β{|intrWkSigma t|} ])]
+                                , β{|intrWkSigma t|} ])] -}
       - [ mksigma (elimCast -cA a1) (elimCast -(cC a1 ·R2) (elimCast -lem ctor)) , β{|mksigma a1 ctor|} ]) .
 

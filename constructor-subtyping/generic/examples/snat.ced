@@ -2,19 +2,22 @@ import ../../lib/lib.
 
 module snat.
 
-SNatPack : Label ➔ Top ➔ ★ ➔ ★
-= λ l: Label. λ t: Top. λ R: ★.
-  Tuple3 ·({l ≃ lzero} ➔ View ·Unit t) ·({l ≃ lsucc} ➔ View ·R t) ·({lt lsucc l ≃ tt} ➔ False) .
+SNatPack : Label ➔ ★ ➔ ★
+= λ l: Label. λ R: ★.
+  ι _: {l ≃ lzero} ➾ Unit. ι _: {l ≃ lsucc} ➾ R. (ι _:Not·{l ≃ lzero}. Not·{l ≃ lsucc}) ➾ False.
 
-monoSNatPack : Π l: Label. Π t: Top. Monotonic ·(SNatPack l t)
-= λ l. λ t. Λ R1. Λ R2. λ c.
+monoSNatPack : Π l: Label. Monotonic ·(SNatPack l)
+= λ l. Λ R1. Λ R2. λ c.
   intrCastI
-    λ x. σ x {
+    λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
+
+
+  {- σ x {
     | tuple3 z s a ➔
       [s' : {l ≃ lsucc} ➔ View ·R2 t
         = λ eq. [ elimCast -c (s eq).1 , ρ+ (s eq).2 - β{|s eq|} ]]
     - [ tuple3 z s' a , β{|tuple3 z s a|} ]
-    } .
+    -} .
 
 import ../gensig ·Label ·SNatPack -monoSNatPack .
 

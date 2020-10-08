@@ -1,1 +1,128 @@
+import ../lib/lib.
+
 module typ.
+
+TypPack' : ★ ➔ Label ➔ ★ = λ X:★. λ l:Label. ι _:
+  {l ≃ lbase} ➾ X.
+  {l ≃ larr} ➾ X ➔ X ➔ X.
+
+Typ' : ★ = ∀ X:★. (Π l:Label. TypPack'·X l) ➔ X.
+
+base' : Typ'
+= Λ X. λ f. (f lbase).1 -β.
+
+arr' : Typ' ➔ Typ' ➔ Typ'
+= λ a. λ b. Λ X. λ f. [arr = (f larr).2 -β]
+  - arr (a f) (b f).
+
+TypIndPack : (Typ' ➔ ★) ➔ Label ➔ ★ = λ P:Typ' ➔ ★. λ l:Label. ι _:
+  {l ≃ lbase} ➾ P base'.
+  {l ≃ larr} ➾ ∀ a:Typ'. ∀ b:Typ'. P a ➔ P b ➔  P (arr' a b).
+
+TypInd : Typ' ➔ ★ = λ n:Typ'. ∀ P:Typ' ➔ ★. (Π l:Label. TypIndPack·P l) ➔ P n.
+
+Typ : ★ = ι n:Typ'. TypInd n.
+
+base : Typ
+= [base', Λ P. λ f. (f lbase).1 -β].
+
+arr : Typ ➔ Typ ➔ Typ
+= λ a. λ b. [arr' a.1 b.1, Λ P. λ f. [arr = (f larr).2 -β]
+  - arr -a.1 -b.1 (a.2·P f) (b.2·P f)].
+
+pack : ∀ P:Typ' ➔ ★. P base'
+  ➔ (∀ a:Typ'. ∀ b:Typ'. P a ➔ P b ➔ P (arr' a b))
+  ➔ Π l:Label. TypIndPack·P l
+= Λ P. λ z. λ s. λ l.
+  [T : ★ = TypIndPack·P l]
+  - σ (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
+  | tt ➔ Λ e. [e = exact l lbase e] - [Λ _. z,
+    Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]
+  | ff ➔ Λ e1. [e1 = nexact l lbase e1] - σ (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+      Λ _. Λ a. Λ b. λ s'. s -a -b s']
+    | ff ➔ Λ e2. [e2 = nexact l larr e2] - [Λ e. explode' -(e1 -e) β,
+      Λ e. explode' -(e2 -e) β]
+    } -β
+  } -β.
+
+to : Typ' ➔ Typ
+= λ i. i·Typ (λ l. [p = pack·(λ x:Typ'. Typ) base (Λ a:Typ'. Λ b:Typ'. arr) l]
+  - [Λ e. p.1 -e, Λ e. p.2 -e -i -i]).
+
+reflection : Π n:Typ. {to n.1 ≃ n}
+= [P : Typ' ➔ ★ = λ x:Typ'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β
+  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{|j i|})).
+
+induct : Π n:Typ. ∀ P:Typ ➔ ★. P base ➔ (∀ a:Typ. ∀ b:Typ. P a ➔ P b ➔ P (arr a b))  ➔ P n
+= λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:Typ'. P (to x)) (pack·(λ x:Typ'. P (to x))
+  z
+  (Λ a. Λ b. λ i. λ j. s -(to a) -(to b) i j))).
+
+
+-- Church encodings make pattern matching a pain, so here we cheat by translating to a mendler encoding
+-- The schematic encoding uses mendler encodings, church encodings are used mostly for exposition
+data MTyp : ★ =
+  | mbase : MTyp
+  | marr : MTyp ➔ MTyp ➔ MTyp.
+
+typ_to_mtyp : Typ ➔ MTyp
+= λ a. induct a·(λ t:Typ. MTyp) mbase (Λ _. Λ _. marr).
+
+mtyp_to_typ : MTyp ➔ Typ
+= λ a. μ rec. a {
+  | mbase ➔ base
+  | marr a b ➔ arr (rec a) (rec b)
+  }.
+
+mtyp_inverse : Π a:Typ. {mtyp_to_typ (typ_to_mtyp a) ≃ a}
+= λ a. induct a·(λ x:Typ. {mtyp_to_typ (typ_to_mtyp x) ≃ x}) β
+  (Λ a. Λ b. λ u. λ v. ρ+ u - ρ+ v - β).
+
+mtyp_eq : MTyp ➔ MTyp ➔ Bool
+= λ a. μ rec. a {
+  | mbase ➔ λ b. σ b {
+    | mbase ➔ tt
+    | marr _ _ ➔ ff
+    }
+  | marr i j ➔ λ b. σ b {
+    | mbase ➔ ff
+    | marr u v ➔ and (rec i u) (rec j v)
+    }
+  }.
+
+pairLemma : Π a:Bool. Π b:Bool. {and a b ≃ tt} ➔ Pair·{a ≃ tt}·{b ≃ tt}
+= λ a. σ a {
+  | tt ➔ λ b. σ b {
+    | tt ➔ λ e. pair β β
+    | ff ➔ λ e. pair β (δ - e)
+    }
+  | ff ➔ λ b. σ b {
+    | tt ➔ λ e. pair (δ - e) β
+    | ff ➔ λ e. pair (δ - e) (δ - e)
+    }
+  }.
+
+mtyp_eq_exact : Π a:MTyp. Π b:MTyp. {mtyp_eq a b ≃ tt} ➔ {a ≃ b}
+= λ a. μ ih. a {
+  | mbase ➔ λ b. σ b {
+    | mbase ➔ λ e. β
+    | marr _ _ ➔ λ e. δ - e
+    }
+  | marr i j ➔ λ b. σ b {
+    | mbase ➔ λ e. δ - e
+    | marr u v ➔ λ e. [e:{and (mtyp_eq i u) (mtyp_eq j v) ≃ tt} = ρ+ e - β]
+    - [e = pairLemma (mtyp_eq (to/MTyp -isType/ih i) u) (mtyp_eq (to/MTyp -isType/ih j) v) e]
+    - ρ (ih i u (proj1 e)) - ρ (ih j v (proj2 e)) - β
+    }
+  }.
+
+typ_eq : Typ ➔ Typ ➔ Bool
+= λ a. λ b. mtyp_eq (typ_to_mtyp a) (typ_to_mtyp b).
+
+typ_eq_lemma : Π a:Typ. Π b:Typ. {typ_to_mtyp a ≃ typ_to_mtyp b} ➔ {a ≃ b}
+= λ a. λ b. λ e. [e : {mtyp_to_typ (typ_to_mtyp a) ≃ mtyp_to_typ (typ_to_mtyp b)} = ρ e - β]
+  - ρ ς (mtyp_inverse a) - ρ ς (mtyp_inverse b) - ρ e - β.
+
+typ_eq_exact : Π a:Typ. Π b:Typ. {typ_eq a b ≃ tt} ➔ {a ≃ b}
+= λ a. λ b. λ e. [k = mtyp_eq_exact (typ_to_mtyp a) (typ_to_mtyp b) e] - typ_eq_lemma a b k.

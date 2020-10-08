@@ -9,23 +9,22 @@ module int .
 Int : ★ = IndM .
 
 izero : Int
-= inIndM
-    (mksigma lzero
-       (intrWkSigma β{|unit|}
-          -(tuple4 (λ _. viewSelf unit) (λ eq. δ - eq)
-              (λ eq. δ - eq) (λ eq. δ - eq)))) .
+= inIndM (mksigma lzero
+  [Λ _. unit,
+  [Λ e. explode' -(δ - e) β{|unit|},
+  [Λ e. explode' -(δ - e) β{|unit|},
+   Λ e. explode' -(e.1 -β) β{|unit|}]]]).
 
-isucc : Int ➔ Int = λ n.
-  inIndM
-    (mksigma lsucc
-       (intrWkSigma β{|n|}
-          -(tuple4 (λ eq. δ - eq) (λ _. viewSelf n)
-              (λ eq. δ - eq) (λ eq. δ - eq)))) .
+isucc : Int ➔ Int
+= λ n. inIndM (mksigma lsucc
+  [Λ e. explode' -(δ - e) β{|n|},
+  [Λ _. n,
+  [Λ e. explode' -(δ - e) β{|n|},
+   Λ e. explode' -(e.2.1 -β) β{|n|}]]]).
 
-ipred : Int ➔ Int = λ n.
-  inIndM
-    (mksigma lpred
-       (intrWkSigma β{|n|}
-          -(tuple4 (λ eq. δ - eq) (λ eq. δ - eq)
-              (λ _. viewSelf n) (λ eq. δ - eq)))) .
-
+ipred : Int ➔ Int
+= λ n. inIndM (mksigma lpred
+  [Λ e. explode' -(δ - e) β{|n|},
+  [Λ e. explode' -(δ - e) β{|n|},
+  [Λ _. n,
+   Λ e. explode' -(e.2.2 -β) β{|n|}]]]).

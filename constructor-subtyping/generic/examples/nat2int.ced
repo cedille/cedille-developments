@@ -9,7 +9,15 @@ module nat2int .
 
 nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatCtArgs ·R l) ·(SIntCtArgs ·R l)
 = λ l. Λ R.
-  intrCastI λ x.
+  intrCastI λ x. [[x.1, [Λ e. x.2.1 -e,
+    [Λ e. explode' -(x.2.2
+      -([Λ n. [k:{lpred ≃ lzero} = ρ ς e - ρ ς n - β] - δ - k,
+         Λ n. [k:{lpred ≃ lsucc} = ρ ς e - ρ ς n - β] - δ - k])) β{|x|},
+     Λ e. explode' -(x.2.2 -[e.1, e.2.1]) β{|x|}]]],
+     β{|x|}].
+
+
+{-
     θ<x> (indWkSigma x)
       (λ t.
        σ l {
@@ -28,6 +36,8 @@ nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatCtArgs ·R l) ·(SIntCtArgs �
          - δ - lem ·{l0 ≃ lsucc}
          }
        }) .
+
+  -}
 
 import ../gensigsub ·Label ·SNatPack -monoSNatPack ·Label ·SIntPack -monoSIntPack.
 import ../indsub ·SNat -monoSNat ·SInt -monoSInt .

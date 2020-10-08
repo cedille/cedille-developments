@@ -2,25 +2,29 @@ import ../../lib/lib.
 
 module sint .
 
-SIntPack : Label ➔ Top ➔ ★ ➔ ★
-= λ l: Label. λ t: Top. λ R: ★.
-  Tuple4
-    ·({l ≃ lzero} ➔ View ·Unit t)
-    ·({l ≃ lsucc} ➔ View ·R t)
-    ·({l ≃ lpred} ➔ View ·R t)
-    ·({lt lpred l ≃ tt} ➔ False) .
+SIntPack : Label ➔ ★ ➔ ★
+= λ l: Label. λ R: ★. ι _:
+    {l ≃ lzero} ➾ Unit. ι _:
+    {l ≃ lsucc} ➾ R. ι _:
+    {l ≃ lpred} ➾ R.
+    (ι _: Not·{l ≃ lzero}. ι _: Not·{l ≃ lsucc}. Not·{l ≃ lpred}) ➾ False .
 
-monoSIntPack : Π l: Label. Π t: Top. Monotonic ·(SIntPack l t)
-= λ l. λ t. Λ R1. Λ R2. λ c.
+monoSIntPack : Π l: Label. Monotonic ·(SIntPack l)
+= λ l. Λ R1. Λ R2. λ c.
   intrCastI
-    λ x. σ x {
+    λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), [Λ e. cast -c (x.2.2.1 -e), Λ e. x.2.2.2 -e]]], β{|x|}].
+
+ {- σ x {
     | tuple4 z s p a ➔
       [s' : {l ≃ lsucc} ➔ View ·R2 t
         = λ eq. [ elimCast -c (s eq).1 , ρ+ (s eq).2 - β{|s eq|} ]]
     - [p' : {l ≃ lpred} ➔ View ·R2 t
         = λ eq. [ elimCast -c (p eq).1 , ρ+ (p eq).2 - β{|p eq|} ]]
     - [ tuple4 z s' p' a , β{|tuple4 z s p a |}]
-    } .
+    } . -}
+
+
+--    λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
 
 import ../gensig ·Label ·SIntPack -monoSIntPack .
 

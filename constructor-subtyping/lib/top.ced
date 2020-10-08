@@ -1,4 +1,3 @@
-module utils/top.
+module top.
 
-Top ◂ ★ = {λ x. x ≃ λ x. x} .
-
+Top : ★ = {β ≃ β}.

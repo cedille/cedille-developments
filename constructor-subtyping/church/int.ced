@@ -1,5 +1,4 @@
 import ../lib/lib.
-import weaksigma.
 
 module int.
 
@@ -46,9 +45,6 @@ pred : Int ➔ Int
 = λ n. [pred' n.1, Λ P. λ f. [ctors = f lpred]
   - [p = ctors.2.2 -β]
   - p -n.1 (n.2·P f)].
-
-explode' : ∀ X:★. False ➾ Top ➔ X
-= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {|t|}.
 
 pack : ∀ P:Int' ➔ ★. P zero'
   ➔ (∀ m:Int'. P m ➔ P (succ' m))
