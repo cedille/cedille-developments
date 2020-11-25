@@ -7,13 +7,14 @@ import sint .
 
 module nat2int .
 
-nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatCtArgs ·R l) ·(SIntCtArgs ·R l)
+nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatPack l ·R) ·(SIntPack l ·R)
 = λ l. Λ R.
-  intrCastI λ x. [[x.1, [Λ e. x.2.1 -e,
-    [Λ e. explode' -(x.2.2
+  intrCastI λ x. [[x.1, [x.2.1,
+    [Λ e. x.2.2
       -([Λ n. [k:{lpred ≃ lzero} = ρ ς e - ρ ς n - β] - δ - k,
-         Λ n. [k:{lpred ≃ lsucc} = ρ ς e - ρ ς n - β] - δ - k])) β{|x|},
-     Λ e. explode' -(x.2.2 -[e.1, e.2.1]) β{|x|}]]],
+         Λ n. [k:{lpred ≃ lsucc} = ρ ς e - ρ ς n - β] - δ - k]) ·R,
+     Λ e. x.2.2 -[e.1, e.2.1]
+     ]]],
      β{|x|}].
 
 

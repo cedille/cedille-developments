@@ -3,16 +3,16 @@ import ../lib/lib.
 
 module gensig (A: ★) (B: A ➔ ★ ➔ ★) {monoB: Π a: A. Monotonic ·(B a)} .
 
-CtArgs : ★ ➔ A ➔ ★ = λ R: ★. λ a: A. B a ·R.
-Sig : ★ ➔ ★ = λ R: ★. Sigma ·A ·(CtArgs ·R) .
+-- CtArgs : ★ ➔ A ➔ ★ = λ R: ★. λ a: A. B a ·R.
+Sig : ★ ➔ ★ = λ R: ★. Sigma ·A ·(λ a: A. B a ·R) .
 
 monoSig : Monotonic ·Sig
 = Λ R1. Λ R2. λ c.
   intrCastI
-    (indSigma ·A ·(CtArgs ·R1)
+    (indSigma ·A ·(λ a: A. B a ·R1)
        ·(λ x: Sig ·R1. ι y: Sig ·R2. { y ≃ x })
        λ a. λ b.
-         [lem: Cast ·(CtArgs ·R1 a) ·(CtArgs ·R2 a)
+         [lem: Cast ·(B a ·R1) ·(B a ·R2)
            = intrCastI (λ x. [cast -(monoB a c) x, β{|x|}])]
 	   - [mksigma a (cast -lem b), β{|mksigma a b|}])
 

@@ -21,6 +21,5 @@ monoSNatPack : Π l: Label. Monotonic ·(SNatPack l)
 
 import ../gensig ·Label ·SNatPack -monoSNatPack .
 
-SNatCtArgs : ★ ➔ Label ➔ ★ = CtArgs .
 SNat : ★ ➔ ★ = Sig .
 monoSNat = monoSig .

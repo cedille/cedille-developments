@@ -28,6 +28,5 @@ monoSIntPack : Π l: Label. Monotonic ·(SIntPack l)
 
 import ../gensig ·Label ·SIntPack -monoSIntPack .
 
-SIntCtArgs : ★ ➔ Label ➔ ★ = CtArgs .
 SInt : ★ ➔ ★ = Sig .
 monoSInt = monoSig .
