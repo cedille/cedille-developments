@@ -9,7 +9,7 @@ Id ◂ Π A : ★. Π B : ★. ★ = λ A : ★. λ B : ★.
 
 elimId ◂ ∀ A : ★. ∀ B : ★. Id · A · B ➾ A ➔ B =
   Λ A. Λ B. Λ c. λ a.
-  φ (proj2 (c a)) - proj1 (c a) {a}.
+  φ (proj2 (c a)) - (proj1 (c a)) {|a|}.
 
 IdMapping ◂  (★ ➔ ★) ➔ ★ = λ F : ★ ➔ ★.
   ∀ X :  ★. ∀ Y : ★. Id · X · Y ➾ Id · (F · X) · (F · Y).
