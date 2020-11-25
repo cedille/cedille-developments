@@ -11,9 +11,9 @@ param-Sum ◂ Π A : ★ . Π B : ★ . cSum · A · B ➔ ★ =
 
 Sum ◂ ★ ➔ ★ ➔ ★ = λ A : ★ . λ B : ★ . ι x : cSum · A · B . ι _ : {x cin1 cin2 ≃ x} . param-Sum · A · B x .
 
-in1 ◂ ∀ A : ★ . ∀ B : ★ . A ➔ Sum · A · B = Λ A . Λ B . λ a . [ cin1 · A · B a , [β{cin1 a} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pa a ]].
+in1 ◂ ∀ A : ★ . ∀ B : ★ . A ➔ Sum · A · B = Λ A . Λ B . λ a . [ cin1 · A · B a , [β{| cin1 a |} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pa a ]].
 
-in2 ◂ ∀ A : ★ . ∀ B : ★ . B ➔ Sum · A · B = Λ A . Λ B . λ b . [ cin2 · A · B b , [β{cin2 b} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pb b ]].
+in2 ◂ ∀ A : ★ . ∀ B : ★ . B ➔ Sum · A · B = Λ A . Λ B . λ b . [ cin2 · A · B b , [β{| cin2 b |} , Λ X . Λ P . Λ ca . Λ cb . λ pa . λ pb . pb b ]].
 
 ind-Sum ◂ ∀ A : ★ . ∀ B : ★ . Π x : Sum · A · B .
           ∀ P : Sum · A · B ➔ ★ .

@@ -6,10 +6,10 @@ Cast : (I ➔ ★) ➔ (I ➔ ★) ➔ ★
 intrCast
 : ∀ A: I ➔ ★. ∀ B: I ➔ ★.
   ∀ f: ∀ i: I. A i ➔ B i. (∀ i: I. Π a: A i. {f a ≃ a}) ➾ Cast ·A ·B
-= Λ A. Λ B. Λ f. Λ eq. [ Λ i. λ a. φ (eq -i a) - (f -i a) {a} , β].
+= Λ A. Λ B. Λ f. Λ eq. [ Λ i. λ a. φ (eq -i a) - (f -i a) {| a |} , β].
 
 elimCast : ∀ A: I ➔ ★. ∀ B: I ➔ ★. Cast ·A ·B ➾ ∀ i: I. A i ➔ B i
-= Λ A. Λ B. Λ c. φ c.2 - c.1 {λ x. x}.
+= Λ A. Λ B. Λ c. φ c.2 - c.1 {| λ x. x |}.
 
 -- underscore for anonymous definitions
 _ : { intrCast ≃ λ x. x } = β .

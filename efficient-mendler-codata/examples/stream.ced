@@ -4,6 +4,13 @@ import nu/nu.
 
 module stream.
 
+-- krisimorphism (?) (cocase)
+cons : ∀ A: ★. A ➔ Stream ·A ➔ Stream ·A
+= Λ A. λ x.
+  unfoldStream ·A ·(Stream ·A)
+    Λ R. Λ c. λ v. λ cons. Λ i. λ xs. intrPair x (elimCast -c -i xs).
+
+
 -- regular anamorphism (coiteration)
 map : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ Stream ·A ➔ Stream ·B
 = Λ A. Λ B. λ f.
