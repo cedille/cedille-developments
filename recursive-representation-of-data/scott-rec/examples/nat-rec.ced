@@ -8,28 +8,38 @@ import scott/examples/nat.
 {- alternative proof taken from "Programming with proofs: a second order type theory" [Par88] -}
 import utils/top.
 
+View : ★ ➔ Top ➔ ★ = λ A: ★. λ x: Top. ι y: A. { y ≃ x } .
+
+intrView : ∀ A: ★. Π x: Top. ∀ y: A. { y ≃ x } ➾ View ·A x
+= Λ A. λ x. Λ y. Λ eq. [ φ eq - y {|x|} , β{|x|} ] .
+
+elimView : ∀ A: ★. Π x: Top. View ·A x ➾ A
+= Λ A. λ x. Λ v. φ v.2 - v.1 {|x|} .
+
 lem
 : ∀ X: Nat ➔ ★. Π alpha: X zero. Π beta: (Π y: Nat. X y ➔ X (suc y)).
   Π tau: Top. { tau zero ≃ alpha } ➔ (Π n: Nat. { tau (suc n) ≃ beta n (tau n) }) ➔
-  Π n: Nat. ι x: X n. { x ≃ tau n }
+  Π n: Nat. View ·(X n) β{|tau n|}
 = Λ X. λ alpha. λ beta. λ tau. λ eq1. λ eq2.
-  wkInductionNat ·(λ y: Nat. ι x: X y. { x ≃ tau y })
-    ([ alpha , ρ eq1 - β{alpha} ])
-    (λ m. Λ ih. [ beta m (φ ih.2 - ih.1 {tau m}) , ρ ς (eq2 m) - β{beta m (tau m)} ]) .
+  wkInductionNat ·(λ y: Nat. View ·(X y) β{|tau y|})
+    (intrView β{|tau zero|} -alpha -(ς eq1))
+    (λ m. Λ ih.
+     [pf : X m = elimView β{|tau m|} -ih]
+     - intrView β{|tau (suc m)|} -(beta m pf) -(ς (eq2 m))) .
 
 iota : ∀ X: Nat ➔ ★. X zero ➔ Top
-= Λ X. λ a. β{λ _. a}.
+= Λ X. λ a. β{| λ _. a |}.
 
 rho  : ∀ X: Nat ➔ ★. X zero ➔ (Π y: Nat. X y ➔ X (suc y)) ➔ Top
-= Λ X. λ a. λ b. β{λ y. λ r. b y (y (iota a) r r)}.
+= Λ X. λ a. λ b. β{| λ y. λ r. b y (y (iota a) r r) |}.
 
 tau : ∀ X: Nat ➔ ★. X zero ➔ (Π y: Nat. X y ➔ X (suc y)) ➔ Top
-= Λ X. λ a. λ b. β{λ x. x (iota a) (rho a b) (rho a b)}.
+= Λ X. λ a. λ b. β{| λ x. x (iota a) (rho a b) (rho a b) |}.
 
 rec : ∀ X: Nat ➔ ★. X zero ➔ (Π m: Nat. X m ➔ X (suc m)) ➔ Π n: Nat. X n
 = Λ X. λ a. λ b. λ n.
   [lm = lem a b (tau a b) β (λ n. β) n]
-- φ lm.2 - lm.1 {tau a b n} .
+- elimView β{|tau a b n|} -lm .
 
 -- Scott Nat recursor
 -- ==================================================
@@ -43,10 +53,14 @@ NatR ◂ ★ = ∀ X: ★.
 zeroR ◂ NatR = Λ P. λ z1. λ s1. λ z2. λ s2. λ m. z1 z2 s2 m.
 sucR ◂ NatR ➔ NatR = λ n. Λ X. λ z1. λ s1. λ z2. λ s2. λ m. s1 (n ·X) z2 s2 m.
 
+sucBad : NatR ➔ NatR
+= λ n. Λ X. λ z1. λ s1. λ z2. λ s2. λ m.
+  s2 ·Top ·Top (λ _. λ _. λ _. λ _. n z1 s2 z2 s2) β β zero .
+
 toNatR' ◂ Π n: Nat. ι x: NatR. {x ≃ n} =
   wkInductionNat ·(λ y: Nat. ι x: NatR. {x ≃ y})
-    [zeroR , β{zero}]
-    (λ m. Λ r. [ sucR (φ r.2 - r.1 {m} ) , β{suc m} ]).
+    [zeroR , β{| zero |}]
+    (λ m. Λ r. [ sucR (φ r.2 - r.1 {| m |} ) , β{| suc m |} ]).
 
 toNatR ◂ Cast ·Nat ·NatR
 = intrCast -(λ n. (toNatR' n).1) -(λ n. (toNatR' n).2).

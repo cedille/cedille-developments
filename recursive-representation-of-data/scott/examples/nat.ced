@@ -43,7 +43,7 @@ pred ◂ Nat ➔ Nat = caseNat zero (λ p. p) .
 _ ◂ Π x: Nat. { pred (suc x) ≃ x } = λ x. β.
 
 LiftNat ◂ (Nat ➔ ★) ➔ NatF ·Nat ➔ ★
-= λ P: Nat ➔ ★. λ x: NatF ·Nat. ∀ m: Nat. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
+= λ P: Nat ➔ ★. λ x: NatF ·Nat. ∀ m: Nat. ∀ eq: {m ≃ x}. P (φ eq - m {| x |}).
 
 wkInductionNat ◂ ∀ P: Nat ➔ ★.
   P zero ➔ (Π m: Nat. P m ➾ P (suc m)) ➔ Π n: Nat. P n
