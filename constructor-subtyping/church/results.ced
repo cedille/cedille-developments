@@ -22,6 +22,10 @@ _ : Cast·Nat·Int
   (λ n. N.induct n·(λ x:Nat. {N.induct x zero succ ≃ x}) β
     (Λ x. λ s. χ({succ (N.induct x zero succ) ≃ succ x}) - ρ s - β)).
 
+_ : Cast ·N.Nat' ·I.Int'
+= intrCast
+    (λ n. Λ X. λ f. n (λ l. [ (f l).1 , (f l).2.1 ]))
+    (λ n. β) .
 
 List : ★ ➔ ★ = L.List.
 nil = L.nil.

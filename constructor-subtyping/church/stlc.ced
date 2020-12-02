@@ -31,6 +31,10 @@ var' : ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ Stlc' g a
 = Λ g. Λ a. Λ e. λ i. Λ X. λ f. [v = (f lvar).1 -β]
   - v -g -a -e i.
 
+-- the variable assumed to have a function type here has the base type
+_ : Stlc' (cons Typ.base (cons (Typ.arr Typ.base Typ.base) nil)) Typ.base
+= var' -(cons Typ.base (cons (Typ.arr Typ.base Typ.base) nil)) -Typ.base -β (Nat.succ Nat.zero) .
+
 abs' : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlc' (cons a g) b ➔ Stlc' g (arr a b)
 = Λ g. Λ a. Λ b. λ body. Λ X. λ f. [abs = (f labs).2.1 -β]
   - abs -g -a -b (body·X f).
