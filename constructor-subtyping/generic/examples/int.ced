@@ -28,3 +28,38 @@ ipred : Int ➔ Int
   [Λ e. explode' -(δ - e) β{|n|},
   [Λ _. n,
    Λ e. explode' -(e.2.2 -β) β{|n|}]]]).
+
+foldIntG : ∀ X: ★. (SIntPack lzero ·X ➔ X) ➔ (SIntPack lsucc ·X ➔ X) ➔ (SIntPack lpred ·X ➔ X) ➔ Int ➔ X
+= Λ X. λ z. λ s. λ p.
+  inductionM ·(λ i: Int. X)
+    Λ R. Λ c. λ ih.
+    indSigma ·Label ·(λ l: Label. SIntPack l ·R) ·(λ x: SInt ·R. X)
+      λ l. λ ctors. casesSIntPack z s p l (fmapSIntPack ih l ctors)
+.
+
+caseIntG : ∀ I: ★. ∀ X: ★. X ➔ (I ➔ X) ➔ (I ➔ X) ➔ SInt ·I ➔ X
+= Λ I. Λ X. λ z. λ s. λ p.
+  indSigma ·Label ·(λ l: Label. SIntPack l ·I) ·(λ _: SInt ·I. X)
+    λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SIntPack l ·I ➔ X) {
+    | tt ➔ Λ e. λ _. z
+    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x } ➾ SIntPack l ·I ➔ X) {
+      | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
+      | ff ➔ Λ e'. σ (eq l lpred) @(λ x: Bool. { eq l lpred ≃ x } ➾ SIntPack l ·I ➔ X) {
+        | tt ➔ Λ e''. λ x. p (x.2.2.1 -(exact l lpred e''))
+        | ff ➔ Λ e''. λ x.
+          x.2.2.2 -[ nexact l lzero e , [ nexact l lsucc e' , nexact l lpred e'' ]] ·X
+        } -β
+      } -β
+    } -β
+.
+
+
+-- foldInt : ∀ X: ★. X ➔ (X ➔ X) ➔ (X ➔ X) ➔ Int ➔ X
+-- = Λ X. λ z. λ s. λ p.
+--   inductionM ·(λ _: Int. X)
+--     Λ R. Λ c. λ ih.
+--       caseIntG ·R ·X z (λ x. s (ih x)) (λ x. p (ih x))
+-- .
+
+-- import gnat
+

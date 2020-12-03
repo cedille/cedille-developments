@@ -9,10 +9,59 @@ SIntPack : Label ➔ ★ ➔ ★
     {l ≃ lpred} ➾ R.
     (ι _: Not·{l ≃ lzero}. ι _: Not·{l ≃ lsucc}. Not·{l ≃ lpred}) ➾ False .
 
+casesSIntPack
+: ∀ X: ★. ∀ R: ★. (SIntPack lzero ·R ➔ X) ➔ (SIntPack lsucc ·R ➔ X) ➔ (SIntPack lpred ·R ➔ X) ➔
+  Π l: Label. SIntPack l ·R ➔ X
+= Λ X. Λ R. λ z. λ s. λ p. λ l.
+  σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SIntPack l ·R ➔ X) {
+  | tt ➔ Λ e. λ ctors. z (ρ ς (exact l lzero e) - ctors)
+  | ff ➔ Λ nez. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x } ➾ SIntPack l ·R ➔ X) {
+    | tt ➔ Λ e. λ ctors. s (ρ ς (exact l lsucc e) - ctors)
+    | ff ➔ Λ nes. σ (eq l lpred) @(λ x: Bool. { eq l lpred ≃ x } ➾ SIntPack l ·R ➔ X) {
+      | tt ➔ Λ e. λ ctors. p (ρ ς (exact l lpred e) - ctors)
+      | ff ➔ Λ nep. λ ctors.
+        ctors.2.2.2
+          -[ nexact l lzero nez
+           , [ nexact l lsucc nes
+             , nexact l lpred nep ] ]
+          ·X
+      } -β
+    } -β
+  } -β .
+
 monoSIntPack : Π l: Label. Monotonic ·(SIntPack l)
 = λ l. Λ R1. Λ R2. λ c.
   intrCastI
     λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), [Λ e. cast -c (x.2.2.1 -e), Λ e. x.2.2.2 -e]]], β{|x|}].
+
+fmapSIntPack : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ Π l: Label. SIntPack l ·A ➔ SIntPack l ·B
+= Λ A. Λ B. λ f. λ l.
+  σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SIntPack l ·A ➔ SIntPack l ·B) {
+  | tt ➔ Λ ez. ρ (exact l lzero ez) - λ ctors.
+    [ ctors.1
+    , [ Λ es. explode' -(δ - es) β{|ctors|}
+    , [ Λ es. explode' -(δ - es) β{|ctors|}
+    , Λ nzsp. explode' -(nzsp.1 -β) β{|ctors|} ] ] ]
+  | ff ➔ Λ nez. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x } ➾ SIntPack l ·A ➔ SIntPack l ·B) {
+    | tt ➔ Λ es. ρ (exact l lsucc es) - λ ctors.
+      [ Λ ez. explode' -(δ - ez) β{|f ctors|}
+      , [ Λ _. f (ctors.2.1 -β)
+      , [ Λ ep. explode' -(δ - ep) β{|f ctors|}
+      , Λ nzsp. explode' -(nzsp.2.1 -β) β{|f ctors|} ] ] ]
+    | ff ➔ Λ nes. σ (eq l lpred) @(λ x: Bool. { eq l lpred ≃ x } ➾ SIntPack l ·A ➔ SIntPack l ·B) {
+      | tt ➔ Λ ep. ρ (exact l lpred ep) - λ ctors.
+        [ Λ ez. explode' -(δ - ez) β{|f ctors|}
+        , [ Λ es. explode' -(δ - es) β{|f ctors|}
+        , [ Λ _. f (ctors.2.2.1 -β)
+        , Λ nzsp. explode' -(nzsp.2.2 -β) β{|f ctors|} ] ] ]
+      | ff ➔ Λ nep. λ ctors.
+        [ Λ ez. explode' -(nexact l lzero nez -ez) β{|ctors|}
+        , [ Λ es. explode' -(nexact l lsucc nes -es) β{|ctors|}
+        , [ Λ ep. explode' -(nexact l lpred nep -ep) β{|ctors|}
+        ,  ctors.2.2.2 ]]]
+      } -β
+    } -β
+  } -β .
 
  {- σ x {
     | tuple4 z s p a ➔
@@ -30,3 +79,4 @@ import ../gensig ·Label ·SIntPack -monoSIntPack .
 
 SInt : ★ ➔ ★ = Sig .
 monoSInt = monoSig .
+

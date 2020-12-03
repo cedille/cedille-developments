@@ -9,16 +9,10 @@ module nat .
 Nat : ★ = IndM .
 
 zero : Nat
-= inIndM (mksigma lzero
-  [Λ _. unit,
-  [Λ e. explode' -(δ - e) β{|unit|},
-   Λ e. explode' -(e.1 -β) β{|unit|}]]).
+= inIndM (zeroS ·Nat).
 
 succ : Nat ➔ Nat
-= λ n. inIndM (mksigma lsucc
-  [Λ e. explode' -(δ - e) β{|n|},
-  [Λ _. n,
-   Λ e. explode' -(e.2 -β) β{|n|}]]).
+= λ n. inIndM (succS n).
 
 indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n
 = Λ P. λ z. λ s. inductionM·P Λ R. Λ c. λ ih. indSigma ·Label ·(λ l:Label. SNatPack l ·R)
@@ -33,6 +27,21 @@ indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n
     | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - [boom = ctors.2.2 -[e1, e2]] - explode boom
     } -β
   } β.
+
+foldNat : ∀ X: ★. X ➔ (X ➔ X) ➔ Nat ➔ X
+= Λ X. λ z. λ s. indNat ·(λ _: Nat. X) z (λ _. s) .
+
+caseNatG : ∀ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ SNat ·N ➔ X
+= Λ N. Λ X. λ z. λ s.
+  indSigma ·Label ·(λ l: Label. SNatPack l ·N) ·(λ _: SNat ·N. X)
+    λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SNatPack l ·N ➔ X) {
+    | tt ➔ Λ e. λ _. z
+    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ SNatPack l ·N ➔ X) {
+      | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
+      | ff ➔ Λ e'. λ x. x.2.2 -[ nexact l lzero e , nexact l lsucc e' ] ·X
+      } -β
+    } -β
+.
 
 {-
 indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n

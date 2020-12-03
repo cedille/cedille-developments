@@ -23,3 +23,19 @@ import ../gensig ·Label ·SNatPack -monoSNatPack .
 
 SNat : ★ ➔ ★ = Sig .
 monoSNat = monoSig .
+
+zeroS : ∀ N: ★. SNat ·N
+= Λ N.
+  mksigma lzero
+    [ Λ _. unit
+    , [ Λ e. explode' -(δ - e) β{|unit|}
+      , Λ e. explode' -(e.1 -β) β{|unit|} ] ]
+.
+
+succS : ∀ N: ★. N ➔ SNat ·N
+= Λ N. λ n.
+  mksigma lsucc
+    [ Λ e. explode' -(δ - e) β{|n|}
+    , [ Λ _. n
+      , Λ e. explode' -(e.2 -β) β{|n|} ] ]
+.
