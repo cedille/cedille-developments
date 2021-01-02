@@ -66,5 +66,34 @@ induct : Π n:Nat. ∀ P:Nat ➔ ★. P zero ➔ (∀ m:Nat. P m ➔ P (succ m))
 add : Nat ➔ Nat ➔ Nat
 = λ a. λ b. induct a·(λ x:Nat. Nat) b (Λ m. λ x. succ x).
 
+-- Church encodings make pattern matching a pain, so here we cheat by translating to a mendler encoding
+-- The schematic encoding uses mendler encodings, church encodings are used mostly for exposition
+data MNat : ★ =
+  | mzero : MNat
+  | msucc : MNat ➔ MNat.
+
+nat_to_mnat : Nat ➔ MNat
+= λ n. induct n·(λ _:Nat. MNat) mzero (Λ _. λ x. msucc x).
+
+mnat_to_nat : MNat ➔ Nat
+= λ m. μ rec. m {
+  | mzero ➔ zero
+  | msucc x ➔ succ (rec x)
+  }.
+
+mnat_eq : MNat ➔ MNat ➔ Bool
+= λ a. μ rec. a {
+  | mzero ➔ λ b. σ b {
+    | mzero ➔ tt
+    | msucc _ ➔ ff
+    }
+  | msucc x ➔ λ b. σ b {
+    | mzero ➔ ff
+    | msucc y ➔ rec x y
+    }
+  }.
+
+nat_eq : Nat ➔ Nat ➔ Bool
+= λ a. λ b. mnat_eq (nat_to_mnat a) (nat_to_mnat b).
 
 

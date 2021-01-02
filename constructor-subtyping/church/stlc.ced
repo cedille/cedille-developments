@@ -5,35 +5,34 @@ import list as List.
 
 module stlc.
 
+Nat : ★ = Nat.Nat.
 Index : ★ = Nat.Nat.
+nat_eq = Nat.nat_eq.
+zero = Nat.zero.
+succ = Nat.succ.
+
 Typ : ★ = Typ.Typ.
 base = Typ.base.
 arr = Typ.arr.
 typ_eq = Typ.typ_eq.
+
 Ctx : ★ = List.List·Typ.
 nil = List.nil·Typ.
 cons = List.cons·Typ.
-
-in : Typ ➔ Ctx ➔ Bool
-= λ t. λ g. List.induct g·(λ l:Ctx. Bool)
-  ff
-  (Λ _. λ x. λ g'. or (typ_eq t x) g').
+length = List.length.
+at = List.at·Typ typ_eq.
 
 StlcPack' : (Ctx ➔ Typ ➔ ★) ➔ Label ➔ ★ = λ X:Ctx ➔ Typ ➔ ★. λ l:Label. ι _:
-  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ X g a. ι _:
+  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. Π i:Index. {at i a g ≃ tt} ➾ X g a. ι _:
   {l ≃ labs} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. X (cons a g) b ➔ X g (arr a b).
   {l ≃ lapp} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. X g (arr a b) ➔ X g a ➔ X g b.
 
 Stlc' : Ctx ➔ Typ ➔ ★ = λ g:Ctx. λ ty:Typ.
   ∀ X:Ctx ➔ Typ ➔ ★. (Π l:Label. StlcPack'·X l) ➔ X g ty.
 
-var' : ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ Stlc' g a
-= Λ g. Λ a. Λ e. λ i. Λ X. λ f. [v = (f lvar).1 -β]
-  - v -g -a -e i.
-
--- the variable assumed to have a function type here has the base type
-_ : Stlc' (cons Typ.base (cons (Typ.arr Typ.base Typ.base) nil)) Typ.base
-= var' -(cons Typ.base (cons (Typ.arr Typ.base Typ.base) nil)) -Typ.base -β (Nat.succ Nat.zero) .
+var' : ∀ g:Ctx. ∀ a:Typ. Π i:Index. {at i a g ≃ tt} ➾ Stlc' g a
+= Λ g. Λ a. λ i. Λ e. Λ X. λ f. [v = (f lvar).1 -β]
+  - v -g -a i -e.
 
 abs' : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlc' (cons a g) b ➔ Stlc' g (arr a b)
 = Λ g. Λ a. Λ b. λ body. Λ X. λ f. [abs = (f labs).2.1 -β]
@@ -43,8 +42,23 @@ app' : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlc' g (arr a b) ➔ Stlc' g a ➔ Stlc
 = Λ g. Λ a. Λ b. λ fn. λ arg. Λ X. λ f. [app = (f lapp).2.2 -β]
   - app -g -a -b (fn·X f) (arg·X f).
 
+-- tests
+v1 : Stlc' (cons base nil) base
+= var' -(cons base nil) -base zero -β.
+
+t1 : Stlc' nil (arr base base)
+= abs' -nil -base -base v1.
+
+v2 : Stlc' (cons (arr base base) (cons base nil)) base
+= var' -(cons (arr base base) (cons base nil)) -base (succ zero) -β.
+
+-- v2 is free in t2
+t2 : Stlc' (cons base nil) (arr (arr base base) base)
+= abs' -(cons base nil) -(arr base base) -base v2.
+-- end tests
+
 StlcIndPack : (Π g:Ctx. Π t:Typ. Stlc' g t ➔ ★) ➔ Label ➔ ★ = λ P:(Π g:Ctx. Π t:Typ. Stlc' g t ➔ ★). λ l:Label. ι _:
-  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ e:{in a g ≃ tt}. Π i:Index. P g a (var' -g -a -e i) . ι _:
+  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. Π i:Index. ∀ e:{at i a g ≃ tt}. P g a (var' -g -a i -e) . ι _:
   {l ≃ labs} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc' (cons a g) b. P (cons a g) b x ➔ P g (arr a b) (abs' -g -a -b x).
   {l ≃ lapp} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc' g (arr a b). ∀ y:Stlc' g a.  P g (arr a b) x ➔ P g a y ➔ P g b (app' -g -a -b x y).
 
@@ -53,8 +67,8 @@ StlcInd : Π g:Ctx. Π t:Typ. Stlc' g t ➔ ★ = λ g:Ctx. λ t:Typ. λ s:Stlc'
 
 Stlc : Π g:Ctx. Π t:Typ. ★ = λ g:Ctx. λ t:Typ. ι s:Stlc' g t. StlcInd g t s.
 
-var : ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ Stlc g a
-= Λ g. Λ a. Λ e. λ i. [var' -g -a -e i, Λ P. λ f. [v = (f lvar).1 -β] - v -g -a -e i].
+var : ∀ g:Ctx. ∀ a:Typ. Π i:Index. {at i a g ≃ tt} ➾ Stlc g a
+= Λ g. Λ a. λ i. Λ e. [var' -g -a i -e, Λ P. λ f. [v = (f lvar).1 -β] - v -g -a i -e].
 
 abs : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlc (cons a g) b ➔ Stlc g (arr a b)
 = Λ g. Λ a. Λ b. λ body. [abs' -g -a -b body.1,
@@ -65,7 +79,7 @@ app : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlc g (arr a b) ➔ Stlc g a ➔ Stlc g 
   Λ P. λ f. [c = (f lapp).2.2 -β] - c -g -a -b -fn.1 -arg.1 (fn.2·P f) (arg.2·P f)].
 
 pack : ∀ P:(Π g:Ctx. Π t:Typ. Stlc' g t ➔ ★).
-  (∀ g:Ctx. ∀ a:Typ. ∀ e:{in a g ≃ tt}. Π i:Index. P g a (var' -g -a -e i)) ➔
+  (∀ g:Ctx. ∀ a:Typ. Π i:Index. ∀ e:{at i a g ≃ tt}. P g a (var' -g -a i -e)) ➔
   (∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc' (cons a g) b. P (cons a g) b x ➔ P g (arr a b) (abs' -g -a -b x)) ➔
   (∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc' g (arr a b). ∀ y:Stlc' g a.  P g (arr a b) x ➔ P g a y ➔ P g b (app' -g -a -b x y)) ➔
   Π l:Label. StlcIndPack·P l
@@ -101,12 +115,12 @@ to : ∀ g:Ctx. ∀ t:Typ. Stlc' g t ➔ Stlc g t
 reflection : ∀ g:Ctx. ∀ t:Typ. Π s:Stlc g t. {to s.1 ≃ s}
 = Λ g. Λ t. [P : Π g':Ctx. Π t':Typ. Stlc' g' t' ➔ ★ = λ g':Ctx. λ t':Typ. λ x:Stlc' g' t'. {(to x).1 ≃ x}]
   - λ s. s.2·P (pack·P
-  (Λ g'. Λ a. Λ e. λ i. β)
+  (Λ g'. Λ a. λ i. Λ e. β)
   (Λ g'. Λ a. Λ b. Λ x. λ e. ρ+ e - β)
   (Λ g'. Λ a. Λ b. Λ x. Λ y. λ px. λ py. ρ+ px - ρ+ py - β)).
 
 induct : ∀ g:Ctx. ∀ t:Typ. Π s:Stlc g t. ∀ P:(Π g':Ctx. Π t':Typ. Stlc g' t' ➔ ★).
-  (∀ g:Ctx. ∀ a:Typ. ∀ e:{in a g ≃ tt}. Π i:Index. P g a (var -g -a -e i)) ➔
+  (∀ g:Ctx. ∀ a:Typ. Π i:Index. ∀ e:{at i a g ≃ tt}. P g a (var -g -a i -e)) ➔
   (∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc (cons a g) b. P (cons a g) b x ➔ P g (arr a b) (abs -g -a -b x)) ➔
   (∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. ∀ x:Stlc g (arr a b). ∀ y:Stlc g a.  P g (arr a b) x ➔ P g a y ➔ P g b (app -g -a -b x y)) ➔
   P g t s

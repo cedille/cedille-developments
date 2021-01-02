@@ -1,6 +1,12 @@
 import ../lib/lib.
 
 module list.
+import nat as Nat.
+Nat : ★ = Nat.Nat.
+zero = Nat.zero.
+succ = Nat.succ.
+nat_eq = Nat.nat_eq.
+add = Nat.add.
 
 ListPack' : ★ ➔ ★ ➔ Label ➔ ★ = λ A:★. λ X:★. λ l:Label. ι _:
   {l ≃ lnil} ➾ X.
@@ -62,3 +68,38 @@ induct : ∀ A:★. Π n:List·A. ∀ P:List·A ➔ ★. P (nil·A) ➔ (∀ m:L
   z
   (Λ m. λ a. λ k. s -(to m) a k))).
 
+length : ∀ A:★. List·A ➔ Nat
+= Λ A. λ l. induct l·(λ x:List·A. Nat) zero (Λ m. λ a. λ c. succ c).
+
+data MList (A:★) : ★ =
+  | mnil : MList
+  | mcons : A ➔ MList ➔ MList.
+
+list_to_mlist : ∀ A:★. List·A ➔ MList·A
+= Λ A. λ l. induct·A l·(λ _:List·A. MList·A) (mnil·A) (Λ _. λ h. λ t. mcons h t).
+
+mlist_to_list :  ∀ A:★. MList·A ➔ List·A
+= Λ A. λ m. μ rec. m {
+  | mnil ➔ nil·A
+  | mcons h t ➔ cons h (rec t)
+  }.
+
+mlength : ∀ A:★. MList·A ➔ Nat
+= Λ A. λ m. μ rec. m {
+  | mnil ➔ zero
+  | mcons _ t ➔ succ (rec t)
+  }.
+
+-- The element closest to the top of the stack (the first cons) is index 0
+-- The indices are incremented by one from there on
+mat : ∀ A:★. (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ MList·A ➔ Bool
+= Λ A. λ eq. λ n. λ a. λ m. [max = mlength m] - μ rec. m {
+  | mnil ➔ ff
+  | mcons h t ➔ [t' = to/MList -isType/rec t]
+  - [tlen = mlength t']
+  - [idx = add (succ n) tlen]
+  - or (and (eq a h) (nat_eq idx max)) (rec t)
+  }.
+
+at : ∀ A:★. (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ List·A ➔ Bool
+= Λ A. λ eq. λ n. λ a. λ l. mat eq n a (list_to_mlist l).
