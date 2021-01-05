@@ -30,13 +30,7 @@ _ : Cast ·N.Nat' ·I.Int'
 List : ★ ➔ ★ = L.List.
 nil = L.nil.
 cons = L.cons.
-
-length : ∀ A:★. List·A ➔ Nat
-= Λ A. λ l. L.induct l·(λ x:List·A. Nat) zero (Λ m. λ a. λ c. succ c).
-
-_ : {length nil ≃ zero} = β.
-_ : {length (cons zero nil) ≃ succ zero} = β.
-_ : {length (cons zero (cons zero nil)) ≃ succ (succ zero)} = β.
+length = L.length.
 
 _ : ∀ A:★. CastDep·(List·A)·(λ l:List·A. V.VecTree·A (length l))
 = Λ A. intrCastDep
@@ -77,7 +71,6 @@ sumLemma : Π a:Bool. Π b:Bool. {or a b ≃ tt} ➔ Sum·{a ≃ tt}·{b ≃ tt}
     }
   }.
 
-
 typeqLemma : Π a:Typ. Π b:Typ. {S.typ_eq a b ≃ tt} ➔ {Se.typ_eq a b ≃ tt}
 = λ a. λ b. λ e. [e = Ty.typ_eq_exact a b e] - ρ e - ρ (ETy.typ_eq_refl (cast -typc1 b)) - β.
 
@@ -90,6 +83,9 @@ inLemma : Π g:S.Ctx. Π a:S.Typ. {S.in a g ≃ tt} ➔ {Se.in a g ≃ tt}
     | in2 e ➔ ρ (t e) - σ (Se.typ_eq (cast -typc1 a) (cast -typc1 a')) { tt ➔ β | ff ➔ β }
     })} - ρ k - β).
 
+atLemma : Π g:S.Ctx. Π a:S.Typ. Π i:Nat. {S.at i a g ≃ tt} ➔ {Se.at i a g ≃ tt}
+= ●.
+
 Stlc : S.Ctx ➔ S.Typ ➔ ★ = S.Stlc.
 Stlce : Se.Ctx ➔ Se.Typ ➔ ★ = Se.Stlce.
 var = S.var.
@@ -99,10 +95,10 @@ app = S.app.
 _ : ∀ g:S.Ctx. ∀ t:S.Typ. Cast·(Stlc g t)·(Stlce (cast -typc2 g) (cast -typc1 t))
 = Λ g. Λ t. intrCast
   (λ s. S.induct -g -t s·(λ g':S.Ctx. λ t':S.Typ. λ s':Stlc g' t'. Stlce (cast -typc2 g') (cast -typc1 t'))
-    (Λ g'. Λ a. Λ e. λ i. Se.var -(cast -typc2 g') -(cast -typc1 a) -(inLemma g' a e) i)
+    (Λ g'. Λ a. λ i. Λ e. Se.var -(cast -typc2 g') -(cast -typc1 a) i -(atLemma g' a i e))
     (Λ g'. Λ a. Λ b. Λ x. λ px. Se.abs -(cast -typc2 g') -(cast -typc1 a) -(cast -typc1 b) px)
     (Λ g'. Λ a. Λ b. Λ x. Λ y. λ px. λ py. Se.app -(cast -typc2 g') -(cast -typc1 a) -(cast -typc1 b) px py))
   (λ s. S.induct -g -t s·(λ g':S.Ctx. λ t':S.Typ. λ s':Stlc g' t'. {S.induct s' var abs app ≃ s'})
-    (Λ g'. Λ a. Λ e. λ i. β)
+    (Λ g'. Λ a. λ i. Λ e.  β)
     (Λ g'. Λ a. Λ b. Λ x. λ px. ρ+ px - β)
     (Λ g'. Λ a. Λ b. Λ x. Λ y. λ px. λ py. ρ+ px - ρ+ py - β)).

@@ -12,17 +12,15 @@ nat = ETyp.nat.
 base = ETyp.base.
 arr = ETyp.arr.
 typ_eq = ETyp.typ_eq.
+
 Ctx : ★ = List.List·Typ.
 nil = List.nil·Typ.
 cons = List.cons·Typ.
-
-in : Typ ➔ Ctx ➔ Bool
-= λ t. λ g. List.induct g·(λ l:Ctx. Bool)
-  ff
-  (Λ _. λ x. λ g'. or (typ_eq t x) g').
+length = List.length.
+at = List.at·Typ typ_eq.
 
 StlcePack : (Ctx ➔ Typ ➔ ★) ➔ Label ➔ ★ = λ X:Ctx ➔ Typ ➔ ★. λ l:Label. ι _:
-  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ X g a. ι _:
+  {l ≃ lvar} ➾ ∀ g:Ctx. ∀ a:Typ. Π i:Index. {at i a g ≃ tt} ➾ X g a. ι _:
   {l ≃ labs} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. X (cons a g) b ➔ X g (arr a b). ι _:
   {l ≃ lapp} ➾ ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. X g (arr a b) ➔ X g a ➔ X g b. ι _:
   {l ≃ lnum} ➾ ∀ g:Ctx. Nat ➔ X g nat.
@@ -31,9 +29,9 @@ StlcePack : (Ctx ➔ Typ ➔ ★) ➔ Label ➔ ★ = λ X:Ctx ➔ Typ ➔ ★. 
 Stlce : Ctx ➔ Typ ➔ ★ = λ g:Ctx. λ ty:Typ.
   ∀ X:Ctx ➔ Typ ➔ ★. (Π l:Label. StlcePack·X l) ➔ X g ty.
 
-var : ∀ g:Ctx. ∀ a:Typ. {in a g ≃ tt} ➾ Index ➔ Stlce g a
-= Λ g. Λ a. Λ e. λ i. Λ X. λ f. [v = (f lvar).1 -β]
-  - v -g -a -e i.
+var : ∀ g:Ctx. ∀ a:Typ. Π i:Index. {at i a g ≃ tt} ➾ Stlce g a
+= Λ g. Λ a. λ i. Λ e. Λ X. λ f. [v = (f lvar).1 -β]
+  - v -g -a i -e.
 
 abs : ∀ g:Ctx. ∀ a:Typ. ∀ b:Typ. Stlce (cons a g) b ➔ Stlce g (arr a b)
 = Λ g. Λ a. Λ b. λ body. Λ X. λ f. [abs = (f labs).2.1 -β]
