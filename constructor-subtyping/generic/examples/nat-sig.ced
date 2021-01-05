@@ -1,6 +1,6 @@
 import ../../lib/lib.
 
-module snat.
+module generic/examples/nat-sig .
 
 SNatPack : Label ➔ ★ ➔ ★
 = λ l: Label. λ R: ★.
@@ -10,16 +10,9 @@ monoSNatPack : Π l: Label. Monotonic ·(SNatPack l)
 = λ l. Λ R1. Λ R2. λ c.
   intrCastI
     λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
+.
 
-
-  {- σ x {
-    | tuple3 z s a ➔
-      [s' : {l ≃ lsucc} ➔ View ·R2 t
-        = λ eq. [ elimCast -c (s eq).1 , ρ+ (s eq).2 - β{|s eq|} ]]
-    - [ tuple3 z s' a , β{|tuple3 z s a|} ]
-    -} .
-
-import ../gensig ·Label ·SNatPack -monoSNatPack .
+import ../extensible-signature ·Label ·SNatPack -monoSNatPack .
 
 SNat : ★ ➔ ★ = Sig .
 monoSNat = monoSig .
@@ -38,4 +31,16 @@ succS : ∀ N: ★. N ➔ SNat ·N
     [ Λ e. explode' -(δ - e) β{|n|}
     , [ Λ _. n
       , Λ e. explode' -(e.2 -β) β{|n|} ] ]
+.
+
+caseSNat : ∀ N: ★. SNat ·N ➔ ∀ X: ★. X ➔ (N ➔ X) ➔ X
+= Λ N. λ n. Λ X. λ z. λ s.
+  indSigma ·Label ·(λ l: Label. SNatPack l ·N) ·(λ _: SNat ·N. X)
+    (λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SNatPack l ·N ➔ X) {
+    | tt ➔ Λ e. λ _. z
+    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ SNatPack l ·N ➔ X) {
+      | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
+      | ff ➔ Λ e'. λ x. x.2.2 -[ nexact l lzero e , nexact l lsucc e' ] ·X
+      } -β
+    } -β) n
 .

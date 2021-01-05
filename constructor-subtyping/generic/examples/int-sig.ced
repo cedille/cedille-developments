@@ -1,6 +1,6 @@
 import ../../lib/lib.
 
-module sint .
+module int-sig .
 
 SIntPack : Label ➔ ★ ➔ ★
 = λ l: Label. λ R: ★. ι _:
@@ -9,10 +9,11 @@ SIntPack : Label ➔ ★ ➔ ★
     {l ≃ lpred} ➾ R.
     (ι _: Not·{l ≃ lzero}. ι _: Not·{l ≃ lsucc}. Not·{l ≃ lpred}) ➾ False .
 
-casesSIntPack
-: ∀ X: ★. ∀ R: ★. (SIntPack lzero ·R ➔ X) ➔ (SIntPack lsucc ·R ➔ X) ➔ (SIntPack lpred ·R ➔ X) ➔
-  Π l: Label. SIntPack l ·R ➔ X
-= Λ X. Λ R. λ z. λ s. λ p. λ l.
+caseSIntPack
+: ∀ X: ★. ∀ R: ★. Π l: Label. SIntPack l ·R ➔
+  (SIntPack lzero ·R ➔ X) ➔ (SIntPack lsucc ·R ➔ X) ➔ (SIntPack lpred ·R ➔ X) ➔
+   X
+= Λ X. Λ R. λ l. λ i. λ z. λ s. λ p.
   σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SIntPack l ·R ➔ X) {
   | tt ➔ Λ e. λ ctors. z (ρ ς (exact l lzero e) - ctors)
   | ff ➔ Λ nez. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x } ➾ SIntPack l ·R ➔ X) {
@@ -27,7 +28,7 @@ casesSIntPack
           ·X
       } -β
     } -β
-  } -β .
+  } -β i .
 
 monoSIntPack : Π l: Label. Monotonic ·(SIntPack l)
 = λ l. Λ R1. Λ R2. λ c.
@@ -63,20 +64,20 @@ fmapSIntPack : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ Π l: Label. SIntPack l ·A
     } -β
   } -β .
 
- {- σ x {
-    | tuple4 z s p a ➔
-      [s' : {l ≃ lsucc} ➔ View ·R2 t
-        = λ eq. [ elimCast -c (s eq).1 , ρ+ (s eq).2 - β{|s eq|} ]]
-    - [p' : {l ≃ lpred} ➔ View ·R2 t
-        = λ eq. [ elimCast -c (p eq).1 , ρ+ (p eq).2 - β{|p eq|} ]]
-    - [ tuple4 z s' p' a , β{|tuple4 z s p a |}]
-    } . -}
-
-
---    λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
-
-import ../gensig ·Label ·SIntPack -monoSIntPack .
+import ../extensible-signature ·Label ·SIntPack -monoSIntPack .
 
 SInt : ★ ➔ ★ = Sig .
 monoSInt = monoSig .
 
+ipredS : ∀ I: ★. I ➔ SInt ·I
+= Λ I. λ n.
+  mksigma lpred
+    [ Λ e. explode' -(δ - e) β{|n|} ,
+    [ Λ e. explode' -(δ - e) β{|n|} ,
+    [ Λ _. n ,
+      Λ e. explode' -(e.2.2 -β) β{|n|} ]]] .
+
+caseSInt : ∀ I: ★. SInt ·I ➔ ∀ X: ★. X ➔ (I ➔ X) ➔ (I ➔ X) ➔ X
+= Λ I. λ i. Λ X. λ z. λ s. λ p.
+  caseSIntPack ·X ·I (proj1 i) (proj2 i)
+    (λ _. z) (λ i. s (i.2.1 -β)) (λ i. p (i.2.2.1 -β)) .

@@ -1,40 +1,39 @@
 import ../../lib/lib.
 
-import sint .
+import int-sig .
 
-import ../ind ·SInt -monoSInt .
+import ../encoding ·SInt -monoSInt .
 
-module int .
+module generic/examples/int .
 
-Int : ★ = IndM .
+import int-reuse-nat .
+import nat-ext ·SInt -monoSInt -snat2sint .
 
-izero : Int
-= inIndM (mksigma lzero
-  [Λ _. unit,
-  [Λ e. explode' -(δ - e) β{|unit|},
-  [Λ e. explode' -(δ - e) β{|unit|},
-   Λ e. explode' -(e.1 -β) β{|unit|}]]]).
+Int : ★ = Ind .
 
-isucc : Int ➔ Int
-= λ n. inIndM (mksigma lsucc
-  [Λ e. explode' -(δ - e) β{|n|},
-  [Λ _. n,
-  [Λ e. explode' -(δ - e) β{|n|},
-   Λ e. explode' -(e.2.1 -β) β{|n|}]]]).
+izero = zeroE .
+isucc = succE .
+ipred : Int ➔ Int = λ i. in (ipredS i) .
 
-ipred : Int ➔ Int
-= λ n. inIndM (mksigma lpred
-  [Λ e. explode' -(δ - e) β{|n|},
-  [Λ e. explode' -(δ - e) β{|n|},
-  [Λ _. n,
-   Λ e. explode' -(e.2.2 -β) β{|n|}]]]).
+-- some functions
 
+import ../encoding as PredInt ·(SIntPack lpred) -(monoSIntPack lpred) .
+addPred : PredInt.Alg ·(Int ➔ Int)
+= Λ R. λ add. λ m. λ n.
+  ipred (add (m.2.2.1 -β) n) .
+
+addInt : Int ➔ Int ➔ Int
+= fold (nat2intalg addE addPred) .
+
+_ : { addInt (isucc izero) (ipred izero) ≃ isucc (ipred izero)} = β .
+
+{-
 foldIntG : ∀ X: ★. (SIntPack lzero ·X ➔ X) ➔ (SIntPack lsucc ·X ➔ X) ➔ (SIntPack lpred ·X ➔ X) ➔ Int ➔ X
 = Λ X. λ z. λ s. λ p.
-  inductionM ·(λ i: Int. X)
+  induction ·(λ i: Int. X)
     Λ R. Λ c. λ ih.
     indSigma ·Label ·(λ l: Label. SIntPack l ·R) ·(λ x: SInt ·R. X)
-      λ l. λ ctors. casesSIntPack z s p l (fmapSIntPack ih l ctors)
+      λ l. λ ctors. caseSIntPack z s p l (fmapSIntPack ih l ctors)
 .
 
 caseIntG : ∀ I: ★. ∀ X: ★. X ➔ (I ➔ X) ➔ (I ➔ X) ➔ SInt ·I ➔ X
@@ -52,14 +51,3 @@ caseIntG : ∀ I: ★. ∀ X: ★. X ➔ (I ➔ X) ➔ (I ➔ X) ➔ SInt ·I �
       } -β
     } -β
 .
-
-
--- foldInt : ∀ X: ★. X ➔ (X ➔ X) ➔ (X ➔ X) ➔ Int ➔ X
--- = Λ X. λ z. λ s. λ p.
---   inductionM ·(λ _: Int. X)
---     Λ R. Λ c. λ ih.
---       caseIntG ·R ·X z (λ x. s (ih x)) (λ x. p (ih x))
--- .
-
--- import gnat
-

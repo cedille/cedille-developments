@@ -1,85 +1,32 @@
 import ../../lib/lib.
 
-import snat .
-
-import ../ind ·SNat -monoSNat .
+import ../reuse .
+import nat-sig .
+import nat-ext ·SNat -monoSNat -(sigsubRefl -monoSNat) .
+import ../encoding ·SNat -monoSNat .
 
 module nat .
 
-Nat : ★ = IndM .
+Nat : ★ = Ind .
 
-zero : Nat
-= inIndM (zeroS ·Nat).
-
-succ : Nat ➔ Nat
-= λ n. inIndM (succS n).
+zero = zeroE .
+succ = succE .
 
 indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n
-= Λ P. λ z. λ s. inductionM·P Λ R. Λ c. λ ih. indSigma ·Label ·(λ l:Label. SNatPack l ·R)
-  ·(λ xs:SNat ·R. P (inIndM (cast -(monoSNat c) xs)))
-  λ l. λ ctors. σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➔ P (inIndM (cast -(monoSNat c) (mksigma l ctors))) {
+= Λ P. λ z. λ s. induction ·P Λ R. Λ c. λ ih. indSigma ·Label ·(λ l:Label. SNatPack l ·R)
+  ·(λ xs:SNat ·R. P (in (cast -(monoSNat c) xs)))
+  λ l. λ ctors. σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➔ P (in (cast -(monoSNat c) (mksigma l ctors))) {
   | tt ➔ λ e. [e = exact l lzero e] - [u = ctors.1 -e] - [u':{ctors ≃ u} = β] - ρ e - ρ u'
-  - σ u @ λ x:Unit. ∀ eq:{x ≃ u}. P (inIndM (cast -(monoSNat c) (mksigma lzero [Λ _. x, [Λ e. explode' -(δ - e) β{|x|}, Λ e. explode' -(e.1 -β) β{|x|}]]))) {
+  - σ u @ λ x:Unit. ∀ eq:{x ≃ u}. P (in (cast -(monoSNat c) (mksigma lzero [Λ _. x, [Λ e. explode' -(δ - e) β{|x|}, Λ e. explode' -(e.1 -β) β{|x|}]]))) {
     | unit ➔ Λ _. z
     } -β
-  | ff ➔ λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ P (inIndM (cast -(monoSNat c) (mksigma l ctors))) {
+  | ff ➔ λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ P (in (cast -(monoSNat c) (mksigma l ctors))) {
     | tt ➔ Λ e. [e = exact l lsucc e] - [r = ctors.2.1 -e] - ρ e - s (cast -c r) (ih r)
     | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - [boom = ctors.2.2 -[e1, e2]] - explode boom
     } -β
   } β.
 
-foldNat : ∀ X: ★. X ➔ (X ➔ X) ➔ Nat ➔ X
-= Λ X. λ z. λ s. indNat ·(λ _: Nat. X) z (λ _. s) .
+-- some functions
 
-caseNatG : ∀ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ SNat ·N ➔ X
-= Λ N. Λ X. λ z. λ s.
-  indSigma ·Label ·(λ l: Label. SNatPack l ·N) ·(λ _: SNat ·N. X)
-    λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SNatPack l ·N ➔ X) {
-    | tt ➔ Λ e. λ _. z
-    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ SNatPack l ·N ➔ X) {
-      | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
-      | ff ➔ Λ e'. λ x. x.2.2 -[ nexact l lzero e , nexact l lsucc e' ] ·X
-      } -β
-    } -β
-.
-
-{-
-indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n
-= Λ P. λ z. λ s.
-  inductionM ·P
-    Λ R. Λ c. λ ih.
-    indSigma ·Label ·(λ l: Label. WkSigma ·Top ·(λ t: Top. SNatPack l t ·R))
-      ·(λ xs: SNat ·R. P (inIndM (elimCast -(monoSNat c) xs)))
-      λ l.
-      σ l @λ x: Label. Π w: WkSigma ·Top ·(λ t: Top. SNatPack x t ·R).
-                       P (inIndM (elimCast -(monoSNat c) (mksigma x w))) {
-      | l0 ➔ λ w.
-        θ<w> (indWkSigma w)
-          (λ t. Λ b.
-             [t' : Unit = retype t -(t3fst b β)]
-           - σ t'
-             @(λ x: Unit.
-               Π eq: {x ≃ t}.
-               P (inIndM
-                 (elimCast -(monoSNat c)
-                   (mksigma l0
-                     (intrWkSigma β{|x|}
-                       -(ρ eq - b)))))) {
-             | unit ➔ λ eq. z
-             } β)
-      | lnext l' ➔
-        σ l'
-        @λ x: Label.
-           Π w: WkSigma ·Top ·(λ t: Top. SNatPack (lnext x) t ·R).
-           P (inIndM (elimCast -(monoSNat c) (mksigma (lnext x) w))) {
-        | l0 ➔ λ w.
-          θ<w> (indWkSigma w)
-            (λ t: Top. Λ b.
-               [t' : R = retype t -(t3snd b β) ]
-             - s (elimCast -c t') (ih t'))
-        | lnext l'' ➔ λ w.
-          θ<w> (indWkSigma w)
-            (λ t. Λ b. δ - t3thd b β ·{λ x. λ y. x ≃ λ x. λ y. y})
-        }
-      } .
--}
+add : Nat ➔ Nat ➔ Nat
+= fold addE .

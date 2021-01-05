@@ -1,12 +1,4 @@
-module alg (F: ★ ➔ ★).
-
-Alg : ★ ➔ ★ = λ X: ★. F ·X ➔ X.
-Fix : ★ = ∀ X: ★. Alg ·X ➔ X.
-
-fold : ∀ X: ★. Alg ·X ➔ Fix ➔ X
-= Λ X. λ alg. λ d. d alg.
-
-{- `in` not definable without requiring F is a functor -}
+module generic/encoding/alg (F: ★ ➔ ★).
 
 AlgM : ★ ➔ ★ = λ X: ★. ∀ R: ★. (R ➔ X) ➔ F ·R ➔ X.
 FixM : ★ = ∀ X: ★. AlgM ·X ➔ X.

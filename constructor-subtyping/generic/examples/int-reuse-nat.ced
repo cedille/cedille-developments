@@ -1,0 +1,33 @@
+import ../../lib/lib .
+
+module generic/examples/int-reuse-nat .
+
+import nat-sig .
+import int-sig .
+
+nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatPack l ·R) ·(SIntPack l ·R)
+= λ l. Λ R.
+  intrCastI λ x. [[x.1, [x.2.1,
+    [Λ e. x.2.2
+      -([Λ n. [k:{lpred ≃ lzero} = ρ ς e - ρ ς n - β] - δ - k,
+         Λ n. [k:{lpred ≃ lsucc} = ρ ς e - ρ ς n - β] - δ - k]) ·R,
+     Λ e. x.2.2 -[e.1, e.2.1]
+     ]]],
+     β{|x|}].
+
+import ../reuse .
+import ../extensible-signature .
+
+snat2sint : SigSub ·SNat ·SInt
+= sigsub -monoSNatPack -monoSIntPack (castRefl ·Label) nat2intPack .
+
+import ../encoding as Nat ·SNat -monoSNat .
+import ../encoding as Int ·SInt -monoSInt .
+import ../encoding as PredInt ·(SIntPack lpred) -(monoSIntPack lpred) .
+
+nat2intalg : ∀ X: ★. Nat.Alg ·X ➔ PredInt.Alg ·X ➔ Int.Alg ·X
+= Λ X. λ a. λ p. Λ R. λ rec. λ i.
+  caseSIntPack (proj1 i) (proj2 i)
+    (λ _. a rec (zeroS ·R))
+    (λ i'. a rec (succS ·R (i'.2.1 -β)))
+    (p rec) .

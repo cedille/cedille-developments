@@ -1,14 +1,10 @@
 
-import ../lib/lib.
+import ../../lib/lib.
 
-module ind (F: ★ ➔ ★) {mono: Monotonic ·F}.
+module generic/encoding/ind (F: ★ ➔ ★) {mono: Monotonic ·F}.
 
 import alg ·F.
-import public prfalg ·F -mono.
-
--- inductionMFail : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inIndM ➔ Π d: IndM. P d
--- = Λ P. λ alg. λ d. d.2 ·P ●.
-
+import prfalg ·F -mono.
 
 Lift : (IndM ➔ ★) ➔ FixM ➔ ★
 = λ P: IndM ➔ ★. λ x: FixM.
@@ -17,12 +13,6 @@ Lift : (IndM ➔ ★) ➔ FixM ➔ ★
 IhPlus : Π R: ★. Cast ·R ·FixM ➔ (IndM ➔ ★) ➔ ★
 = λ R: ★. λ c: Cast ·R ·FixM. λ P: IndM ➔ ★.
   Π r: R. Lift ·P (elimCast -c r).
-
-{-
-r : R, c : Cast ·R ·FixM
-proj1 (ih r) : IndM
-proj1 (proj2 (ih r)) : {proj1 (ih r) ≃ r}
--}
 
 castIhPlus
 : ∀ R: ★. ∀ c: Cast ·R ·FixM. ∀ P: IndM ➔ ★. IhPlus ·R c ·P ➔ Cast ·R ·IndM
@@ -48,3 +38,6 @@ inductionM : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inIndM ➔ Π d: IndM. P d
 
 outM : IndM ➔ F ·IndM
 = inductionM ·(λ _: IndM. F ·IndM) (Λ R. Λ c. λ _. λ xs. elimCast -(mono c) xs).
+
+foldIndM : ∀ X: ★. AlgM ·X ➔ IndM ➔ X
+= Λ X. λ a. inductionM ·(λ _: IndM. X) (Λ R. Λ _. a ·R) .

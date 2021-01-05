@@ -1,0 +1,9 @@
+module generic/reuse/sigsub .
+
+import ../../lib/lib.
+
+SigSub : (★ ➔ ★) ➔ (★ ➔ ★) ➔ ★
+= λ F: ★ ➔ ★. λ G: ★ ➔ ★. ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➾ Cast ·(F ·X) ·(G ·Y) .
+
+sigsubRefl : ∀ F: ★ ➔ ★. Monotonic ·F ➾ SigSub ·F ·F
+= Λ F. Λ mono. Λ X. Λ Y. Λ c. intrCast (elimCast -(mono c)) (λ _. β) .

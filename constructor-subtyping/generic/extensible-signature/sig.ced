@@ -1,7 +1,7 @@
 
-import ../lib/lib.
+import ../../lib/lib.
 
-module gensig (A: ★) (B: A ➔ ★ ➔ ★) {monoB: Π a: A. Monotonic ·(B a)} .
+module extensible-signature/sig (A: ★) (B: A ➔ ★ ➔ ★) {monoB: Π a: A. Monotonic ·(B a)} .
 
 -- CtArgs : ★ ➔ A ➔ ★ = λ R: ★. λ a: A. B a ·R.
 Sig : ★ ➔ ★ = λ R: ★. Sigma ·A ·(λ a: A. B a ·R) .
@@ -15,12 +15,4 @@ monoSig : Monotonic ·Sig
          [lem: Cast ·(B a ·R1) ·(B a ·R2)
            = intrCastI (λ x. [cast -(monoB a c) x, β{|x|}])]
 	   - [mksigma a (cast -lem b), β{|mksigma a b|}])
-
-  {-
-               (λ x. θ<x> (indWkSigma x)
-                       (λ t. Λ br.
-                        [ intrWkSigma t -(elimCast -(monoB a t c) br)
-                        , β{| intrWkSigma t |}]))]
-       - [ mksigma a (elimCast -lem b) , β{| mksigma a b |} ])
-  -}
     .

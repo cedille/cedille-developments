@@ -1,13 +1,13 @@
-import ../lib/lib.
-import sigsub .
+import ../../lib/lib.
+import ../reuse/signature-subtyping .
 
 
-module gensigsub
+module generic/extensigble-signature/sub
   (A1: ★) (B1: A1 ➔ ★ ➔ ★) {monoB1: Π a: A1. Monotonic ·(B1 a)}
   (A2: ★) (B2: A2 ➔ ★ ➔ ★) {monoB2: Π a: A2. Monotonic ·(B2 a)} .
 
-import gensig as F ·A1 ·B1 -monoB1 .
-import gensig as G ·A2 ·B2 -monoB2 .
+import sig as F ·A1 ·B1 -monoB1 .
+import sig as G ·A2 ·B2 -monoB2 .
 
 -- if
 -- 1. the labels for F are a subtype of the labels for G
@@ -16,7 +16,7 @@ import gensig as G ·A2 ·B2 -monoB2 .
 --
 -- then, F is a sub-signature of G
 
-gensigsub
+sigsub
 : Π c: Cast ·A1 ·A2. (Π a1: A1. ∀ R: ★. Cast ·(B1 a1 ·R) ·(B2 (elimCast -c a1) ·R)) ➔
   SigSub ·F.Sig ·G.Sig
 = λ cA. λ cC. Λ R1. Λ R2. Λ cR.
