@@ -2,12 +2,12 @@ import ../../lib/lib.
 
 import int-sig .
 
-import ../encoding ·SInt -monoSInt .
+import ../encoding ·IntSig -monoIntSig .
 
 module generic/examples/int .
 
 import int-reuse-nat .
-import nat-ext ·SInt -monoSInt -snat2sint .
+import nat-ext ·IntSig -monoIntSig -snat2sint .
 
 Int : ★ = Ind .
 
@@ -17,7 +17,7 @@ ipred : Int ➔ Int = λ i. in (ipredS i) .
 
 -- some functions
 
-import ../encoding as PredInt ·(SIntPack lpred) -(monoSIntPack lpred) .
+import ../encoding as PredInt ·(IntPack lpred) -(monoIntPack lpred) .
 addPred : PredInt.Alg ·(Int ➔ Int)
 = Λ R. λ add. λ m. λ n.
   ipred (add (m.2.2.1 -β) n) .

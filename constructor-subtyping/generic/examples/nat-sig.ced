@@ -2,45 +2,45 @@ import ../../lib/lib.
 
 module generic/examples/nat-sig .
 
-SNatPack : Label ➔ ★ ➔ ★
+NatPack : Label ➔ ★ ➔ ★
 = λ l: Label. λ R: ★.
   ι _: {l ≃ lzero} ➾ Unit. ι _: {l ≃ lsucc} ➾ R. (ι _:Not·{l ≃ lzero}. Not·{l ≃ lsucc}) ➾ False.
 
-monoSNatPack : Π l: Label. Monotonic ·(SNatPack l)
+monoNatPack : Π l: Label. Monotonic ·(NatPack l)
 = λ l. Λ R1. Λ R2. λ c.
   intrCastI
     λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
 .
 
-import ../extensible-signature ·Label ·SNatPack -monoSNatPack .
+import ../extensible-signature ·Label ·NatPack -monoNatPack .
 
-SNat : ★ ➔ ★ = Sig .
-monoSNat = monoSig .
+NatSig : ★ ➔ ★ = Sig .
+monoNatSig = monoSig .
 
-zeroS : ∀ N: ★. SNat ·N
-= Λ N.
-  mksigma lzero
-    [ Λ _. unit
-    , [ Λ e. explode' -(δ - e) β{|unit|}
-      , Λ e. explode' -(e.1 -β) β{|unit|} ] ]
-.
+zeroP : ∀ N: ★. NatPack lzero ·N
+= Λ N. [ Λ _. unit , [ Λ e. explode' -(δ - e) β{|unit|} ,
+         Λ e. explode' -(e.1 -β) β{|unit|} ] ] .
 
-succS : ∀ N: ★. N ➔ SNat ·N
-= Λ N. λ n.
-  mksigma lsucc
-    [ Λ e. explode' -(δ - e) β{|n|}
-    , [ Λ _. n
-      , Λ e. explode' -(e.2 -β) β{|n|} ] ]
-.
+succP : ∀ N: ★. N ➔ NatPack lsucc ·N
+= Λ N. λ n. [ Λ e. explode' -(δ - e) β{|n|} , [ Λ _. n ,
+              Λ e. explode' -(e.2 -β) β{|n|} ] ] .
 
-caseSNat : ∀ N: ★. SNat ·N ➔ ∀ X: ★. X ➔ (N ➔ X) ➔ X
+zeroS : ∀ N: ★. NatSig ·N = Λ N. mksigma lzero (zeroP ·N) .
+
+succS : ∀ N: ★. N ➔ NatSig ·N = Λ N. λ n. mksigma lsucc (succP n) .
+
+caseNatSig : ∀ N: ★. NatSig ·N ➔ ∀ X: ★. X ➔ (N ➔ X) ➔ X
 = Λ N. λ n. Λ X. λ z. λ s.
-  indSigma ·Label ·(λ l: Label. SNatPack l ·N) ·(λ _: SNat ·N. X)
-    (λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ SNatPack l ·N ➔ X) {
+  indSigma ·Label ·(λ l: Label. NatPack l ·N) ·(λ _: NatSig ·N. X)
+    (λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ NatPack l ·N ➔ X) {
     | tt ➔ Λ e. λ _. z
-    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ SNatPack l ·N ➔ X) {
+    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ NatPack l ·N ➔ X) {
       | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
       | ff ➔ Λ e'. λ x. x.2.2 -[ nexact l lzero e , nexact l lsucc e' ] ·X
       } -β
     } -β) n
 .
+
+_ : ∀ z: Top. ∀ s: Top. {caseNatSig zeroS z s ≃ z } = Λ _. Λ _. β .
+_ : ∀ z: Top. ∀ s: Top. ∀ n: Top. {caseNatSig (succS n) z s ≃ s n}
+= Λ _. Λ _. Λ _. β .

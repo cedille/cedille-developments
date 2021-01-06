@@ -24,9 +24,5 @@ sigsub
     (indSigma ·A1 ·(λ a: A1. B1 a ·R1) ·(λ x: F.Sig ·R1. ι y: G.Sig ·R2. { y ≃ x })
       λ a1. λ ctor.
         [lem : Cast ·(B1 a1 ·R1) ·(B1 a1 ·R2) = monoB1 a1 cR]
-
-  {- λ x. θ<x> (indWkSigma x)
-                     (λ t. Λ b. [ intrWkSigma t -(elimCast -(monoB1 a1 t cR) b)
-                                , β{|intrWkSigma t|} ])] -}
       - [ mksigma (elimCast -cA a1) (elimCast -(cC a1 ·R2) (elimCast -lem ctor)) , β{|mksigma a1 ctor|} ]) .
 

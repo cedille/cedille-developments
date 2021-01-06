@@ -2,8 +2,8 @@ import ../../lib/lib.
 
 import ../reuse .
 import nat-sig .
-import nat-ext ·SNat -monoSNat -(sigsubRefl -monoSNat) .
-import ../encoding ·SNat -monoSNat .
+import nat-ext ·NatSig -monoNatSig -(sigsubRefl -monoNatSig) .
+import ../encoding ·NatSig -monoNatSig .
 
 module nat .
 
@@ -13,14 +13,14 @@ zero = zeroE .
 succ = succE .
 
 indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n: Nat. P n
-= Λ P. λ z. λ s. induction ·P Λ R. Λ c. λ ih. indSigma ·Label ·(λ l:Label. SNatPack l ·R)
-  ·(λ xs:SNat ·R. P (in (cast -(monoSNat c) xs)))
-  λ l. λ ctors. σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➔ P (in (cast -(monoSNat c) (mksigma l ctors))) {
+= Λ P. λ z. λ s. induction ·P Λ R. Λ c. λ ih. indSigma ·Label ·(λ l:Label. NatPack l ·R)
+  ·(λ xs:NatSig ·R. P (in (cast -(monoNatSig c) xs)))
+  λ l. λ ctors. σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➔ P (in (cast -(monoNatSig c) (mksigma l ctors))) {
   | tt ➔ λ e. [e = exact l lzero e] - [u = ctors.1 -e] - [u':{ctors ≃ u} = β] - ρ e - ρ u'
-  - σ u @ λ x:Unit. ∀ eq:{x ≃ u}. P (in (cast -(monoSNat c) (mksigma lzero [Λ _. x, [Λ e. explode' -(δ - e) β{|x|}, Λ e. explode' -(e.1 -β) β{|x|}]]))) {
+  - σ u @ λ x:Unit. ∀ eq:{x ≃ u}. P (in (cast -(monoNatSig c) (mksigma lzero [Λ _. x, [Λ e. explode' -(δ - e) β{|x|}, Λ e. explode' -(e.1 -β) β{|x|}]]))) {
     | unit ➔ Λ _. z
     } -β
-  | ff ➔ λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ P (in (cast -(monoSNat c) (mksigma l ctors))) {
+  | ff ➔ λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ P (in (cast -(monoNatSig c) (mksigma l ctors))) {
     | tt ➔ Λ e. [e = exact l lsucc e] - [r = ctors.2.1 -e] - ρ e - s (cast -c r) (ih r)
     | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - [boom = ctors.2.2 -[e1, e2]] - explode boom
     } -β

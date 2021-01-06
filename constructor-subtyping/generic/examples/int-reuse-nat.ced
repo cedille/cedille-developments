@@ -5,7 +5,7 @@ module generic/examples/int-reuse-nat .
 import nat-sig .
 import int-sig .
 
-nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatPack l ·R) ·(SIntPack l ·R)
+nat2intPack : Π l: Label. ∀ R: ★. Cast ·(NatPack l ·R) ·(IntPack l ·R)
 = λ l. Λ R.
   intrCastI λ x. [[x.1, [x.2.1,
     [Λ e. x.2.2
@@ -18,16 +18,13 @@ nat2intPack : Π l: Label. ∀ R: ★. Cast ·(SNatPack l ·R) ·(SIntPack l ·R
 import ../reuse .
 import ../extensible-signature .
 
-snat2sint : SigSub ·SNat ·SInt
-= sigsub -monoSNatPack -monoSIntPack (castRefl ·Label) nat2intPack .
+snat2sint : SigSub ·NatSig ·IntSig
+= sigsub -monoNatPack -monoIntPack (castRefl ·Label) nat2intPack .
 
-import ../encoding as Nat ·SNat -monoSNat .
-import ../encoding as Int ·SInt -monoSInt .
-import ../encoding as PredInt ·(SIntPack lpred) -(monoSIntPack lpred) .
+import ../encoding as Nat ·NatSig -monoNatSig .
+import ../encoding as Int ·IntSig -monoIntSig .
+import ../encoding as PredInt ·(IntPack lpred) -(monoIntPack lpred) .
 
 nat2intalg : ∀ X: ★. Nat.Alg ·X ➔ PredInt.Alg ·X ➔ Int.Alg ·X
 = Λ X. λ a. λ p. Λ R. λ rec. λ i.
-  caseSIntPack (proj1 i) (proj2 i)
-    (λ _. a rec (zeroS ·R))
-    (λ i'. a rec (succS ·R (i'.2.1 -β)))
-    (p rec) .
+  caseIntSig i (a rec (zeroS ·R)) (λ i'. a rec (succS i')) (λ i'. p rec (ipredP i')) .

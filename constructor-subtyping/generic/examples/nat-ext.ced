@@ -4,22 +4,22 @@ import nat-sig .
 
 import ../reuse .
 
-module generic/examples/nat-ext (F: ★ ➔ ★) {mono: Monotonic ·F} {sub: SigSub ·SNat ·F} .
+module generic/examples/nat-ext (F: ★ ➔ ★) {mono: Monotonic ·F} {sub: SigSub ·NatSig ·F} .
 
 import ../encoding as D ·F -mono .
-import ../encoding as Nat ·SNat -monoSNat .
+import ../encoding as Nat ·NatSig -monoNatSig .
 
-snat2f : ∀ X: ★. SNat ·X ➔ F ·X
+natsig2f : ∀ X: ★. NatSig ·X ➔ F ·X
 = Λ X. cast -(sub -(castRefl ·X)) .
 
 zeroE : D.Ind
-= D.in (snat2f (zeroS ·D.Ind)) .
+= D.in (natsig2f (zeroS ·D.Ind)) .
 
 succE : D.Ind ➔ D.Ind
-= λ n. D.in (snat2f (succS n)) .
+= λ n. D.in (natsig2f (succS n)) .
 
 addE : Nat.Alg ·(D.Ind ➔ D.Ind)
 = Λ R. λ add. λ m. λ n.
-  caseSNat m ·D.Ind n
+  caseNatSig m ·D.Ind n
     λ m'. [sum = add m' n] - succE sum
 .
