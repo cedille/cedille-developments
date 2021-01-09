@@ -12,7 +12,7 @@ import ../encoding as FixG ·G -monoG .
 fix2fix : Cast ·FixF.Ind ·FixG.Ind
 = intrCastI
     (FixF.induction ·(λ x: FixF.Ind. ι y: FixG.Ind. { y ≃ x })
-       Λ R. Λ c. λ ih. λ xs.
+       (Λ R. Λ c. λ ih. λ xs.
          [c' : Cast ·R ·FixG.Ind = intrCastI ih]
-       - [ FixG.in (elimCast ·(F ·R) -(sigsub -c') xs) , β{| FixG.in xs |} ])
+       - [ FixG.in (elimCast ·(F ·R) -(sigsub -c') xs) , β{ FixG.in xs } ]))
     .

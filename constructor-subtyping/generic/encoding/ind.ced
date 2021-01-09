@@ -8,7 +8,7 @@ import prfalg ·F -mono.
 
 Lift : (IndM ➔ ★) ➔ FixM ➔ ★
 = λ P: IndM ➔ ★. λ x: FixM.
-  Sigma ·IndM ·(λ y: IndM. Sigma ·{y ≃ x} ·(λ eq: {y ≃ x}. P (φ eq - y {| x |}))).
+  Sigma ·IndM ·(λ y: IndM. Sigma ·{y ≃ x} ·(λ eq: {y ≃ x}. P (φ eq - y { x }))).
 
 IhPlus : Π R: ★. Cast ·R ·FixM ➔ (IndM ➔ ★) ➔ ★
 = λ R: ★. λ c: Cast ·R ·FixM. λ P: IndM ➔ ★.

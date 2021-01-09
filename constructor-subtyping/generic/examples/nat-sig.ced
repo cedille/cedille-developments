@@ -9,7 +9,7 @@ NatPack : Label ➔ ★ ➔ ★
 monoNatPack : Π l: Label. Monotonic ·(NatPack l)
 = λ l. Λ R1. Λ R2. λ c.
   intrCastI
-    λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{|x|}]
+    (λ x. [[x.1, [Λ e. cast -c (x.2.1 -e), Λ e. x.2.2 -e]], β{x}])
 .
 
 import ../extensible-signature ·Label ·NatPack -monoNatPack .
@@ -18,12 +18,12 @@ NatSig : ★ ➔ ★ = Sig .
 monoNatSig = monoSig .
 
 zeroP : ∀ N: ★. NatPack lzero ·N
-= Λ N. [ Λ _. unit , [ Λ e. explode' -(δ - e) β{|unit|} ,
-         Λ e. explode' -(e.1 -β) β{|unit|} ] ] .
+= Λ N. [ Λ _. unit , [ Λ e. explode' -(δ - e) β{unit} ,
+         Λ e. explode' -(e.1 -β) β{unit} ] ] .
 
 succP : ∀ N: ★. N ➔ NatPack lsucc ·N
-= Λ N. λ n. [ Λ e. explode' -(δ - e) β{|n|} , [ Λ _. n ,
-              Λ e. explode' -(e.2 -β) β{|n|} ] ] .
+= Λ N. λ n. [ Λ e. explode' -(δ - e) β{n} , [ Λ _. n ,
+              Λ e. explode' -(e.2 -β) β{n} ] ] .
 
 zeroS : ∀ N: ★. NatSig ·N = Λ N. mksigma lzero (zeroP ·N) .
 
@@ -32,9 +32,9 @@ succS : ∀ N: ★. N ➔ NatSig ·N = Λ N. λ n. mksigma lsucc (succP n) .
 caseNatSig : ∀ N: ★. NatSig ·N ➔ ∀ X: ★. X ➔ (N ➔ X) ➔ X
 = Λ N. λ n. Λ X. λ z. λ s.
   indSigma ·Label ·(λ l: Label. NatPack l ·N) ·(λ _: NatSig ·N. X)
-    (λ l. σ (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ NatPack l ·N ➔ X) {
+    (λ l. μ' (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ NatPack l ·N ➔ X) {
     | tt ➔ Λ e. λ _. z
-    | ff ➔ Λ e. σ (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ NatPack l ·N ➔ X) {
+    | ff ➔ Λ e. μ' (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x} ➾ NatPack l ·N ➔ X) {
       | tt ➔ Λ e'. λ x. s (x.2.1 -(exact l lsucc e'))
       | ff ➔ Λ e'. λ x. x.2.2 -[ nexact l lzero e , nexact l lsucc e' ] ·X
       } -β

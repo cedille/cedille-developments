@@ -22,7 +22,7 @@ sigsub
 = λ cA. λ cC. Λ R1. Λ R2. Λ cR.
   intrCastI
     (indSigma ·A1 ·(λ a: A1. B1 a ·R1) ·(λ x: F.Sig ·R1. ι y: G.Sig ·R2. { y ≃ x })
-      λ a1. λ ctor.
+      (λ a1. λ ctor.
         [lem : Cast ·(B1 a1 ·R1) ·(B1 a1 ·R2) = monoB1 a1 cR]
-      - [ mksigma (elimCast -cA a1) (elimCast -(cC a1 ·R2) (elimCast -lem ctor)) , β{|mksigma a1 ctor|} ]) .
+      - [ mksigma (elimCast -cA a1) (elimCast -(cC a1 ·R2) (elimCast -lem ctor)) , β{mksigma a1 ctor} ])) .
 

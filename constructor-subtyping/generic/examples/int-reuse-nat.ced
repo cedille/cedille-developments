@@ -7,13 +7,13 @@ import int-sig .
 
 nat2intPack : Π l: Label. ∀ R: ★. Cast ·(NatPack l ·R) ·(IntPack l ·R)
 = λ l. Λ R.
-  intrCastI λ x. [[x.1, [x.2.1,
+  intrCastI (λ x. [[x.1, [x.2.1,
     [Λ e. x.2.2
       -([Λ n. [k:{lpred ≃ lzero} = ρ ς e - ρ ς n - β] - δ - k,
          Λ n. [k:{lpred ≃ lsucc} = ρ ς e - ρ ς n - β] - δ - k]) ·R,
      Λ e. x.2.2 -[e.1, e.2.1]
      ]]],
-     β{|x|}].
+     β{x}]).
 
 import ../reuse .
 import ../extensible-signature .

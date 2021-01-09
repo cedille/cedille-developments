@@ -1,7 +1,7 @@
 # Installing Cedille
 
-Cedille version 1.1.1 must be installed.
-There are three ways to accomplish this: either by building from source, installing the debian package, or using the MacOS App (see https://github.com/cedille/cedille/releases/tag/v1.1.1 for downloads).
+Cedille version 1.1.2 must be installed.
+There are three ways to accomplish this: either by building from source, installing the debian package, or using the MacOS App (see https://github.com/cedille/cedille/releases/tag/v1.1.2 for downloads).
 More detailed instructions for each approach are documented below.
 
 ## Debian Package

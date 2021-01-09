@@ -11,8 +11,8 @@ monoSig : Monotonic ·Sig
   intrCastI
     (indSigma ·A ·(λ a: A. B a ·R1)
        ·(λ x: Sig ·R1. ι y: Sig ·R2. { y ≃ x })
-       λ a. λ b.
+       (λ a. λ b.
          [lem: Cast ·(B a ·R1) ·(B a ·R2)
-           = intrCastI (λ x. [cast -(monoB a c) x, β{|x|}])]
-	   - [mksigma a (cast -lem b), β{|mksigma a b|}])
+           = intrCastI (λ x. [cast -(monoB a c) x, β{x}])]
+	   - [mksigma a (cast -lem b), β{mksigma a b}]))
     .
