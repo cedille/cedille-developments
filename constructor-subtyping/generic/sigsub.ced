@@ -1,6 +1,0 @@
-module sigsub .
-
-import ../lib/lib.
-
-SigSub : (★ ➔ ★) ➔ (★ ➔ ★) ➔ ★
-= λ F: ★ ➔ ★. λ G: ★ ➔ ★. ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➾ Cast ·(F ·X) ·(G ·Y) .

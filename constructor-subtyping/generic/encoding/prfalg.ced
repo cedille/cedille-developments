@@ -1,7 +1,7 @@
 
-import ../lib/lib.
+import ../../lib/lib.
 
-module prfalg (F: ★ ➔ ★) {mono: Monotonic ·F}.
+module generic/encoding/prfalg (F: ★ ➔ ★) {mono: Monotonic ·F}.
 
 import alg ·F.
 

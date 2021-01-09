@@ -13,3 +13,6 @@ explode' : ∀ X:★. False ➾ Top ➔ X
 
 falseIrrel : False ➾ False
 = Λ b. δ - b ·{λ x. λ y. x ≃ λ x. λ y. y}.
+
+not' : ∀ X: ★. Not ·X ➾ Top ➔ Not ·X
+= Λ X. Λ n. λ t. Λ x. explode' -(n -x) t .

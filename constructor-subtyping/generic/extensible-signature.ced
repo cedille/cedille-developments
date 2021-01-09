@@ -1,0 +1,6 @@
+import ../lib/lib .
+
+module generic/extensible-signature (L: ★) (B: L ➔ ★ ➔ ★) {monoB : Π l: L. Monotonic ·(B l)} .
+
+import public extensible-signature.sig ·L ·B -monoB .
+import public extensible-signature.sub .

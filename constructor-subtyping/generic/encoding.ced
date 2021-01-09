@@ -1,0 +1,17 @@
+import ../lib/lib .
+
+module generic/encoding (F: ★ ➔ ★) {mono: Monotonic ·F} .
+
+import encoding/alg as alg ·F .
+import encoding/prfalg as prfalg ·F -mono .
+import encoding/ind as ind ·F -mono .
+
+Alg : ★ ➔ ★ = alg.AlgM .
+PrfAlg : Π X: ★. (X ➔ ★) ➔ (F ·X ➔ X) ➔ ★ = prfalg.PrfAlgM .
+Ind : ★ = prfalg.IndM .
+in : F ·Ind ➔ Ind = prfalg.inIndM .
+out : Ind ➔ F ·Ind = ind.outM .
+induction : ∀ P: Ind ➔ ★. PrfAlg ·Ind ·P in ➔ Π x: Ind. P x
+= ind.inductionM .
+fold : ∀ X: ★. Alg ·X ➔ Ind ➔ X
+= ind.foldIndM .
