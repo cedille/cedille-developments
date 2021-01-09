@@ -8,11 +8,11 @@ data Label : ★ =
 
 eq : Label ➔ Label ➔ Bool
 = λ a. μ rec. a {
-  | l0 ➔ λ b. σ b {
+  | l0 ➔ λ b. μ' b {
     | l0 ➔ tt
     | lnext l ➔ ff
     }
-  | lnext u ➔ λ b. σ b {
+  | lnext u ➔ λ b. μ' b {
     | l0 ➔ ff
     | lnext v ➔ rec u v 
     }
@@ -26,11 +26,11 @@ eqRefl : Π a:Label. {eq a a ≃ tt}
 
 exact : Π a:Label. Π b:Label. {eq a b ≃ tt} ➔ {a ≃ b}
 = λ a. μ ih. a {
-  | l0 ➔ λ b. σ b {
+  | l0 ➔ λ b. μ' b {
     | l0 ➔ λ e. β
     | lnext l ➔ λ e. δ - e
     }
-  | lnext u ➔ λ b. σ b {
+  | lnext u ➔ λ b. μ' b {
     | l0 ➔ λ e. δ - e
     | lnext v ➔ λ e. [h = ih u v e] - ρ h - β
     }
@@ -46,7 +46,7 @@ lte : Label ➔ Label ➔ Bool
   μ lte. l1 {
   | l0 ➔ λ _. tt
   | lnext l1' ➔ λ l2.
-    σ l2 {
+    μ' l2 {
     | l0 ➔ ff
     | lnext l2' ➔ lte l1' l2'
     }

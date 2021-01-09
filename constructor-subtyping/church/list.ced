@@ -42,11 +42,11 @@ pack : ∀ A:★. ∀ P:List'·A ➔ ★. P (nil'·A)
   ➔ Π l:Label. ListIndPack·A·P l
 = Λ A. Λ P. λ z. λ s. λ l.
   [T : ★ = ListIndPack·A·P l]
-  - σ (eq l lnil) @ λ b:Bool. {eq l lnil ≃ b} ➾ T {
+  - μ' (eq l lnil) @ λ b:Bool. {eq l lnil ≃ b} ➾ T {
   | tt ➔ Λ e. [e = exact l lnil e] - [Λ _. z,
-      (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - [d:False = δ - r] - explode' -d β{|z|})]
-  | ff ➔ Λ e1. [e1 = nexact l lnil e1] - σ (eq l lcons) @ λ b:Bool. {eq l lcons ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lcons e] - [(Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - [d:False = δ - r] - explode' -d β{|s|}),
+      (Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - [d:False = δ - r] - explode' -d β{z})]
+  | ff ➔ Λ e1. [e1 = nexact l lnil e1] - μ' (eq l lcons) @ λ b:Bool. {eq l lcons ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l lcons e] - [(Λ k. [r:{lnil ≃ lcons} = ρ ς e - ρ ς k - β] - [d:False = δ - r] - explode' -d β{s}),
         (Λ _. s)]
     | ff ➔ Λ e2. [e2 = nexact l lcons e2] - [Λ k. explode' -(e1 -k) β, Λ k. explode' -(e2 -k) β]
     } -β
@@ -61,7 +61,7 @@ to : ∀ A:★. List'·A ➔ List·A
 reflection : ∀ A:★. Π n:List·A. {to n.1 ≃ n}
 = Λ A. [P : List'·A ➔ ★ = λ x:List'·A. {(to x).1 ≃ x}] - λ n. n.2·P (pack·A·P
   β
-  (Λ m. λ a. λ k. χ({cons a (to m) ≃ cons a m}) - ρ k - β{|a k|})).
+  (Λ m. λ a. λ k. χ({cons a (to m) ≃ cons a m}) - ρ k - β{a k})).
 
 induct : ∀ A:★. Π n:List·A. ∀ P:List·A ➔ ★. P (nil·A) ➔ (∀ m:List·A. Π a:A. P m ➔ P (cons a m)) ➔ P n
 = Λ A. λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:List'·A. P (to x)) (pack·A·(λ x:List'·A. P (to x))

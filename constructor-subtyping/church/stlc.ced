@@ -85,16 +85,16 @@ pack : ∀ P:(Π g:Ctx. Π t:Typ. Stlc' g t ➔ ★).
   Π l:Label. StlcIndPack·P l
 = Λ P. λ v. λ a. λ y. λ l.
   [T : ★ = StlcIndPack·P l]
-  - σ (eq l lvar) @ λ b:Bool. {eq l lvar ≃ b} ➾ T {
+  - μ' (eq l lvar) @ λ b:Bool. {eq l lvar ≃ b} ➾ T {
   | tt ➔ Λ e. [e = exact l lvar e] - [Λ _. v,
-    [Λ e'. [k:{lvar ≃ labs} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{|v|},
-    Λ e'. [k:{lvar ≃ lapp} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{|v|}]]
-  | ff ➔ Λ e1. [e1 = nexact l lvar e1] - σ (eq l labs) @ λ b:Bool. {eq l labs ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l labs e] - [Λ e'. [k:{labs ≃ lvar} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{|a|},
-      [Λ _. a, Λ e'. [k:{labs ≃ lapp} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{|a|}]]
-    | ff ➔ Λ e2. [e2 = nexact l labs e2] - σ (eq l lapp) @ λ b:Bool. {eq l lapp ≃ b} ➾ T {
-      | tt ➔ Λ e. [e = exact l lapp e] - [Λ e'. [k:{lvar ≃ lapp} = ρ ς e - ρ ς e' - β] -  explode' -(δ - k) β{|y|},
-        [Λ e'. [k:{labs ≃ lapp} = ρ ς e' - ρ ς e - β] - explode' -(δ - k) β{|y|},
+    [Λ e'. [k:{lvar ≃ labs} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{v},
+    Λ e'. [k:{lvar ≃ lapp} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{v}]]
+  | ff ➔ Λ e1. [e1 = nexact l lvar e1] - μ' (eq l labs) @ λ b:Bool. {eq l labs ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l labs e] - [Λ e'. [k:{labs ≃ lvar} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{a},
+      [Λ _. a, Λ e'. [k:{labs ≃ lapp} = ρ ς e - ρ ς e' - β] - explode' -(δ - k) β{a}]]
+    | ff ➔ Λ e2. [e2 = nexact l labs e2] - μ' (eq l lapp) @ λ b:Bool. {eq l lapp ≃ b} ➾ T {
+      | tt ➔ Λ e. [e = exact l lapp e] - [Λ e'. [k:{lvar ≃ lapp} = ρ ς e - ρ ς e' - β] -  explode' -(δ - k) β{y},
+        [Λ e'. [k:{labs ≃ lapp} = ρ ς e' - ρ ς e - β] - explode' -(δ - k) β{y},
         Λ _. y]]
       | ff ➔ Λ e3. [e3 = nexact l lapp e3]
       - [Λ e. explode' -(e1 -e) β, [Λ e. explode' -(e2 -e) β, Λ e. explode' -(e3 -e) β]]

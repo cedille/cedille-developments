@@ -5,43 +5,43 @@ data Bool : ★ =
   | ff : Bool.
 
 and : Bool ➔ Bool ➔ Bool
-= λ a. λ b. σ a {
-  | tt ➔ σ b {
+= λ a. λ b. μ' a {
+  | tt ➔ μ' b {
     | tt ➔ tt
     | ff ➔ ff
     }
-  | ff ➔ σ b {
+  | ff ➔ μ' b {
     | tt ➔ ff
     | ff ➔ ff
     }
   }.
 
 or : Bool ➔ Bool ➔ Bool
-= λ a. λ b. σ a {
-  | tt ➔ σ b {
+= λ a. λ b. μ' a {
+  | tt ➔ μ' b {
     | tt ➔ tt
     | ff ➔ tt
     }
-  | ff ➔ σ b {
+  | ff ➔ μ' b {
     | tt ➔ tt
     | ff ➔ ff
     }
   }.
 
 iff : Bool ➔ Bool ➔ Bool
-= λ a. λ b. σ a {
-  | tt ➔ σ b {
+= λ a. λ b. μ' a {
+  | tt ➔ μ' b {
     | tt ➔ tt
     | ff ➔ ff
     }
-  | ff ➔ σ b {
+  | ff ➔ μ' b {
     | tt ➔ ff
     | ff ➔ tt
     }
   }.
 
 negate : Bool ➔ Bool
-= λ a. σ a {
+= λ a. μ' a {
   | tt ➔ ff
   | ff ➔ tt
   }.

@@ -39,11 +39,11 @@ pack : ∀ P:Nat' ➔ ★. P zero'
   ➔ Π l:Label. NatIndPack·P l
 = Λ P. λ z. λ s. λ l.
   [T : ★ = NatIndPack·P l]
-  - σ (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➾ T {
+  - μ' (eq l lzero) @ λ b:Bool. {eq l lzero ≃ b} ➾ T {
   | tt ➔ Λ e. [e = exact l lzero e] - [Λ _. z,
-    Λ e'. [k:{lzero ≃ lsucc} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]
-  | ff ➔ Λ e1. [e1 = nexact l lzero e1] - σ (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lsucc e] - [Λ e'. [k:{lzero ≃ lsucc} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+    Λ e'. [k:{lzero ≃ lsucc} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{z}]
+  | ff ➔ Λ e1. [e1 = nexact l lzero e1] - μ' (eq l lsucc) @ λ b:Bool. {eq l lsucc ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l lsucc e] - [Λ e'. [k:{lzero ≃ lsucc} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{s},
       Λ _. Λ m. λ s'. s -m s']
     | ff ➔ Λ e2. [e2 = nexact l lsucc e2] - [Λ e. explode' -(e1 -e) β,
       Λ e. explode' -(e2 -e) β]
@@ -56,7 +56,7 @@ to : Nat' ➔ Nat
 
 reflection : Π n:Nat. {to n.1 ≃ n}
 = [P : Nat' ➔ ★ = λ x:Nat'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β
-  (Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{|k|})).
+  (Λ m. λ k. χ({succ (to m) ≃ succ m}) - ρ k - β{k})).
 
 induct : Π n:Nat. ∀ P:Nat ➔ ★. P zero ➔ (∀ m:Nat. P m ➔ P (succ m))  ➔ P n
 = λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:Nat'. P (to x)) (pack·(λ x:Nat'. P (to x))
@@ -83,11 +83,11 @@ mnat_to_nat : MNat ➔ Nat
 
 mnat_eq : MNat ➔ MNat ➔ Bool
 = λ a. μ rec. a {
-  | mzero ➔ λ b. σ b {
+  | mzero ➔ λ b. μ' b {
     | mzero ➔ tt
     | msucc _ ➔ ff
     }
-  | msucc x ➔ λ b. σ b {
+  | msucc x ➔ λ b. μ' b {
     | mzero ➔ ff
     | msucc y ➔ rec x y
     }

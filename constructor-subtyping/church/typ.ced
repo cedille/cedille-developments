@@ -35,11 +35,11 @@ pack : ∀ P:Typ' ➔ ★. P base'
   ➔ Π l:Label. TypIndPack·P l
 = Λ P. λ z. λ s. λ l.
   [T : ★ = TypIndPack·P l]
-  - σ (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
+  - μ' (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
   | tt ➔ Λ e. [e = exact l lbase e] - [Λ _. z,
-    Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]
-  | ff ➔ Λ e1. [e1 = nexact l lbase e1] - σ (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+    Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{z}]
+  | ff ➔ Λ e1. [e1 = nexact l lbase e1] - μ' (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{s},
       Λ _. Λ a. Λ b. λ s'. s -a -b s']
     | ff ➔ Λ e2. [e2 = nexact l larr e2] - [Λ e. explode' -(e1 -e) β,
       Λ e. explode' -(e2 -e) β]
@@ -52,7 +52,7 @@ to : Typ' ➔ Typ
 
 reflection : Π n:Typ. {to n.1 ≃ n}
 = [P : Typ' ➔ ★ = λ x:Typ'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β
-  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{|j i|})).
+  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{j i})).
 
 induct : Π n:Typ. ∀ P:Typ ➔ ★. P base ➔ (∀ a:Typ. ∀ b:Typ. P a ➔ P b ➔ P (arr a b))  ➔ P n
 = λ n. Λ P. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:Typ'. P (to x)) (pack·(λ x:Typ'. P (to x))
@@ -81,23 +81,23 @@ mtyp_inverse : Π a:Typ. {mtyp_to_typ (typ_to_mtyp a) ≃ a}
 
 mtyp_eq : MTyp ➔ MTyp ➔ Bool
 = λ a. μ rec. a {
-  | mbase ➔ λ b. σ b {
+  | mbase ➔ λ b. μ' b {
     | mbase ➔ tt
     | marr _ _ ➔ ff
     }
-  | marr i j ➔ λ b. σ b {
+  | marr i j ➔ λ b. μ' b {
     | mbase ➔ ff
     | marr u v ➔ and (rec i u) (rec j v)
     }
   }.
 
 pairLemma : Π a:Bool. Π b:Bool. {and a b ≃ tt} ➔ Pair·{a ≃ tt}·{b ≃ tt}
-= λ a. σ a {
-  | tt ➔ λ b. σ b {
+= λ a. μ' a {
+  | tt ➔ λ b. μ' b {
     | tt ➔ λ e. pair β β
     | ff ➔ λ e. pair β (δ - e)
     }
-  | ff ➔ λ b. σ b {
+  | ff ➔ λ b. μ' b {
     | tt ➔ λ e. pair (δ - e) β
     | ff ➔ λ e. pair (δ - e) (δ - e)
     }
@@ -105,11 +105,11 @@ pairLemma : Π a:Bool. Π b:Bool. {and a b ≃ tt} ➔ Pair·{a ≃ tt}·{b ≃ 
 
 mtyp_eq_exact : Π a:MTyp. Π b:MTyp. {mtyp_eq a b ≃ tt} ➔ {a ≃ b}
 = λ a. μ ih. a {
-  | mbase ➔ λ b. σ b {
+  | mbase ➔ λ b. μ' b {
     | mbase ➔ λ e. β
     | marr _ _ ➔ λ e. δ - e
     }
-  | marr i j ➔ λ b. σ b {
+  | marr i j ➔ λ b. μ' b {
     | mbase ➔ λ e. δ - e
     | marr u v ➔ λ e. [e:{and (mtyp_eq i u) (mtyp_eq j v) ≃ tt} = ρ+ e - β]
     - [e = pairLemma (mtyp_eq (to/MTyp -isType/ih i) u) (mtyp_eq (to/MTyp -isType/ih j) v) e]

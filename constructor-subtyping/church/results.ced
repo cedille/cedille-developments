@@ -60,12 +60,12 @@ data Sum (A:★) (B:★) : ★ =
   | in2 : B ➔ Sum.
 
 sumLemma : Π a:Bool. Π b:Bool. {or a b ≃ tt} ➔ Sum·{a ≃ tt}·{b ≃ tt}
-= λ a. σ a {
-  | tt ➔ λ b. σ b {
+= λ a. μ' a {
+  | tt ➔ λ b. μ' b {
     | tt ➔ λ e. in1 β
     | ff ➔ λ e. in1 β
     }
-  | ff ➔ λ b. σ b {
+  | ff ➔ λ b. μ' b {
     | tt ➔ λ e. in2 β
     | ff ➔ λ e. δ - e
     }
@@ -78,9 +78,9 @@ inLemma : Π g:S.Ctx. Π a:S.Typ. {S.in a g ≃ tt} ➔ {Se.in a g ≃ tt}
 = λ g. λ a. L.induct g·(λ g':S.Ctx. {S.in a g' ≃ tt} ➔ {Se.in a g' ≃ tt})
   (λ e. δ - e)
   (Λ m. λ a'. λ t. λ e. χ({or (Se.typ_eq a a') (Se.in a m) ≃ tt}) - [e : {or (S.typ_eq a a') (S.in a m) ≃ tt} = ρ+ e - β]
-    - {k:{or (Se.typ_eq a a') (Se.in a m) ≃ tt} = (σ (sumLemma (S.typ_eq a a') (S.in a m) e) {
-    | in1 e ➔ [e = typeqLemma a a' e] - ρ e - σ (Se.in (cast -typc1 a) (cast -typc2 m)) { tt ➔ β | ff ➔ β }
-    | in2 e ➔ ρ (t e) - σ (Se.typ_eq (cast -typc1 a) (cast -typc1 a')) { tt ➔ β | ff ➔ β }
+    - {k:{or (Se.typ_eq a a') (Se.in a m) ≃ tt} = (μ' (sumLemma (S.typ_eq a a') (S.in a m) e) {
+    | in1 e ➔ [e = typeqLemma a a' e] - ρ e - μ' (Se.in (cast -typc1 a) (cast -typc2 m)) { tt ➔ β | ff ➔ β }
+    | in2 e ➔ ρ (t e) - μ' (Se.typ_eq (cast -typc1 a) (cast -typc1 a')) { tt ➔ β | ff ➔ β }
     })} - ρ k - β).
 
 atLemma : Π g:S.Ctx. Π a:S.Typ. Π i:Nat. {S.at i a g ≃ tt} ➔ {Se.at i a g ≃ tt}

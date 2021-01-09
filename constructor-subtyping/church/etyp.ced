@@ -44,16 +44,16 @@ pack : ∀ P:ETyp' ➔ ★. P nat' ➔ P base'
   ➔ Π l:Label. ETypIndPack·P l
 = Λ P. λ b. λ z. λ s. λ l.
   [T : ★ = ETypIndPack·P l]
-  - σ (eq l lnat) @ λ b:Bool. {eq l lnat ≃ b} ➾ T {
+  - μ' (eq l lnat) @ λ b:Bool. {eq l lnat ≃ b} ➾ T {
   | tt ➔ Λ e. [e = exact l lnat e] - [Λ _. b,
-    [Λ e'. [k:{lnat ≃ lbase} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|b|},
-    Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|b|}]]
-  | ff ➔ Λ e1. [e1 = nexact l lnat e1] - σ (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
-    | tt ➔ Λ e. [e = exact l lbase e] - [Λ e'. [k:{lbase ≃ lnat} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|},
-      [Λ _. z, Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|z|}]]
-    | ff ➔ Λ e2. [e2 = nexact l lbase e2] - σ (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
-      | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{|s|},
-        [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{|s|},
+    [Λ e'. [k:{lnat ≃ lbase} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{b},
+    Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{b}]]
+  | ff ➔ Λ e1. [e1 = nexact l lnat e1] - μ' (eq l lbase) @ λ b:Bool. {eq l lbase ≃ b} ➾ T {
+    | tt ➔ Λ e. [e = exact l lbase e] - [Λ e'. [k:{lbase ≃ lnat} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{z},
+      [Λ _. z, Λ e'. [k:{lbase ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{z}]]
+    | ff ➔ Λ e2. [e2 = nexact l lbase e2] - μ' (eq l larr) @ λ b:Bool. {eq l larr ≃ b} ➾ T {
+      | tt ➔ Λ e. [e = exact l larr e] - [Λ e'. [k:{lnat ≃ larr} = ρ ς e - ρ ς e' - β] - [d:False = δ - k] - explode' -d β{s},
+        [Λ e'. [k:{lbase ≃ larr} = ρ ς e' - ρ ς e - β] - [d:False = δ - k] - explode' -d β{s},
         Λ _. s]]
       | ff ➔ Λ e3. [e3 = nexact l larr e3]
       - [Λ e. explode' -(e1 -e) β, [Λ e. explode' -(e2 -e) β, Λ e. explode' -(e3 -e) β]]
@@ -67,7 +67,7 @@ to : ETyp' ➔ ETyp
 
 reflection : Π n:ETyp. {to n.1 ≃ n}
 = [P : ETyp' ➔ ★ = λ x:ETyp'. {(to x).1 ≃ x}] - λ n. n.2·P (pack·P β β
-  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{|j i|})).
+  (Λ a. Λ b. λ i. λ j. χ({arr (to a) (to b) ≃ arr a b}) - ρ i - ρ j - β{j i})).
 
 induct : Π n:ETyp. ∀ P:ETyp ➔ ★. P nat ➔ P base ➔ (∀ a:ETyp. ∀ b:ETyp. P a ➔ P b ➔ P (arr a b))  ➔ P n
 = λ n. Λ P. λ b. λ z. λ s. ρ (ς (reflection n)) - (n.2·(λ x:ETyp'. P (to x)) (pack·(λ x:ETyp'. P (to x))
@@ -94,17 +94,17 @@ mtyp_to_typ : MTyp ➔ ETyp
 
 mtyp_eq : MTyp ➔ MTyp ➔ Bool
 = λ a. μ rec. a {
-  | mnat ➔ λ b. σ b {
+  | mnat ➔ λ b. μ' b {
     | mnat ➔ tt
     | mbase ➔ ff
     | marr _ _ ➔ ff
     }
-  | mbase ➔ λ b. σ b {
+  | mbase ➔ λ b. μ' b {
     | mnat ➔ ff
     | mbase ➔ tt
     | marr _ _ ➔ ff
     }
-  | marr i j ➔ λ b. σ b {
+  | marr i j ➔ λ b. μ' b {
     | mnat ➔ ff
     | mbase ➔ ff
     | marr u v ➔ and (rec i u) (rec j v)

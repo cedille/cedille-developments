@@ -21,7 +21,7 @@ Sigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
 Pair ◂ ★ ➔ ★ ➔ ★ = λ A: ★. λ B: ★. Sigma ·A ·(λ _: A. B).
 
 mksigma ◂ ∀ X : ★ . ∀ Y : X ➔ ★ . Π x : X . Y x ➔ Sigma · X · Y =
- Λ X . Λ Y . λ x . λ y . [ mkcsigma · X · Y x y , [ β{| mkcsigma x y |}  , Λ X' . Λ Q . Λ pr . λ e . e x y  ] ] .
+ Λ X . Λ Y . λ x . λ y . [ mkcsigma · X · Y x y , [ β{ mkcsigma x y }  , Λ X' . Λ Q . Λ pr . λ e . e x y  ] ] .
 
 pair : ∀ X: ★. ∀ Y: ★. X ➔ Y ➔ Pair ·X ·Y
   = Λ X. Λ Y. λ x. λ y. mksigma x y.
