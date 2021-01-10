@@ -21,9 +21,9 @@ import recType.
 import cast.
 import functorThms · F fmap -fmapId -fmapCompose.
 
-recU     ◂ Top = β{λ alg. λ x. x alg}.
-inU      ◂ Top = β{λ xs. λ alg. alg (fmap (λ x. mkpair x (recU alg x)) xs)}.
-reflectU ◂ Top = β{recU (λ xs. inU (fmap snd xs))}.
+recU     ◂ Top = β{| λ alg. λ x. x alg |}.
+inU      ◂ Top = β{| λ xs. λ alg. alg (fmap (λ x. mkpair x (recU alg x)) xs) |}.
+reflectU ◂ Top = β{| recU (λ xs. inU (fmap snd xs)) |}.
 
 AlgP ◂ ★ ➔ ★ ➔ ★ = λ P: ★. λ X: ★. F ·(Pair ·P ·X) ➔ X.
 PF  ◂ ★ ➔ ★ = λ P: ★. ι x: ∀ X: ★. AlgP ·P ·X ➔ X. {reflectU x ≃ x}.
@@ -48,11 +48,11 @@ inP1 ◂ F ·P ➔ ∀ X: ★. AlgP ·P ·X ➔ X =
   λ xs. Λ X. λ alg. alg (fmap (λ x: P. mkpair x (rec alg x)) xs).
 
 reflectionInP1 ◂ Π xs: F ·P. {reflectU (inP1 xs) ≃ inP1 xs} =
-  λ xs. ρ+ (fmapCompose ·P (snd ·P ·Top) (λ x. mkpair x (β{reflectU x})) xs) -
-        ρ+ (fmapId ·P ·Top (λ x. β{reflectU x}) (λ x. (unrollP x).2) xs) -
+  λ xs. ρ+ (fmapCompose ·P (snd ·P ·Top) (λ x. mkpair x (β{| reflectU x |})) xs) -
+        ρ+ (fmapId ·P ·Top (λ x. β{| reflectU x |}) (λ x. (unrollP x).2) xs) -
         β.
 
-in ◂ F ·P ➔ P = λ xs. rollP [inP1 xs , ρ (reflectionInP1 xs) - β{inP1 xs}].
+in ◂ F ·P ➔ P = λ xs. rollP [inP1 xs , ρ (reflectionInP1 xs) - β{| inP1 xs |}].
 _ ◂ {in ≃ inU} = β.
 
 out ◂ P ➔ F ·P = rec (fmap (fst ·P ·(F ·P))).

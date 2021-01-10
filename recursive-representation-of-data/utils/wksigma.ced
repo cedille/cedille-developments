@@ -22,7 +22,7 @@ WkSigma ◂ Π A : ★ . (A ➔ ★) ➔ ★ =
 intrWkSigma ◂ ∀ A: ★ . ∀ B: A ➔ ★. Π a: A. B a ➾ WkSigma ·A ·B =
  Λ X. Λ Y. λ a. Λ b.
  [ mkcwksigma a -b
- , [ β{mkcwksigma a -b}
+ , [ β{| mkcwksigma a -b |}
    , Λ X. Λ Q. Λ pr. λ e. e a -b ] ] .
 
 elimWkSigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: WkSigma ·A ·B.

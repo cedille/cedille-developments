@@ -4,10 +4,10 @@ import utils/top.
 
 module parigot/examples/nat.
 
-recNatU     ◂ Top = β{λ x. λ f. λ n. n x f}.
-zeroU       ◂ Top = β{λ z. λ s. z}.
-sucU        ◂ Top = β{λ n. λ z. λ s. s n (recNatU z s n)}.
-reflectNatU ◂ Top = β{recNatU zeroU (λ _. sucU)}.
+recNatU     ◂ Top = β{| λ x. λ f. λ n. n x f |}.
+zeroU       ◂ Top = β{| λ z. λ s. z |}.
+sucU        ◂ Top = β{| λ n. λ z. λ s. s n (recNatU z s n) |}.
+reflectNatU ◂ Top = β{| recNatU zeroU (λ _. sucU) |}.
 
 NatF ◂ ★ ➔ ★ = λ N: ★.
   ι n: ∀ X: ★. X ➔ (N ➔ X ➔ X) ➔ X. {reflectNatU n ≃ n}.
@@ -21,10 +21,10 @@ Nat ◂ ★ = Rec ·NatF.
 rollNat   ◂ NatF ·Nat ➔ Nat = elimCast -(recRoll -monoNatF).
 unrollNat ◂ Nat ➔ NatF ·Nat = elimCast -(recUnroll -monoNatF).
 
-zero ◂ Nat = rollNat [ Λ X. λ z. λ s. z , β{zeroU} ].
+zero ◂ Nat = rollNat [ Λ X. λ z. λ s. z , β{| zeroU |} ].
 suc  ◂ Nat ➔ Nat = λ n.
   rollNat [ Λ X. λ z. λ s. s n ((unrollNat n).1 z s)
-          , ρ+ (unrollNat n).2 - β{sucU n} ].
+          , ρ+ (unrollNat n).2 - β{| sucU n |} ].
 
 recNat ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat ➔ X
 = Λ X. λ x. λ f. λ n. (unrollNat n).1 x f.

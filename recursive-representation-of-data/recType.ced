@@ -7,13 +7,15 @@ Mono ◂ ★ = ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔ Cast ·(F ·X) ·(F ·Y)
 Rec ◂ ★ = ∀ X: ★. Cast ·(F ·X) ·X ➾ X.
 
 recCast ◂ ∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Rec ·X
-= Λ X. Λ c. [ λ d. d ·X -c , β ].
+= Λ X. Λ c. intrCast -(λ x. x -c) -(λ _. β) .
+
+recCast' ◂ ∀ Y: ★. (∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Y ·X) ➾ Cast ·Y ·Rec
+= Λ Y. Λ u. intrCast -(λ y. Λ X. Λ c. elimCast -(u -c) y) -λ _. β .
 
 recRoll ◂ Mono ➾ Cast ·(F ·Rec) ·Rec
 = Λ mono.
-  intrCast
-    -(λ xs. Λ X. Λ c. elimCast -(castTrans -(mono (recCast -c)) -c) xs)
-    -(λ xs. β).
+  recCast' ·(F ·Rec)
+    -Λ X. Λ c. castTrans ·(F ·Rec) ·(F ·X) ·X -(mono (recCast -c)) -c .
 
 recUnroll ◂ Mono ➾ Cast ·Rec ·(F ·Rec)
 = Λ mono. recCast -(mono (recRoll -mono)).

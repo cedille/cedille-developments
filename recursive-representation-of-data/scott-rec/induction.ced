@@ -44,8 +44,8 @@ toI' ◂ Π x: S. ι y: I. {y ≃ x} = λ x.
       = λ p. elimWkSigma p (λ z. Λ ih.
         [eqz  ◂ {ih ≃ z} = (ih -z.1 -β).2] -
         [ind  ◂ InductiveS z.1 = ρ ς eqz - (ih -z.1 -β).1.2 ] -
-        [ z.1 , φ eqz - ind {z} ])] -
-    [ inI (fmap mkI xs) , β{in (fmap unwrap xs)} ])
+        [ z.1 , φ eqz - ind {| z |} ])] -
+    [ inI (fmap mkI xs) , β{| in (fmap unwrap xs) |} ])
     x .
 
 toI ◂ Cast ·S ·I = intrCast -(λ x. (toI' x).1) -(λ x. (toI' x).2).

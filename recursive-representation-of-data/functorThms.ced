@@ -7,8 +7,8 @@ import cast.
 import recType.
 
 monoFunctor ◂ Mono ·F = Λ X. Λ Y. λ c.
-  intrCast -(λ d. fmap c.1 d)
-           -(λ a. fmapId c.1 (λ x . ρ c.2 - β) a).
+  intrCast -(λ d. fmap (elimCast -c) d)
+           -(λ a. fmapId (elimCast -c) (λ x. β) a).
 
 fcast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B =
   Λ A. Λ B. Λ c. elimCast -(monoFunctor c).
@@ -17,7 +17,7 @@ import utils.
 
 fmapUnwrapWrapId ◂ ∀ X: ★. Π fx: F ·X. {fmap unwrap (fmap wrap fx) ≃ fx} =
   Λ X. λ fx. ρ+ (fmapCompose (unwrap ·X) (wrap ·X) fx) -
-             ρ+ (fmapId · X · Top (λ s. β{unwrap (wrap s)}) (λ x. β) fx) -
+             ρ+ (fmapId · X · Top (λ s. β{| unwrap (wrap s) |}) (λ x. β) fx) -
              β .
 
 fmapFstPair ◂ ∀ A: ★. ∀ B: ★. Π f: A ➔ B. Π xs: F ·A.

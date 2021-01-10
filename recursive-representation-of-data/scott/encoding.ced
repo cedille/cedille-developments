@@ -63,7 +63,7 @@ in ◂ F ·S ➔ S = λ xs.
          ρ+ ς (fmapId (λ x: S. unwrap (wrap x)) (λ _ . β) xs) -
          ρ+ ς (fmapCompose (unwrap ·S) (wrap ·S) xs) -
           a (fmap ·S ·(PrfS ·S ·P)
-               (λ x. intrWkSigma (toPreS.1 x) -((unrollS x).2 a)) xs) ].
+               (λ x. intrWkSigma (elimCast -toPreS x) -((unrollS x).2 a)) xs) ].
 
 caseComp : ∀ X: ★. Π a: AlgS ·S ·X. Π xs: F ·S. {case a (in xs) ≃ a (fmap wrap xs) }
 = Λ X. λ a. λ xs. β.
@@ -71,7 +71,7 @@ caseComp : ∀ X: ★. Π a: AlgS ·S ·X. Π xs: F ·S. {case a (in xs) ≃ a (
 out ◂ S ➔ F ·S = case (λ xs. fmap (unwrap ·S) xs).
 
 LiftS ◂ (S ➔ ★) ➔ SF ·S ➔ ★ = λ P: S ➔ ★. λ x: SF ·S.
-  ∀ m: S. ∀ eq: {m ≃ x}. P (φ eq - m {x}).
+  ∀ m: S. ∀ eq: {m ≃ x}. P (φ eq - m {| x |}).
 
 wkInduction ◂ ∀ P: S ➔ ★. WkPrfAlgS ·S ·(LiftS ·P) ➔ Π s: S. P s
 = Λ P. λ a. λ x. (unrollS x).2 ·(LiftS ·P) a -x -β.

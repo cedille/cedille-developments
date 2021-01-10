@@ -39,7 +39,7 @@ Ref ◂ ★ = ι x: S. Reflection ·S x.
 
 castRef ◂ Cast ·(Sigma ·S ·(Reflection ·S)) ·(Sigma ·Ref ·(Reflection ·Ref)) =
   intrCast
-    -(λ p. recSigma p (λ x. λ p. mksigma [ x , ρ+ p - β{x} ] p))
+    -(λ p. recSigma p (λ x. λ p. mksigma [ x , ρ+ p - β{| x |} ] p))
     -(λ p. etaSigma p).
 
 refFun1 ◂ F ·(Sigma ·S ·(Reflection ·S)) ➔ F ·Ref = λ xs.

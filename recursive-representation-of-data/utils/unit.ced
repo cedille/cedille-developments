@@ -10,7 +10,7 @@ param-Unit ◂ cUnit ➔ ★
 
 Unit ◂ ★ = ι x : cUnit. ι _ : {x cunit ≃ x}. param-Unit x.
 
-unit ◂ Unit = [ cunit , [β{cunit} , Λ X. Λ P. Λ cu. λ u. u ]].
+unit ◂ Unit = [ cunit , [β{| cunit |} , Λ X. Λ P. Λ cu. λ u. u ]].
 
 indUnit ◂ Π x : Unit. ∀ P : Unit ➔ ★. P unit ➔ P x =
   λ x. Λ P. λ u. ρ ς x.2.1 - (x.2.2 · Unit · P -unit u).
