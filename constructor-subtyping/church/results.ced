@@ -55,36 +55,19 @@ typc2 : Cast·(List·Typ)·(List·ETyp)
   (λ l. L.induct l·(λ g:List·Typ. List·ETyp) (nil·ETyp) (Λ m. λ a. λ t. cons (cast -typc1 a) t))
   (λ l. L.induct l·(λ g:List·Typ. {L.induct g nil cons ≃ g}) β (Λ m. λ a. λ t. ρ+ t - β) ).
 
-data Sum (A:★) (B:★) : ★ =
-  | in1 : A ➔ Sum
-  | in2 : B ➔ Sum.
+type_eq_lemma : Π a:Typ. Π b:Typ. {Ty.typ_eq a b ≃ ETy.typ_eq (cast -typc1 a) (cast -typc1 b)}
+= λ a. Ty.induct a ·(λ t:Typ. Π b:Typ. {Ty.typ_eq t b ≃ ETy.typ_eq (cast -typc1 t) (cast -typc1 b)})
+  (λ b. Ty.induct b ·(λ t:Typ. {Ty.typ_eq typ.base t ≃ ETy.typ_eq (cast -typc1 typ.base) (cast -typc1 t)})
+    β
+    (Λ a'.  Λ b'. λ u. λ v. β))
+  (Λ a'. Λ b'. λ u. λ v. λ b. Ty.induct b ·(λ t:Typ. {Ty.typ_eq (typ.arr a' b') t ≃ etyp.typ_eq (cast (typ.arr a' b')) (cast t)})
+    β
+    (Λ a2. Λ b2. λ x. λ y. χ({ and (typ.typ_eq a' a2) (typ.typ_eq b' b2) ≃ and (etyp.typ_eq a' a2) (etyp.typ_eq b' b2)})
+      - ρ ς (u a2) - ρ ς (v b2) - β)).
 
-sumLemma : Π a:Bool. Π b:Bool. {or a b ≃ tt} ➔ Sum·{a ≃ tt}·{b ≃ tt}
-= λ a. μ' a {
-  | tt ➔ λ b. μ' b {
-    | tt ➔ λ e. in1 β
-    | ff ➔ λ e. in1 β
-    }
-  | ff ➔ λ b. μ' b {
-    | tt ➔ λ e. in2 β
-    | ff ➔ λ e. δ - e
-    }
-  }.
-
-typeqLemma : Π a:Typ. Π b:Typ. {S.typ_eq a b ≃ tt} ➔ {Se.typ_eq a b ≃ tt}
-= λ a. λ b. λ e. [e = Ty.typ_eq_exact a b e] - ρ e - ρ (ETy.typ_eq_refl (cast -typc1 b)) - β.
-
-inLemma : Π g:S.Ctx. Π a:S.Typ. {S.in a g ≃ tt} ➔ {Se.in a g ≃ tt}
-= λ g. λ a. L.induct g·(λ g':S.Ctx. {S.in a g' ≃ tt} ➔ {Se.in a g' ≃ tt})
-  (λ e. δ - e)
-  (Λ m. λ a'. λ t. λ e. χ({or (Se.typ_eq a a') (Se.in a m) ≃ tt}) - [e : {or (S.typ_eq a a') (S.in a m) ≃ tt} = ρ+ e - β]
-    - {k:{or (Se.typ_eq a a') (Se.in a m) ≃ tt} = (μ' (sumLemma (S.typ_eq a a') (S.in a m) e) {
-    | in1 e ➔ [e = typeqLemma a a' e] - ρ e - μ' (Se.in (cast -typc1 a) (cast -typc2 m)) { tt ➔ β | ff ➔ β }
-    | in2 e ➔ ρ (t e) - μ' (Se.typ_eq (cast -typc1 a) (cast -typc1 a')) { tt ➔ β | ff ➔ β }
-    })} - ρ k - β).
-
-atLemma : Π g:S.Ctx. Π a:S.Typ. Π i:Nat. {S.at i a g ≃ tt} ➔ {Se.at i a g ≃ tt}
-= ●.
+at_lemma : Π g:S.Ctx. Π a:S.Typ. Π i:Nat. {S.at i a g ≃ tt} ➔ {Se.at i a g ≃ tt}
+= λ g. λ a. λ i. λ e. [lemma = L.mat_lemma -typc1 Ty.typ_eq ETy.typ_eq (L.mlength (L.list_to_mlist g)) i a (L.list_to_mlist g) type_eq_lemma]
+  - ρ+ ς lemma - ρ+ e - β.
 
 Stlc : S.Ctx ➔ S.Typ ➔ ★ = S.Stlc.
 Stlce : Se.Ctx ➔ Se.Typ ➔ ★ = Se.Stlce.
@@ -95,7 +78,7 @@ app = S.app.
 _ : ∀ g:S.Ctx. ∀ t:S.Typ. Cast·(Stlc g t)·(Stlce (cast -typc2 g) (cast -typc1 t))
 = Λ g. Λ t. intrCast
   (λ s. S.induct -g -t s·(λ g':S.Ctx. λ t':S.Typ. λ s':Stlc g' t'. Stlce (cast -typc2 g') (cast -typc1 t'))
-    (Λ g'. Λ a. λ i. Λ e. Se.var -(cast -typc2 g') -(cast -typc1 a) i -(atLemma g' a i e))
+    (Λ g'. Λ a. λ i. Λ e. Se.var -(cast -typc2 g') -(cast -typc1 a) i -(at_lemma g' a i e))
     (Λ g'. Λ a. Λ b. Λ x. λ px. Se.abs -(cast -typc2 g') -(cast -typc1 a) -(cast -typc1 b) px)
     (Λ g'. Λ a. Λ b. Λ x. Λ y. λ px. λ py. Se.app -(cast -typc2 g') -(cast -typc1 a) -(cast -typc1 b) px py))
   (λ s. S.induct -g -t s·(λ g':S.Ctx. λ t':S.Typ. λ s':Stlc g' t'. {S.induct s' var abs app ≃ s'})

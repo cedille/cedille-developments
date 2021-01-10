@@ -92,8 +92,8 @@ mlength : ∀ A:★. MList·A ➔ Nat
 
 -- The element closest to the top of the stack (the first cons) is index 0
 -- The indices are incremented by one from there on
-mat : ∀ A:★. (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ MList·A ➔ Bool
-= Λ A. λ eq. λ n. λ a. λ m. [max = mlength m] - μ rec. m {
+mat : ∀ A:★. Nat ➔ (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ MList·A ➔ Bool
+= Λ A. λ max. λ eq. λ n. λ a. λ m. μ rec. m {
   | mnil ➔ ff
   | mcons h t ➔ [t' = to/MList -isType/rec t]
   - [tlen = mlength t']
@@ -101,5 +101,17 @@ mat : ∀ A:★. (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ MList·A ➔ Bool
   - or (and (eq a h) (nat_eq idx max)) (rec t)
   }.
 
+mat_lemma : ∀ A:★. ∀ B:★. ∀ c:Cast·A·B. Π aeq:A ➔ A ➔ Bool. Π beq:B ➔ B ➔ Bool. Π m:Nat. Π i:Nat.
+  Π a:A. Π la:MList·A. (Π a1:A. Π a2:A. {aeq a1 a2 ≃ beq (cast -c a1) (cast -c a2)}) ➔ {mat m aeq i a la ≃ mat m beq i a la}
+= Λ A. Λ B. Λ c. λ aeq. λ beq. λ m. λ i. λ a. λ la. λ e. μ ih. la {
+  | mnil ➔ β
+  | mcons h t ➔ [t' = to/MList -isType/ih t]
+  - [tlen = mlength t']
+  - [idx = add (succ i) tlen]
+  - [n = nat_eq idx m]
+  - χ({or (and (aeq a h) (nat_eq (add (succ i) (mlength t)) m)) (mat m aeq i a t) ≃ or (and (beq a h) (nat_eq (add (succ i) (mlength t)) m)) (mat m beq i a t)})
+  - ρ (ih t) - ρ (e a h) - β
+  }.
+
 at : ∀ A:★. (A ➔ A ➔ Bool) ➔ Nat ➔ A ➔ List·A ➔ Bool
-= Λ A. λ eq. λ n. λ a. λ l. mat eq n a (list_to_mlist l).
+= Λ A. λ eq. λ n. λ a. λ l. mat (mlength (list_to_mlist l)) eq n a (list_to_mlist l).
