@@ -1,0 +1,21 @@
+module view .
+
+import utils/top .
+
+View ◂ Π T: ★. Top ➔ ★ = λ T: ★. λ t: Top. ι x: T. { x ≃ t } .
+
+intrView ◂ ∀ T: ★. Π t1: Top. ∀ t2: T. { t2 ≃ t1 } ➾ View ·T t1
+= Λ T. λ t1. Λ t2. Λ t. [ φ t - t2 {| t1 |} , β{| t1 |} ] .
+
+elimView ◂ ∀ T: ★. Π t: Top. View ·T t ➾ T
+= Λ T. λ t. Λ v. φ v.2 - v.1 {| t |} .
+
+eqView ◂ ∀ T: ★. ∀ t: Top. ∀ v: View ·T t. { t ≃ v }
+= Λ T. Λ t. Λ v. ρ v.2 @x.{ t ≃ x } - β .
+
+selfView ◂ ∀ T: ★. Π t: T. View ·T β{| t |}
+= Λ T. λ t. intrView β{| t |} -t -β .
+
+extView ◂ ∀ S: ★. ∀ T: ★. Π t: Top. (Π x: S. View ·T β{|t x|}) ➾ View ·(S ➔ T) t
+= Λ S. Λ T. λ t. Λ v.
+  intrView ·(S ➔ T) β{| t |} -(λ x. elimView β{| t x |} -(v x)) -β .

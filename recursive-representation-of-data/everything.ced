@@ -5,11 +5,18 @@ import utils.
 
 -- recursive types
 import cast.
+import mono.
 import recType.
 
 -- functors
 import functor.
 import functorThms.
+
+-- derivation of Scott-encoded naturals
+import scott/concrete/nat as SN .
+
+-- generic derivation of Scott-encoded data
+import scott as S.
 
 -- generic derivation of Parigot-encoded data
 import parigot as P.
@@ -18,13 +25,9 @@ import parigot as P.
 import parigot/examples/nat as NP.
 import parigot/examples/list as LP.
 
--- generic derivation of Scott-encoded data
-import scott as S.
-
 -- augmentation of above with standard recursion, induction
 import scott-rec as SR.
 
 -- example of Scott-encoded data
-import scott/examples/nat as NS. -- derived directly
 import scott-rec/examples/nat-rec as NR .
 import scott-rec/examples/list as LR.

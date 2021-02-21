@@ -3,7 +3,7 @@ import recType.
 
 module scott-rec/examples/nat1-rec.
 
-import scott/examples/nat.
+import scott/concrete/nat.
 
 {- alternative proof taken from "Programming with proofs: a second order type theory" [Par88] -}
 import utils/top.
@@ -21,7 +21,7 @@ lem
   Π tau: Top. { tau zero ≃ alpha } ➔ (Π n: Nat. { tau (suc n) ≃ beta n (tau n) }) ➔
   Π n: Nat. View ·(X n) β{|tau n|}
 = Λ X. λ alpha. λ beta. λ tau. λ eq1. λ eq2.
-  wkInductionNat ·(λ y: Nat. View ·(X y) β{|tau y|})
+  wkIndNat ·(λ y: Nat. View ·(X y) β{|tau y|})
     (intrView β{|tau zero|} -alpha -(ς eq1))
     (λ m. Λ ih.
      [pf : X m = elimView β{|tau m|} -ih]
@@ -53,12 +53,26 @@ NatR ◂ ★ = ∀ X: ★.
 zeroR ◂ NatR = Λ P. λ z1. λ s1. λ z2. λ s2. λ m. z1 z2 s2 m.
 sucR ◂ NatR ➔ NatR = λ n. Λ X. λ z1. λ s1. λ z2. λ s2. λ m. s1 (n ·X) z2 s2 m.
 
-sucBad : NatR ➔ NatR
+sucBad ◂ NatR ➔ NatR
 = λ n. Λ X. λ z1. λ s1. λ z2. λ s2. λ m.
   s2 ·Top ·Top (λ _. λ _. λ _. λ _. n z1 s2 z2 s2) β β zero .
 
+{- another alternative proof using the fact that Rec is a least fixpoint -}
+toNatR''' ◂ Cast ·(NatFI ·NatR) ·NatR
+= intrCast
+    -(λ xs. Λ X. λ z1. λ s1. λ z2. λ s2. λ n.
+      xs.1 ·(NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ X)
+        (z1 ·(NatRZ ·X) ·(NatRS ·X))
+        (λ m. λ z. λ s. λ m'.
+         s1 ·(NatRZ ·X) ·(NatRS ·X) (m ·X) z s m') z2 s2 n)
+    -(λ x. β).
+
+toNatR'' ◂ Cast ·Nat ·NatR
+= recLB ·NatFI -toNatR''' .
+
+{- proof in the paper -}
 toNatR' ◂ Π n: Nat. ι x: NatR. {x ≃ n} =
-  wkInductionNat ·(λ y: Nat. ι x: NatR. {x ≃ y})
+  wkIndNat ·(λ y: Nat. ι x: NatR. {x ≃ y})
     [zeroR , β{| zero |}]
     (λ m. Λ r. [ sucR (φ r.2 - r.1 {| m |} ) , β{| suc m |} ]).
 

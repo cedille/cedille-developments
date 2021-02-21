@@ -1,0 +1,21 @@
+module utils/wrap .
+
+import wksigma .
+import top .
+
+Wrap ◂ ★ ➔ ★ = λ T: ★. WkSigma ·T ·(λ _: T. Top) .
+
+wrap ◂ ∀ T: ★. T ➔ Wrap ·T
+= Λ T. λ x. intrWkSigma x -β .
+
+unwrap ◂ ∀ T: ★. Wrap ·T ➔ T
+= Λ T. λ p. wkproj1 p .
+
+unwrapEta ◂ ∀ T: ★. ∀ x: Wrap ·T. { wrap (unwrap x) ≃ x }
+= Λ T. wkproj1Eta ·T ·(λ _: T. Top) .
+
+import cast .
+import mono .
+
+monoWrap ◂ Mono ·Wrap
+= Λ X. Λ Y. λ c. cast1stWkSigma ·X ·Y ·(λ _: Y. Top) c .

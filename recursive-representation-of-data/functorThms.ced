@@ -3,15 +3,17 @@ import functor.
 module functorThms (F: ★ ➔ ★) (fmap: Fmap ·F)
   {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
-import cast.
-import recType.
+import cast .
+import mono .
 
-monoFunctor ◂ Mono ·F = Λ X. Λ Y. λ c.
-  intrCast -(λ d. fmap (elimCast -c) d)
-           -(λ a. fmapId (elimCast -c) (λ x. β) a).
+monoFunctor ◂ Mono ·F
+= Λ X. Λ Y. λ c.
+  intrCast
+    -(λ d. fmap (elimCast -c) d)
+    -(λ a. fmapId (elimCast -c) (λ x. β) a).
 
-fcast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B =
-  Λ A. Λ B. Λ c. elimCast -(monoFunctor c).
+fcast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ F ·A ➔ F ·B
+= Λ A. Λ B. Λ c. elimCast -(monoFunctor c).
 
 import utils.
 

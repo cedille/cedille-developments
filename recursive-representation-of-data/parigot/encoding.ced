@@ -19,6 +19,7 @@ module parigot/encoding
 
 import recType.
 import cast.
+import mono .
 import functorThms · F fmap -fmapId -fmapCompose.
 
 recU     ◂ Top = β{| λ alg. λ x. x alg |}.

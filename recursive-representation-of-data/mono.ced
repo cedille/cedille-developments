@@ -1,0 +1,23 @@
+module mono .
+
+import cast .
+
+Mono ◂ (★ ➔ ★) ➔ ★
+= λ F: ★ ➔ ★. ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔ Cast ·(F ·X) ·(F ·Y) .
+
+monoComp ◂ ∀ F: ★ ➔ ★. ∀ G: ★ ➔ ★. Mono ·F ➾ Mono ·G ➾ Mono ·(λ X: ★. F ·(G ·X))
+= Λ F. Λ G. Λ mF. Λ mG. Λ X. Λ Y. λ c.
+  intrCast
+    -(elimCast -(mF (mG c)))
+    -λ _. β .
+
+import utils/top.
+import view .
+
+monoView ◂ ∀ t: Top. Mono ·(λ T: ★. View ·T t)
+= Λ t. Λ X. Λ Y. λ c.
+  intrCast
+    -(λ v. ρ (eqView -t -v) @x.(View ·Y β{| x |})
+           - intrView ·Y β{| v |}
+               -(elimCast -c (elimView t -v)) -(eqView -t -v))
+    -(λ _. β) .

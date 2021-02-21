@@ -1,0 +1,107 @@
+module scott/concrete/nat .
+
+import view .
+import cast .
+import mono .
+import recType .
+
+NatF ◂ ★ ➔ ★ = λ N: ★. ∀ X: ★. X ➔ (N ➔ X) ➔ X.
+
+monoNatF ◂ Mono ·NatF
+= Λ X. Λ Y. λ c.
+  intrCast -(λ n. Λ Z. λ z. λ s. n z (λ r. s (elimCast -c r))) -(λ n. β).
+
+zeroF ◂ ∀ N: ★. NatF ·N
+= Λ N. Λ X. λ z. λ s. z.
+
+sucF ◂ ∀ N: ★. N ➔ NatF ·N
+= Λ N. λ n. Λ X. λ z. λ s. s n.
+
+WkIndNatF ◂ Π N: ★. NatF ·N ➔ ★
+= λ N: ★. λ n: NatF ·N.
+  ∀ P: NatF ·N ➔ ★. P (zeroF ·N) ➔
+  (Π m: (ι x: N. NatF ·N). P m.2 ➾ P (sucF m.1)) ➔
+  P n .
+
+zeroWkIndNatF ◂ ∀ N: ★. WkIndNatF ·N (zeroF ·N)
+= Λ N. Λ P. λ z. λ s. z .
+
+sucWkIndNatF
+◂ ∀ N: ★. Π m: (ι x: N. NatF ·N).
+  WkIndNatF ·N m.2 ➾ WkIndNatF ·N (sucF m.1)
+= Λ N. λ m. Λ ih. Λ P. λ z. λ s.
+  s m -(ih z s) .
+
+_ ◂ { zeroF ≃ zeroWkIndNatF } = β .
+_ ◂ { sucF ≃ sucWkIndNatF } = β .
+
+monoWkIndNatF
+◂ ∀ X: ★. ∀ Y: ★. Π c: Cast ·X ·Y.
+  ∀ x: NatF ·X. Cast ·(WkIndNatF ·X x) ·(WkIndNatF ·Y (elimCast -(monoNatF c) x))
+= Λ X. Λ Y. λ c. Λ x.
+  [t ◂ NatF ·X ➔ NatF ·Y = elimCast -(monoNatF c)] -
+  intrCast
+    -(λ n. Λ P. λ z. λ s.
+      n ·(λ x: NatF ·X. P (t x)) z
+        λ m. Λ ih.
+        [m' ◂ ι x: Y. NatF ·Y = [ elimCast -c m.1 , t m.2 ]]
+        - s m' -ih)
+    -(λ _. β) .
+
+NatFI ◂ ★ ➔ ★
+= λ N: ★. ι x: NatF ·N. WkIndNatF ·N x.
+
+monoNatFI ◂ Mono ·NatFI = Λ X. Λ Y. λ c.
+  intrCast
+    -(λ n. [ elimCast -(monoNatF c) n.1
+           , elimCast -(monoWkIndNatF c -n.1) n.2])
+    -(λ _. β).
+
+Nat ◂ ★ = Rec ·NatFI.
+rollNat   ◂ NatFI ·Nat ➔ Nat = roll -monoNatFI .
+unrollNat ◂ Nat ➔ NatFI ·Nat = unroll -monoNatFI .
+
+zero ◂ Nat
+= rollNat [ zeroF ·Nat , zeroWkIndNatF ·Nat ] .
+
+suc ◂ Nat ➔ Nat
+= λ m.
+  rollNat [ sucF m
+          , sucWkIndNatF ·Nat [ m , (unrollNat m).1 ] -(unrollNat m).2 ] .
+
+_ ◂ { zero ≃ zeroF } = β .
+_ ◂ { suc ≃ sucF } = β .
+
+LiftNat ◂ (Nat ➔ ★) ➔ NatF ·Nat ➔ ★
+= λ P: Nat ➔ ★. λ x: NatF ·Nat.
+  ∀ v: View ·Nat β{| x |}. P (elimView β{| x |} -v) .
+
+wkIndNat ◂ ∀ P: Nat ➔ ★.
+  P zero ➔ (Π m: Nat. P m ➾ P (suc m)) ➔ Π n: Nat. P n
+= Λ P. λ z. λ s. λ n.
+  (unrollNat n).2 ·(LiftNat ·P)
+    (Λ v. z)
+    (λ m. Λ ih. Λ v. s m.1 -(ih -(selfView m.1)))
+    -(selfView n) .
+
+-- computational and extensional character
+caseNat ◂ ∀ X: ★. X ➔ (Nat ➔ X) ➔ Nat ➔ X
+= Λ X. λ z. λ s. λ n. (unrollNat n).1 z s .
+
+betaNat1 ◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X. { caseNat z s zero ≃ z }
+= Λ X. Λ z. Λ s. β .
+
+betaNat2 ◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X. ∀ x: Nat. { caseNat z s (suc x) ≃ s x }
+= Λ X. Λ z. Λ s. Λ x. β .
+
+wkIndComp ◂ { caseNat ≃ wkIndNat } = β .
+
+pred ◂ Nat ➔ Nat = caseNat zero λ p. p .
+
+predComp1 ◂ { pred zero ≃ zero } = β .
+
+predComp2 ◂ ∀ x: Nat. { pred (suc x) ≃ x }
+= Λ x. β .
+
+etaNat ◂ Π n: Nat. { caseNat zero suc n ≃ n }
+= wkIndNat ·(λ x: Nat. { caseNat zero suc x ≃ x }) β (λ m. Λ ih. β) .

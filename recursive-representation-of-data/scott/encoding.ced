@@ -1,79 +1,147 @@
-import functor.
-import utils.
+import mono .
 
-module scott/encoding
-  (F : ★ ➔ ★) (fmap : Fmap · F)
-  {fmapId : FmapId · F fmap} {fmapCompose : FmapCompose · F fmap}.
+module scott/encoding (F: ★ ➔ ★) {mono: Mono ·F} .
 
-import recType.
-import cast.
-import functorThms · F fmap -fmapId -fmapCompose.
+import view .
+import cast .
+import recType .
+import utils .
 
-AlgS ◂ ★ ➔ ★ ➔ ★ = λ S: ★. λ X: ★. F ·(Wrap ·S) ➔ X.
-SF ◂ ★ ➔ ★ = λ S: ★. ∀ X: ★. AlgS ·S ·X ➔ X.
+CaseAlg ◂ ★ ➔ ★ ➔ ★ = λ D: ★. λ X: ★. F ·(Wrap ·D) ➔ X.
+DF ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. CaseAlg ·D ·X ➔ X.
 
-monoSF ◂ Mono ·SF = Λ X. Λ Y. λ c.
-  intrCast -(λ d. Λ Z. λ a. d (λ df. a (fcast -(castWrap c) df))) -(λ _. β) .
+inDF ◂ ∀ D: ★. CaseAlg ·D ·(DF ·D)
+= Λ D. λ xs. Λ X. λ a. a xs .
 
-PreS ◂ ★ ➔ ★ = λ S: ★. ι x: S. SF ·S.
-PrfS ◂ Π S: ★. (SF ·S ➔ ★) ➔ ★
-= λ S: ★. λ P: SF ·S ➔ ★. WkSigma ·(PreS ·S) ·(λ x: PreS ·S. P x.2).
+monoDF ◂ Mono ·DF
+= Λ X. Λ Y. λ c.
+  intrCast
+    -(λ d. Λ Z. λ a. d (λ df. a (elimCast -(mono (monoWrap c)) df)))
+    -(λ _. β) .
 
-preIn ◂ ∀ S: ★. F ·(PreS ·S) ➔ SF ·S
-= Λ S. λ xs. Λ X. λ alg. alg (fmap (λ x: PreS ·S. wrap x.1) xs).
+Pred ◂ ★ ➔ ★ = λ D: ★. ι x: D. DF ·D .
 
-monoPreS ◂ Mono ·PreS = Λ X. Λ Y. λ c.
-  intrCast -(λ x. [ elimCast -c x.1 , elimCast -(monoSF c) x.2 ]) -(λ _. β) .
+monoPred ◂ Mono ·Pred
+= Λ X. Λ Y. λ c.
+  intrCast
+    -(λ x. [ elimCast -c x.1 , elimCast -(monoDF c) x.2 ])
+    -(λ x. β) .
 
-monoPrfS ◂ ∀ X: ★. ∀ Y: ★. Π c: Cast ·X ·Y. ∀ P: SF ·Y ➔ ★.
-  Cast ·(PrfS ·X ·(λ x: SF ·X. P (elimCast -(monoSF c) x))) ·(PrfS ·Y ·P)
+WkIh ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
+= λ D: ★. λ P: DF ·D ➔ ★. WkSigma ·(Pred ·D) ·(λ x: Pred ·D. P x.2) .
+
+castWkIh ◂ ∀ D: ★. ∀ P: DF ·D ➔ ★. Cast ·(WkIh ·D ·P) ·(Wrap ·D)
+= Λ D. Λ P.
+  intrCast -(λ x. wrap (wkproj1 x).1) -(λ x. wkproj1Eta -x) .
+
+inDFWkIh ◂ ∀ D: ★. ∀ P: DF ·D ➔ ★. F ·(WkIh ·D ·P) ➔ DF ·D
+= Λ D. Λ P. λ xs. inDF ·D (elimCast -(mono (castWkIh ·D ·P)) xs) .
+
+_ ◂ { inDF ≃ inDFWkIh } = β .
+
+monoWkIh
+◂ ∀ X: ★. ∀ Y: ★. Π c: Cast ·X ·Y. ∀ P: DF ·Y ➔ ★.
+  Cast ·(WkIh ·X ·(λ x: DF ·X. P (elimCast -(monoDF c) x))) ·(WkIh ·Y ·P)
 = Λ X. Λ Y. λ c. Λ P.
+  cast1stWkSigma ·(Pred ·X) ·(Pred ·Y) ·(λ x: Pred ·Y. P x.2) (monoPred c) .
+
+WkPrfAlg ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
+= λ D: ★. λ P: DF ·D ➔ ★. Π xs: F ·(WkIh ·D ·P). P (inDFWkIh xs) .
+
+WkIndDF ◂ Π D: ★. DF ·D ➔ ★
+= λ D: ★. λ x: DF ·D.
+  ∀ P: DF ·D ➔ ★. WkPrfAlg ·D ·P ➔ P x .
+
+instWkIh
+◂ ∀ D: ★. ∀ P: DF ·D ➔ ★. WkPrfAlg ·D ·P ➔ Cast ·(WkIh ·D ·(WkIndDF ·D)) ·(WkIh ·D ·P)
+= Λ D. Λ P. λ a.
+  cast2ndWkSigma ·(Pred ·D) ·(λ x: Pred ·D. WkIndDF ·D x.2) ·(λ x: Pred ·D. P x.2)
+    λ x. λ ih. ih a .
+
+inWkIndDF ◂ ∀ D: ★. Π xs: F ·(WkIh ·D ·(WkIndDF ·D)). WkIndDF ·D (inDFWkIh xs)
+= Λ D. λ xs. Λ P. λ a. a (elimCast -(mono (instWkIh a)) xs) .
+
+_ ◂ { inDF ≃ inWkIndDF } = β .
+
+monoWkIndDF
+◂ ∀ X: ★. ∀ Y: ★. Π c: Cast ·X ·Y.
+  ∀ x: DF ·X. Cast ·(WkIndDF ·X x) ·(WkIndDF ·Y (elimCast -(monoDF c) x))
+= Λ X. Λ Y. λ c. Λ x.
   intrCast
-    -(λ x. elimWkSigma x (λ a. Λ p. intrWkSigma (elimCast -(monoPreS c) a) -p))
-    -(λ x. etaWkSigma x).
+    -(λ d. Λ P. λ a.
+      d ·(λ x: DF ·X. P (elimCast -(monoDF c) x))
+        λ xs.
+          [xs' ◂ F ·(WkIh ·Y ·P) = elimCast -(mono (monoWkIh c ·P)) xs]
+          - a xs')
+    -λ _. β .
 
-WkPrfAlgS ◂ Π S: ★. (SF ·S ➔ ★) ➔ ★
-= λ S: ★. λ P: SF ·S ➔ ★. Π xs: F ·(PrfS ·S ·P).
-    P (preIn (fmap (λ x: PrfS ·S ·P. wkproj1 x) xs)).
+DFI ◂ ★ ➔ ★
+= λ D: ★. ι x: DF ·D. WkIndDF ·D x .
 
-WkInductiveS ◂ Π S: ★. SF ·S ➔ ★ = λ S: ★. λ x: SF ·S.
-  ∀ P: SF ·S ➔ ★. WkPrfAlgS ·S ·P ➔ P x.
-
-WkIF ◂ ★ ➔ ★ = λ S: ★. ι x: SF ·S. WkInductiveS ·S x.
-
-monoWkIF ◂ Mono ·WkIF = Λ X. Λ Y. λ c.
+monoDFI ◂ Mono ·DFI
+= Λ X. Λ Y. λ c.
   intrCast
-    -(λ t. [ elimCast -(monoSF c) t.1
-           , Λ P. λ a. t.2 ·(λ s: SF ·X. P (elimCast -(monoSF c) s))
-                         (λ tf. a (fcast -(monoPrfS c ·P) tf)) ])
-    -(λ _. β).
+    -(λ x. [ elimCast -(monoDF c) x.1 , elimCast -(monoWkIndDF c -x.1) x.2 ])
+    -λ _. β .
 
-S ◂ ★ = Rec ·WkIF.
-rollS   ◂ WkIF ·S ➔ S = elimCast -(recRoll -monoWkIF).
-unrollS ◂ S ➔ WkIF ·S = elimCast -(recUnroll -monoWkIF).
+D ◂ ★ = Rec ·DFI .
+rollD   ◂ DFI ·D ➔ D = roll -monoDFI .
+unrollD ◂ D ➔ DFI ·D = unroll -monoDFI .
 
-toPreS ◂ Cast ·S ·(PreS ·S) = intrCast -(λ x. [ x , (unrollS x).1 ]) -(λ _. β).
+castPredD ◂ Cast ·D ·(Pred ·D)
+= intrCast
+    -(λ x. [ x , (unrollD x).1 ])
+    -(λ x. β) .
 
-case ◂ ∀ X: ★. AlgS ·S ·X ➔ S ➔ X
-= Λ X. λ a. λ x. (unrollS x).1 a.
+castWkIhD ◂ Cast ·(Wrap ·D) ·(WkIh ·D ·(WkIndDF ·D))
+= intrCast
+    -(λ x. intrWkSigma (elimCast -castPredD (unwrap x))
+             -(unrollD (unwrap x)).2)
+    -(λ x. unwrapEta -x) .
 
-in ◂ F ·S ➔ S = λ xs.
-  rollS [ preIn ·S (fcast -toPreS xs)
-       , Λ P. λ a.
-         ρ+ ς (fmapId (λ x: S. unwrap (wrap x)) (λ _ . β) xs) -
-         ρ+ ς (fmapCompose (unwrap ·S) (wrap ·S) xs) -
-          a (fmap ·S ·(PrfS ·S ·P)
-               (λ x. intrWkSigma (elimCast -toPreS x) -((unrollS x).2 a)) xs) ].
+inD ◂ CaseAlg ·D ·D
+= λ xs. rollD [ inDF xs , inWkIndDF ·D (elimCast -(mono castWkIhD) xs) ] .
 
-caseComp : ∀ X: ★. Π a: AlgS ·S ·X. Π xs: F ·S. {case a (in xs) ≃ a (fmap wrap xs) }
-= Λ X. λ a. λ xs. β.
+LiftD ◂ (D ➔ ★) ➔ DF ·D ➔ ★
+= λ P: D ➔ ★. λ x: DF ·D.
+  ∀ v: View ·D β{| x |}. P (elimView β{| x |} -v) .
 
-out ◂ S ➔ F ·S = case (λ xs. fmap (unwrap ·S) xs).
+castWkSigmaD ◂ ∀ P: D ➔ ★. Cast ·(WkSigma ·D ·P) ·(Wrap ·D)
+= Λ P. cast2ndWkSigma ·D ·P ·(λ x: D. Top) (λ x. λ y. β) .
 
-LiftS ◂ (S ➔ ★) ➔ SF ·S ➔ ★ = λ P: S ➔ ★. λ x: SF ·S.
-  ∀ m: S. ∀ eq: {m ≃ x}. P (φ eq - m {| x |}).
+inDWkSigma ◂ ∀ P: D ➔ ★. F ·(WkSigma ·D ·P) ➔ D
+= Λ P. λ xs. inD (elimCast -(mono (castWkSigmaD ·P)) xs) .
 
-wkInduction ◂ ∀ P: S ➔ ★. WkPrfAlgS ·S ·(LiftS ·P) ➔ Π s: S. P s
-= Λ P. λ a. λ x. (unrollS x).2 ·(LiftS ·P) a -x -β.
+unliftD ◂ ∀ P: D ➔ ★. Cast ·(WkIh ·D ·(LiftD ·P)) ·(WkSigma ·D ·P)
+= Λ P.
+  intrCast
+    -(λ x. elimWkSigma x λ p. Λ ih. intrWkSigma p.1 -(ih -(selfView p.1)))
+    -(λ x. elimWkSigmaEta -x) .
 
-_ ◂ {wkInduction ≃ case} = β.
+wkIndD ◂ ∀ P: D ➔ ★. (Π xs: F ·(WkSigma ·D ·P). P (inDWkSigma xs)) ➔ Π x: D. P x
+= Λ P. λ a. λ x.
+  (unrollD x).2 ·(LiftD ·P)
+    (λ xs. Λ v. a (elimCast -(mono (unliftD ·P)) xs))
+    -(selfView x) .
+
+-- computation and extensionality
+caseD ◂ ∀ X: ★. CaseAlg ·D ·X ➔ D ➔ X
+= Λ X. λ a. λ x. (unrollD x).1 a .
+
+_ ◂ { wkIndD ≃ caseD } = β .
+
+caseDBeta ◂ ∀ X: ★. Π a: CaseAlg ·D ·X. Π xs: F ·(Wrap ·D). { caseD a (inD xs) ≃ a xs }
+= Λ X. λ a. λ xs. β .
+
+caseDEta ◂ Π x: D. { caseD inD x ≃ x }
+= wkIndD ·(λ x: D. { caseD inD x ≃ x }) λ xs. β .
+
+outD ◂ D ➔ F ·(Wrap ·D)
+= caseD λ xs. xs .
+
+lambek1D ◂ Π xs: F ·(Wrap ·D). { outD (inD xs) ≃ xs }
+= λ xs. β .
+
+lambek2D ◂ Π x: D. { inD (outD x) ≃ x }
+= wkIndD ·(λ x: D. { inD (outD x) ≃ x }) λ xs. β .
+
