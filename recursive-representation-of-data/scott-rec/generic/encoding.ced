@@ -1,0 +1,77 @@
+import functor .
+import cast .
+import mono .
+import view .
+import recType .
+import utils .
+
+module scott-rec/generic/encoding (F : ★ ➔ ★) {mono: Mono ·F} .
+
+import scott/generic/encoding ·F -mono .
+
+PredR ◂ (D ➔ ★) ➔ ★ ➔ ★
+= λ P: D ➔ ★. λ Y: ★. ι x: D. Y ➔ Y ➔ P x .
+
+fromPredR ◂ ∀ P: D ➔ ★. ∀ Y: ★. Cast ·(PredR ·P ·Y) ·D
+= Λ P. Λ Y. intrCast -(λ x. x.1) -(λ x. β) .
+
+inPredR ◂ ∀ P: D ➔ ★. ∀ Y: ★. F ·(PredR ·P ·Y) ➔ D
+= Λ P. Λ Y. λ xs.
+  inD (elimCast -(mono (fromPredR ·P ·Y)) xs) .
+
+PrfAlgR ◂ (D ➔ ★) ➔ ★
+= λ P: D ➔ ★.
+  ∀ Y: ★. Π xs: F ·(PredR ·P ·Y). Y ➔ P (inPredR xs) .
+
+IndR ◂ D ➔ ★
+= λ x: D. ∀ P: D ➔ ★. PrfAlgR ·P ➔ PrfAlgR ·P ➔ P x .
+
+R ◂ ★ = ι x: D. IndR x .
+
+fromR ◂ Cast ·R ·D
+= intrCast -(λ x. x.1) -(λ x. β) .
+
+instPredR ◂ ∀ P: D ➔ ★. Cast ·R ·(PredR ·P ·(PrfAlgR ·P))
+= ● .
+
+LiftR ◂ (D ➔ ★) ➔ (DF ·R ➔ ★)
+= λ P: D ➔ ★. λ x: DF ·R.
+  PrfAlgR ·P ➔ ∀ v: View ·D β{| x |}. P (elimView β{| x |} -v) .
+
+fromPrfAlgR
+◂ ∀ P: D ➔ ★. Cast ·(PrfAlgR ·P) ·(PrfAlgCase ·R ·(LiftR ·P))
+= Λ P.
+  intrCast
+    -(λ a1. λ xs. λ a. Λ v.
+      a1 ·(PrfAlgR ·P) (elimCast -(mono (instPredR ·P)) xs) a)
+    -(λ a1. β) .
+
+rollR ◂ Cast ·(DFI ·R) ·R
+= intrCast
+    -(λ x.
+        [x' ◂ D = rollD (elimCast -(monoDFI fromR) x)]
+      - [ x'
+        , Λ P. λ a1. λ a2.
+          x.2 ·(LiftR ·P)
+            (elimCast -(fromPrfAlgR ·P) a1)
+            a2 -(selfView x') ])
+    -(λ x. β) .
+
+toR ◂ Cast ·D ·R
+= recLB -rollR .
+
+{-
+repackIndS ◂ ∀ P: S ➔ ★. ∀ Y: ★. Y ➔ Wrap ·(IndS ·P ·Y) ➔ Sigma ·S ·P
+= Λ P. Λ Y. λ y. λ w. mksigma (unwrap w).1 ((unwrap w).2 y y).
+
+PrfAlg ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★. Π d: F ·(Sigma ·S ·P). P (in (fmap (proj1 ·S ·P) d)).
+
+fromPrfAlg ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ PrfAlg' ·P
+= Λ P. λ a. Λ Y. λ xs. λ y.
+  ρ+ ς (fmapCompose (proj1 ·S ·P) (repackIndS ·P y) xs)
+  - a (fmap (repackIndS ·P y) xs).
+
+induction ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ Π s: S. P s
+= Λ P. λ a. λ s. (elimCast -toI s).2 (fromPrfAlg a) (fromPrfAlg a).
+
+rec ◂ ∀ X: ★. (F ·(Pair ·S ·X) ➔ X) ➔ S ➔ X = Λ X. induction ·(λ x: S. X).
