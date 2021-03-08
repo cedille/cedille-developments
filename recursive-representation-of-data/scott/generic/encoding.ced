@@ -19,17 +19,17 @@ monoDF ◂ Mono ·DF
 inDF ◂ ∀ D: ★. AlgCase ·D ·(DF ·D)
 = Λ D. λ xs. Λ X. λ a. a xs .
 
-PrfAlgCase ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
+WkPrfAlg ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
 = λ D: ★. λ P: DF ·D ➔ ★.
   Π xs: F ·D. P (inDF xs) .
 
-DiscrDF ◂ Π D: ★. DF ·D ➔ ★
+WkIndDF ◂ Π D: ★. DF ·D ➔ ★
 = λ D: ★. λ x: DF ·D.
-  ∀ P: DF ·D ➔ ★. PrfAlgCase ·D ·P ➔ P x .
+  ∀ P: DF ·D ➔ ★. WkPrfAlg ·D ·P ➔ P x .
 
-monoDiscrDF
+monoWkIndDF
 ◂ ∀ D1: ★. ∀ D2: ★. Π c: Cast ·D1 ·D2. ∀ x: DF ·D1.
-  Cast ·(DiscrDF ·D1 x) ·(DiscrDF ·D2 (elimCast -(monoDF c) x))
+  Cast ·(WkIndDF ·D1 x) ·(WkIndDF ·D2 (elimCast -(monoDF c) x))
 = Λ D1. Λ D2. λ c. Λ x.
   intrCast
     -(λ d. Λ P. λ a.
@@ -37,18 +37,18 @@ monoDiscrDF
         λ ds. a (elimCast -(mono c) ds))
     -(λ x. β) .
 
-inDiscrDF ◂ ∀ D: ★. Π xs: F ·D. DiscrDF ·D (inDF xs)
+inWkIndDF ◂ ∀ D: ★. WkPrfAlg ·D ·(WkIndDF ·D)
 = Λ D. λ xs. Λ P. λ a. a xs .
 
-_ ◂ { inDiscrDF ≃ inDF } = β .
+_ ◂ { inWkIndDF ≃ inDF } = β .
 
-DFI ◂ ★ ➔ ★ = λ D: ★. ι x: DF ·D. DiscrDF ·D x .
+DFI ◂ ★ ➔ ★ = λ D: ★. ι x: DF ·D. WkIndDF ·D x .
 
 monoDFI ◂ Mono ·DFI
 = Λ D1. Λ D2. λ c.
   intrCast
     -(λ x. [ elimCast -(monoDF c) x.1
-           , elimCast -(monoDiscrDF c -x.1) x.2 ])
+           , elimCast -(monoWkIndDF c -x.1) x.2 ])
     -(λ x. β) .
 
 D ◂ ★ = Rec ·DFI .
@@ -56,7 +56,7 @@ rollD   ◂ DFI ·D ➔ D = roll -monoDFI .
 unrollD ◂ D ➔ DFI ·D = unroll -monoDFI .
 
 inD ◂ AlgCase ·D ·D
-= λ xs. rollD [ inDF xs , inDiscrDF xs ] .
+= λ xs. rollD [ inDF xs , inWkIndDF xs ] .
 
 _ ◂ { inD ≃ inDF } = β .
 
@@ -64,7 +64,7 @@ LiftD ◂ (D ➔ ★) ➔ DF ·D ➔ ★
 = λ P: D ➔ ★. λ x: DF ·D.
   ∀ v: View ·D β{| x |}. P (elimView β{| x |} -v) .
 
-discrD ◂ ∀ P: D ➔ ★. (Π xs: F ·D. P (inD xs)) ➔ Π x: D. P x
+wkIndD ◂ ∀ P: D ➔ ★. (Π xs: F ·D. P (inD xs)) ➔ Π x: D. P x
 = Λ P. λ a. λ x.
   (unrollD x).2 ·(LiftD ·P)
     (λ xs. Λ v. a xs)
@@ -78,9 +78,9 @@ caseDBeta ◂ ∀ X: ★. ∀ a: AlgCase ·D ·X. ∀ xs: F ·D. { caseD a (inD 
 = Λ X. Λ a. Λ xs. β .
 
 caseDEta ◂ Π x: D. { caseD inD x ≃ x }
-= discrD ·(λ x: D. { caseD inD x ≃ x }) (λ xs. β) .
+= wkIndD ·(λ x: D. { caseD inD x ≃ x }) (λ xs. β) .
 
-_ ◂ { discrD ≃ caseD } = β .
+_ ◂ { wkIndD ≃ caseD } = β .
 
 outD ◂ D ➔ F ·D
 = caseD λ xs. xs .
@@ -89,4 +89,4 @@ lambek1D ◂ Π xs: F ·D. { outD (inD xs) ≃ xs }
 = λ xs. β .
 
 lambek2D ◂ Π x: D. { inD (outD x) ≃ x }
-= discrD ·(λ x: D. { inD (outD x) ≃ x }) λ xs. β .
+= wkIndD ·(λ x: D. { inD (outD x) ≃ x }) λ xs. β .

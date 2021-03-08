@@ -5,9 +5,13 @@ import view .
 import recType .
 import utils .
 
-module scott-rec/generic/encoding (F : ★ ➔ ★) {mono: Mono ·F} .
+module scott-rec/generic/encoding
+  (F : ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
 
-import scott/generic/encoding ·F -mono .
+import functorThms ·F fmap -fmapId -fmapCompose .
+
+import scott/generic/encoding ·F -monoFunctor .
 
 PredR ◂ (D ➔ ★) ➔ ★ ➔ ★
 = λ P: D ➔ ★. λ Y: ★. ι x: D. Y ➔ Y ➔ P x .
@@ -17,7 +21,7 @@ fromPredR ◂ ∀ P: D ➔ ★. ∀ Y: ★. Cast ·(PredR ·P ·Y) ·D
 
 inPredR ◂ ∀ P: D ➔ ★. ∀ Y: ★. F ·(PredR ·P ·Y) ➔ D
 = Λ P. Λ Y. λ xs.
-  inD (elimCast -(mono (fromPredR ·P ·Y)) xs) .
+  inD (elimCast -(monoFunctor (fromPredR ·P ·Y)) xs) .
 
 PrfAlgR ◂ (D ➔ ★) ➔ ★
 = λ P: D ➔ ★.
@@ -32,7 +36,7 @@ fromR ◂ Cast ·R ·D
 = intrCast -(λ x. x.1) -(λ x. β) .
 
 instPredR ◂ ∀ P: D ➔ ★. Cast ·R ·(PredR ·P ·(PrfAlgR ·P))
-= ● .
+= Λ P. intrCast -(λ x. [ x.1 , x.2 ·P ]) -(λ x. β) .
 
 LiftR ◂ (D ➔ ★) ➔ (DF ·R ➔ ★)
 = λ P: D ➔ ★. λ x: DF ·R.
@@ -43,7 +47,7 @@ fromPrfAlgR
 = Λ P.
   intrCast
     -(λ a1. λ xs. λ a. Λ v.
-      a1 ·(PrfAlgR ·P) (elimCast -(mono (instPredR ·P)) xs) a)
+      a1 ·(PrfAlgR ·P) (elimCast -(monoFunctor (instPredR ·P)) xs) a)
     -(λ a1. β) .
 
 rollR ◂ Cast ·(DFI ·R) ·R
@@ -60,18 +64,25 @@ rollR ◂ Cast ·(DFI ·R) ·R
 toR ◂ Cast ·D ·R
 = recLB -rollR .
 
-{-
-repackIndS ◂ ∀ P: S ➔ ★. ∀ Y: ★. Y ➔ Wrap ·(IndS ·P ·Y) ➔ Sigma ·S ·P
-= Λ P. Λ Y. λ y. λ w. mksigma (unwrap w).1 ((unwrap w).2 y y).
+indR ◂ ∀ P: D ➔ ★. PrfAlgR ·P ➔ Π x: D. P x
+= Λ P. λ a. λ x. (elimCast -toR x).2 a a .
 
-PrfAlg ◂ (S ➔ ★) ➔ ★ = λ P: S ➔ ★. Π d: F ·(Sigma ·S ·P). P (in (fmap (proj1 ·S ·P) d)).
+_ ◂ ∀ P: D ➔ ★. ∀ a: PrfAlgR ·P. ∀ xs: F ·D. { indR a (inD xs) ≃ a xs a }
+= Λ P. Λ a. Λ xs. β .
 
-fromPrfAlg ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ PrfAlg' ·P
+import parigot as P ·F fmap -fmapId -fmapCompose .
+
+convPredR ◂ ∀ P: D ➔ ★. ∀ Y: ★. Y ➔ PredR ·P ·Y ➔ Sigma ·D ·P
+= Λ P. Λ Y. λ y. λ x. mksigma x.1 (x.2 y y) .
+
+fromPPrfAlg
+◂ ∀ P: D ➔ ★. P.PrfAlg ·D inD ·P ➔ PrfAlgR ·P
 = Λ P. λ a. Λ Y. λ xs. λ y.
-  ρ+ ς (fmapCompose (proj1 ·S ·P) (repackIndS ·P y) xs)
-  - a (fmap (repackIndS ·P y) xs).
+  ρ ς (fmapId ·(PredR ·P ·Y) ·D (λ x. proj1 (convPredR y x)) (λ x. β) xs)
+    @x.(P (inD x))
+- ρ ς (fmapCompose (proj1 ·D ·P) (convPredR ·P y) xs)
+    @x.(P (inD x))
+- a (fmap (convPredR ·P y) xs) .
 
-induction ◂ ∀ P: S ➔ ★. PrfAlg ·P ➔ Π s: S. P s
-= Λ P. λ a. λ s. (elimCast -toI s).2 (fromPrfAlg a) (fromPrfAlg a).
-
-rec ◂ ∀ X: ★. (F ·(Pair ·S ·X) ➔ X) ➔ S ➔ X = Λ X. induction ·(λ x: S. X).
+ind ◂ ∀ P: D ➔ ★. P.PrfAlg ·D inD ·P ➔ Π x: D. P x
+= Λ P. λ a. indR (fromPPrfAlg a) .

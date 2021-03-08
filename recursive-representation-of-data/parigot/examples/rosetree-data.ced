@@ -1,0 +1,31 @@
+import utils .
+import list-data .
+import list .
+
+module parigot/examples/rosetree-data (A: ★) .
+
+import signatures/tree ·A ·List listMap -listMapId -listMapCompose .
+
+import parigot/generic/encoding as P
+  ·TreeF treeFmap -treeFmapId -treeFmapCompose .
+
+RoseTree ◂ ★ = P.D .
+
+rose ◂ A ➔ List ·RoseTree ➔ RoseTree
+= λ x. λ t. P.inD (mksigma x t) .
+
+rose' ◂ ∀ P: RoseTree ➔ ★. A ➔ List ·(Sigma ·RoseTree ·P) ➔ RoseTree
+= Λ P. λ x. λ t.
+  rose x (listMap ·(Sigma ·RoseTree ·P) ·RoseTree (λ x. proj1 x) t) .
+
+indRoseTree
+◂ ∀ P: RoseTree ➔ ★.
+  (Π x: A. Π t: List ·(Sigma ·RoseTree ·P). P (rose' x t)) ➔
+  Π t: RoseTree. P t
+= Λ P. λ r.
+  P.indD (λ xs.
+    [in ◂ TreeF ·(Sigma ·RoseTree ·P) ➔ RoseTree
+     = λ t. P.inD (treeFmap (proj1 ·RoseTree ·P) t)]
+  - indSigma xs
+      ·(λ x: TreeF ·(Sigma ·RoseTree ·P). P (in x))
+      r) .

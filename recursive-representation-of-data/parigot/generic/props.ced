@@ -1,0 +1,67 @@
+import functor .
+import cast .
+import recType .
+import utils .
+
+module parigot/generic/props
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import functorThms ·F fmap -fmapId -fmapCompose .
+import parigot/generic/encoding ·F fmap -fmapId -fmapCompose .
+
+normD ◂ Cast ·D ·(AlgRec ·D ·Top ➔ Top)
+= intrCast -(λ x. (unrollD x).1 ·Top) -(λ x. β) .
+
+RecDBeta : Π X: ★. AlgRec ·D ·X ➔ (D ➔ X) ➔ ★
+= λ X: ★. λ a: AlgRec ·D ·X. λ h: D ➔ X.
+  ∀ xs: F ·D. { h (inD xs) ≃ a (fmap (λ x. mksigma x (h x)) xs) } .
+
+recDBeta
+◂ ∀ X: ★. ∀ a: AlgRec ·D ·X. RecDBeta ·X a (recD a)
+= Λ X. Λ a. Λ xs. β .
+
+recDEta ◂ Π x: D. { recD (λ xs. inD (fmap proj2 xs)) x ≃ x }
+= λ x. (unrollD x).2 .
+
+outD ◂ D ➔ F ·D
+= recD (fmap ·(Pair ·D ·(F ·D)) (λ x. proj1 x)) .
+
+lambek1D ◂ Π xs: F ·D. { outD (inD xs) ≃ xs }
+= λ xs.
+  ρ (fmapCompose ·D ·(Pair ·D ·(F ·D)) ·D (λ x. proj1 x) (λ x. mksigma x (outD x)) xs)
+    @x.{ x ≃ xs }
+- ρ (fmapId ·D ·D (λ x. x) (λ x. β) xs)
+- β .
+
+lambek2D ◂ Π x: D. { inD (outD x) ≃ x }
+= indD ·(λ x: D. { inD (outD x) ≃ x })
+    λ xs. ρ (lambek1D (fmap ·(Sigma ·D ·(λ x: D. { inD (outD x) ≃ x })) ·D (λ x. proj1 x) xs))
+        - β .
+
+unique
+◂ FmapExt ·F fmap ➔ ∀ X: ★. ∀ a: AlgRec ·D ·X. ∀ h: D ➔ X. RecDBeta ·X a h ➾
+  Π x: D. { h x ≃ recD a x }
+= λ fext. Λ X. Λ a. Λ h. Λ hBeta.
+  indD ·(λ x: D. { h x ≃ recD a x })
+    λ xs. ρ (hBeta -(fmap ·(Sigma ·D ·(λ x: D. { h x ≃ recD a x })) ·D (λ x. proj1 x) xs))
+            @x.{ x ≃ a (fmap (λ x. mksigma x (recD a x)) (fmap proj1 xs)) }
+        - ρ (fmapCompose ·(Sigma ·D ·(λ x: D. { h x ≃ recD a x})) ·D ·(Pair ·D ·X)
+               (λ x. mksigma x (h x))
+               (λ x. proj1 x)
+               xs)
+            @x.{ a x ≃ a (fmap (λ x. mksigma x (recD a x)) (fmap proj1 xs)) }
+        - ρ (fmapCompose ·(Sigma ·D ·(λ x: D. { h x ≃ recD a x })) ·D ·(Pair ·D ·X)
+               (λ x. mksigma x (recD a x))
+               (λ x. proj1 x)
+               xs)
+            @x.{ a (fmap (λ x. mksigma (proj1 x) (h (proj1 x))) xs) ≃ a x }
+        - ρ (fext ·(Sigma ·D ·(λ x: D. { h x ≃ recD a x })) ·(Pair ·D ·X)
+               (λ x. mksigma (proj1 x) (h (proj1 x)))
+               (λ x. mksigma (proj1 x) (recD a (proj1 x)))
+               (λ x. ρ (proj2 x)
+                       @y.{ mksigma (proj1 x) y ≃ mksigma (proj1 x) (recD a (proj1 x)) }
+                   - β)
+               xs)
+            @x.{ a x ≃ a (fmap (λ x. mksigma (proj1 x) (recD a (proj1 x))) xs) }
+        - β .

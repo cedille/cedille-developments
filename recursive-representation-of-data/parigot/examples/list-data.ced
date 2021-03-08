@@ -1,0 +1,38 @@
+import utils.
+
+module parigot/examples/list-data (A : ★).
+
+import signatures/list ·A .
+
+import parigot/generic/encoding as P
+  ·ListF listFmap -listFmapId -listFmapCompose .
+
+List ◂ ★ = P.D .
+nil ◂ List = P.inD (in1 unit) .
+cons ◂ A ➔ List ➔ List
+= λ hd. λ tl. P.inD (in2 (mkpair hd tl)) .
+
+indList
+◂ ∀ P: List ➔ ★. P nil ➔ (Π hd: A. Π tl: List. P tl ➔ P (cons hd tl)) ➔
+  Π xs: List. P xs
+= Λ P. λ n. λ c.
+  P.indD (λ xs.
+      [in ◂ ListF ·(Sigma ·List ·P) ➔ List
+        = λ xs. P.inD (listFmap (proj1 ·List ·P) xs)]
+    - indSum xs ·(λ x: ListF ·(Sigma ·List ·P). P (in x))
+        (λ u. ρ (etaUnit u) @y.(P (in (in1 y))) - n)
+        (λ p. indPair p ·(λ x: Pair ·A ·(Sigma ·List ·P). P (in (in2 x)))
+                (λ hd. λ tl. c hd (proj1 tl) (proj2 tl)))) .
+
+recList ◂ ∀ X: ★. X ➔ (A ➔ List ➔ X ➔ X) ➔ List ➔ X
+= Λ X. indList ·(λ x: List. X) .
+
+recListBeta1
+◂ ∀ X: ★. ∀ n: X. ∀ c: A ➔ List ➔ X ➔ X.
+  { recList n c nil ≃ n}
+= Λ X. Λ n. Λ c. β .
+
+recListBeta2
+◂ ∀ X: ★. ∀ n: X. ∀ c: A ➔ List ➔ X ➔ X. ∀ hd: A. ∀ tl: List.
+  { recList n c (cons hd tl) ≃ c hd tl (recList n c tl) }
+= Λ X. Λ n. Λ c. Λ hd. Λ tl. β .

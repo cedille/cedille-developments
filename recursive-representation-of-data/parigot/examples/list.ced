@@ -1,22 +1,39 @@
-import utils.
+import utils .
+import functor .
 
-module parigot/examples/list (A : ★).
+module parigot/examples/list .
 
-import parigot/encoding as P
-  ·(ListF ·A) (ListFmap ·A) -(ListFmapId ·A) -(ListFmapCompose ·A).
+import parigot/examples/list-data .
 
-List ◂ ★ = P.P .
-nil ◂ List = P.in (in1 unit) .
-cons ◂ A ➔ List ➔ List
-= λ hd. λ tl. P.in (in2 (mkpair hd tl)) .
+listMap ◂ Fmap ·List
+= Λ A. Λ B. λ f.
+  recList ·A ·(List ·B)
+    (nil ·B)
+    (λ hd. λ tl. λ xs. cons (f hd) xs) .
 
-indList ◂ ∀ Q: List ➔ ★. Q nil ➔
-  (Π hd: A. Π tl: List. Q tl ➔ Q (cons hd tl)) ➔ Π l: List. Q l
-= Λ Q. λ n. λ c.
-  P.induction ·Q
-    (λ xs.
-     θ<xs> (indSum xs)
-       (λ u. ρ (etaUnit u) - n)
-       (λ p.
-        θ<p> (indPair p)
-          (λ hd. λ tl. c hd (proj1 tl) (proj2 tl)))) .
+listMapId ◂ FmapId ·List listMap
+= Λ A. Λ B. λ c. λ ci.
+  indList ·A ·(λ x: List ·A. { listMap c x ≃ x })
+    β
+    (λ hd. λ tl. λ ih.
+       ρ (ci hd) @x.{ cons x (listMap c tl) ≃ cons hd tl }
+     - ρ ih      @x.{ cons hd x ≃ cons hd tl }
+     - β) .
+
+listMapCompose ◂ FmapCompose ·List listMap
+= Λ A. Λ B. Λ C. λ f. λ g.
+  indList ·A
+    ·(λ x: List ·A. { listMap f (listMap g x) ≃ listMap (λ x. f (g x)) x })
+    β
+    (λ hd. λ tl. λ ih.
+       ρ ih @x.{ cons (f (g hd)) x ≃ cons (f (g hd)) (listMap (λ x. f (g x)) tl) }
+     - β).
+
+listMapExt ◂ FmapExt ·List listMap
+= Λ A. Λ B. λ f. λ g. λ eq.
+  indList ·A ·(λ x: List ·A. { listMap f x ≃ listMap g x })
+    β
+    (λ hd. λ tl. λ ih.
+       ρ (eq hd) @x.{ cons x (listMap f tl) ≃ cons (g hd) (listMap g tl) }
+     - ρ ih      @x.{ cons (g hd) x ≃ cons (g hd) (listMap g tl) }
+     - β) .
