@@ -1,5 +1,6 @@
 module utils.
 
+import public utils/id.
 import public utils/sigma.
 import public utils/sum.
 import public utils/top.

@@ -16,7 +16,7 @@ recU ◂ Top
 = β{| λ a. λ x. x a |} .
 
 inU ◂ Top
-= β{| λ xs. λ a. a (fmap (λ x. mksigma x (recU a x)) xs) |} .
+= β{| λ xs. λ a. a (fmap (fork id (recU a)) xs) |} .
 
 reflectU ◂ Top
 = β{| recU (λ xs. inU (fmap proj2 xs)) |} .
@@ -26,7 +26,8 @@ DC ◂ Top ➔ ★ = λ x: Top. { reflectU x ≃ x } .
 inC ◂ Π xs: F ·(ι x: Top. DC x). DC β{| inU xs |}
 = λ xs.
   ρ (fmapCompose ·(ι x: Top. DC x) ·(Pair ·Top ·Top) ·Top
-       (λ x. proj2 x) (λ x. mksigma x.1 β{| reflectU x|}) xs)
+       (λ x. proj2 x) (fork (λ x. x.1) (λ x. β{| reflectU x |}))
+       xs)
     @x.{ inU x ≃ inU xs }
 - ρ (fmapId ·(ι x: Top. DC x) ·Top (λ x. β{| reflectU x.1 |}) (λ x. x.2) xs)
     @x.{ inU x ≃ inU xs }
@@ -60,7 +61,7 @@ recD ◂ ∀ X: ★. AlgRec ·D ·X ➔ D ➔ X
 = Λ X. λ a. λ x. (unrollD x).1 a .
 
 inD' ◂ F ·D ➔ DF' ·D
-= λ xs. Λ X. λ a. a (fmap ·D ·(Pair ·D ·X) (λ x. mksigma x (recD a x)) xs) .
+= λ xs. Λ X. λ a. a (fmap (fork (id ·D) (recD a)) xs) .
 
 toDC ◂ Cast ·D ·(ι x: Top. DC x)
 = intrCast -(λ x. [ β{| x |} , (unrollD x).2 ]) -(λ x. β) .

@@ -43,6 +43,9 @@ proj2 ◂ ∀ A : ★. ∀ B: A ➔ ★. Π s: Sigma ·A ·B. B (proj1 s) =
 -- helpers for non-dependent Sigma
 Pair ◂ ★ ➔ ★ ➔ ★ = λ A: ★. λ B: ★. Sigma ·A ·(λ _: A. B).
 
+fork ◂ ∀ X: ★. ∀ A: ★. ∀ B: ★. (X ➔ A) ➔ (X ➔ B) ➔ X ➔ Pair ·A ·B
+= Λ X. Λ A. Λ B. λ f. λ g. λ x. mksigma (f x) (g x) .
+
 mkpair ◂ ∀ A: ★. ∀ B: ★. A ➔ B ➔ Pair ·A ·B
 = Λ A. Λ B. λ a. λ b. mksigma a b.
 
