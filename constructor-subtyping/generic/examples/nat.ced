@@ -28,5 +28,5 @@ indNat : ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P x ➔ P (succ x)) ➔ Π n
 
 -- some functions
 
-add : Nat ➔ Nat ➔ Nat
-= fold addE .
+nadd : Nat ➔ Nat ➔ Nat
+= fold addAlg .

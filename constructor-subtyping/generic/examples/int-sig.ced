@@ -11,15 +11,22 @@ IntPack : Label ➔ ★ ➔ ★
 
 caseIntPack
 : ∀ X: ★. ∀ R: ★. Π l: Label. IntPack l ·R ➔
-  (IntPack lzero ·R ➔ X) ➔ (IntPack lsucc ·R ➔ X) ➔ (IntPack lpred ·R ➔ X) ➔
+  ({l ≃ lzero} ➾ X) ➔
+  ({l ≃ lsucc} ➾ R ➔ X) ➔
+  ({l ≃ lpred} ➾ R ➔ X) ➔
    X
 = Λ X. Λ R. λ l. λ i. λ z. λ s. λ p.
   μ' (eq l lzero) @(λ x: Bool. { eq l lzero ≃ x } ➾ IntPack l ·R ➔ X) {
-  | tt ➔ Λ e. λ ctors. z (ρ ς (exact l lzero e) @ x. IntPack x ·R - ctors)
+  | tt ➔ Λ e. λ ctors.
+    z -(exact l lzero e)
   | ff ➔ Λ nez. μ' (eq l lsucc) @(λ x: Bool. { eq l lsucc ≃ x } ➾ IntPack l ·R ➔ X) {
-    | tt ➔ Λ e. λ ctors. s (ρ ς (exact l lsucc e) @ x. IntPack x ·R - ctors)
+    | tt ➔ Λ e. λ ctors.
+      [e' = exact l lsucc e]
+    - s -e' (ctors.2.1 -e')
     | ff ➔ Λ nes. μ' (eq l lpred) @(λ x: Bool. { eq l lpred ≃ x } ➾ IntPack l ·R ➔ X) {
-      | tt ➔ Λ e. λ ctors. p (ρ ς (exact l lpred e) @ x. IntPack x ·R - ctors)
+      | tt ➔ Λ e. λ ctors.
+        [e' = exact l lpred e]
+      - p -e' (ctors.2.2.1 -e')
       | ff ➔ Λ nep. λ ctors.
         ctors.2.2.2
           -[ nexact l lzero nez
@@ -81,4 +88,4 @@ ipredS : ∀ I: ★. I ➔ IntSig ·I = Λ I. λ i. mksigma lpred (ipredP i) .
 caseIntSig : ∀ I: ★. IntSig ·I ➔ ∀ X: ★. X ➔ (I ➔ X) ➔ (I ➔ X) ➔ X
 = Λ I. λ i. Λ X. λ z. λ s. λ p.
   caseIntPack ·X ·I (proj1 i) (proj2 i)
-    (λ _. z) (λ i. s (i.2.1 -β)) (λ i. p (i.2.2.1 -β)) .
+    (Λ _. z) (Λ _. s) (Λ _. p) .
