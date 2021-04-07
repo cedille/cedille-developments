@@ -1,0 +1,34 @@
+import functor .
+import utils .
+
+module data-char/primrec
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}
+  (D: ★) (inD: F ·D ➔ D).
+
+import data-char/primrec-typing ·F .
+
+AlgRecHom ◂ Π X: ★. AlgRec ·D ·X ➔ (D ➔ X) ➔ ★
+= λ X: ★. λ a: AlgRec ·D ·X. λ h: D ➔ X.
+  ∀ xs: F ·D. { h (inD xs) ≃ a (fmap (fork id h) xs) } .
+
+PrimRecBeta ◂ PrimRec ·D ➔ ★
+= λ rec: PrimRec ·D.
+  ∀ X: ★. ∀ a: AlgRec ·D ·X. AlgRecHom ·X a (rec a) .
+
+PrimRecEta ◂ PrimRec ·D ➔ ★
+= λ rec: PrimRec ·D.
+  ∀ X: ★. ∀ a: AlgRec ·D ·X. ∀ h: D ➔ X. AlgRecHom ·X a h ➔
+  Π x: D. { h x ≃ rec a x } .
+
+PrfAlgRec ◂ (D ➔ ★) ➔ ★
+= λ P: D ➔ ★. Π xs: F ·(Sigma ·D ·P). P (inD (fmap (proj1 ·D ·P) xs)) .
+
+import data-char/iter-typing ·F .
+import data-char/case-typing ·F .
+
+fromAlgCase ◂ ∀ X: ★. AlgCase ·D ·X ➔ AlgRec ·D ·X
+= Λ X. λ a. λ xs. a (fmap ·(Pair ·D ·X) ·D (λ x. proj1 x) xs) .
+
+fromAlg ◂ ∀ X: ★. Alg ·X ➔ AlgRec ·D ·X
+= Λ X. λ a. λ xs. a (fmap ·(Pair ·D ·X) ·X (λ x. proj2 x) xs) .

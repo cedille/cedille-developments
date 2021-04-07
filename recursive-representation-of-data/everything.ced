@@ -12,22 +12,31 @@ import recType.
 import functor.
 import functorThms.
 
+-- recursion schemes
+import data-char as Char .
+
 -- derivation of Scott-encoded naturals
 import scott/concrete/nat as SN .
 
 -- generic derivation of Scott-encoded data
 import scott as S.
 
+-- derivation of Parigot-encoded naturals
+import parigot/concrete/nat as NP.
+
 -- generic derivation of Parigot-encoded data
 import parigot as P.
 
--- examples of Parigot-encoded data
-import parigot/examples/nat as NP.
-import parigot/examples/list as LP.
+-- examples of generic Parigot encodings
 
--- augmentation of above with standard recursion, induction
-import scott-rec as SR.
+import parigot/examples/list-data as LP .
+import parigot/examples/list as LP .
+import parigot/examples/rosetree-data as RTP .
 
--- example of Scott-encoded data
-import scott-rec/examples/nat-rec as NR .
-import scott-rec/examples/list as LR.
+-- Lepigre-Raffalli naturals
+import lepigre-raffalli/concrete/nat1 as LRN1 .
+import lepigre-raffalli/concrete/nat2 as LRN2 .
+
+-- generic Lepigre-Raffalli encoding
+import lepigre-raffalli as LR.
+

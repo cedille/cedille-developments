@@ -1,0 +1,40 @@
+import cast .
+import mono .
+import recType .
+import utils .
+
+module scott/generic/props
+  (F: ★ ➔ ★) {mono: Mono ·F} .
+
+import data-char/case-typing ·F .
+import scott/generic/encoding ·F -mono .
+
+normD ◂ Cast ·D ·(AlgCase ·D ·D ➔ D)
+= intrCast -(λ x. (unrollD x).1 ·D) -(λ x. β) .
+
+import data-char/case ·F ·D inD .
+
+caseD ◂ Case ·D
+= Λ X. λ a. λ x. (unrollD x).1 a .
+
+caseDBeta ◂ CaseBeta caseD
+= Λ X. Λ a. Λ xs. β .
+
+caseDEta ◂ CaseEta caseD
+= Λ X. Λ a. Λ h. λ hBeta.
+  wkIndD ·(λ x: D. { h x ≃ caseD a x })
+    (λ xs. ρ (hBeta -xs) @x.{ x ≃ a xs } - β) .
+
+reflectD ◂ Π x: D. { caseD inD x ≃ x }
+= λ x. ρ ς (caseDEta ·D -inD -(id ·D) (Λ xs. β) x) @y.{ y ≃ x } - β .
+
+import data-char/destruct ·F ·D inD .
+
+outD ◂ Destructor
+= caseD (λ xs. xs) .
+
+lambek1D ◂ Lambek1 outD
+= λ xs. β .
+
+lambek2D ◂ Lambek2 outD
+= wkIndD ·(λ x: D. { inD (outD x) ≃ x }) (λ xs. β) .

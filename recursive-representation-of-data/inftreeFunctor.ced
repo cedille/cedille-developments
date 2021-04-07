@@ -4,25 +4,34 @@ import functor.
 import cast.
 import utils.
 
-import parigot/examples/nat.
+import parigot/concrete/nat.
 
 InftreeF ◂ ★ ➔ ★ = λ X : ★ . Sum · Unit · (Nat ➔ X) .
 
-InftreeFmap ◂ Fmap · InftreeF =
+inftreeFmap ◂ Fmap ·InftreeF =
   Λ X . Λ Y . λ f . λ d .
-    rec-Sum d (λ u . in1 u) (λ x . in2 (λ n . f (x n))).
+    recSum d (λ u . in1 u) (λ x . in2 (λ n . f (x n))).
 
-InftreeFmapId ◂ FmapId · InftreeF InftreeFmap =
+inftreeFmapId ◂ FmapId ·InftreeF inftreeFmap =
   Λ X . Λ Y . λ c . λ ci . λ x .
-    θ<x> (ind-Sum x) (λ a . β) (λ b . ε ●).
+    θ<x> (indSum x) (λ a . β)
+      (λ b . ε ●).
+
+inftreeFmapIdAbsurd ◂ FmapId ·InftreeF inftreeFmap ➔ ∀ X: ★. X
+= λ fid.
+  [t1 ◂ InftreeF ·Nat = in2 (λ x. x)]
+- [t2 ◂ InftreeF ·Nat = inftreeFmap ·Nat ·Nat (λ n. (unrollNat n).1 zero (λ _. suc)) t1]
+- [pf ◂ { t2 ≃ t1 }
+   = fid ·Nat ·Nat (λ n. (unrollNat n).1 zero (λ _. suc)) (λ n. (unrollNat n).2) t1]
+- δ - pf .
 
 InftreeFmapMono ◂ ∀ X : ★ . ∀ Y : ★ . Cast · X · Y ➾ Cast · (InftreeF · X) · (InftreeF · Y) =
   Λ X . Λ Y . Λ c .
   intrCast
-    -(λ x . rec-Sum x (λ a . in1 a) (λ b . in2 (λ n . cast -c (b n))))
-    -(λ x . θ<x> (ind-Sum x) (λ a . β) (λ b . β)) .
+    -(λ x . recSum x (λ a . in1 a) (λ b . in2 (λ n . elimCast -c (b n))))
+    -(λ x . θ<x> (indSum x) (λ a . β) (λ b . β)) .
 
 
-InftreeFmapCompose ◂ FmapCompose · InftreeF InftreeFmap =
+InftreeFmapCompose ◂ FmapCompose · InftreeF inftreeFmap =
   Λ X . Λ Y . Λ Z . λ f . λ g . λ x .
-    θ<x> (ind-Sum x) (λ _ . β) (λ b . β).
+    θ<x> (indSum x) (λ _ . β) (λ b . β).

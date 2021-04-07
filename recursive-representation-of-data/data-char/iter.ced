@@ -1,0 +1,18 @@
+module data-char/iter
+  (F: ★ ➔ ★) (fmap: ∀ X: ★. ∀ Y: ★. (X ➔ Y) ➔ F ·X ➔ F ·Y)
+  (D: ★) (inD: F ·D ➔ D).
+
+import data-char/iter-typing ·F .
+
+AlgHom ◂ Π X: ★. Alg ·X ➔ (D ➔ X) ➔ ★
+= λ X: ★. λ a: Alg ·X. λ h: D ➔ X.
+  ∀ xs: F ·D. { h (inD xs) ≃ a (fmap h xs) } .
+
+IterBeta ◂ Iter ·D ➔ ★
+= λ iter: Iter ·D.
+  ∀ X: ★. ∀ a: Alg ·X. AlgHom ·X a (iter a) .
+
+IterEta ◂ Iter ·D ➔ ★
+= λ iter: Iter ·D.
+  ∀ X: ★. ∀ a: Alg ·X. ∀ h: D ➔ X. AlgHom ·X a h ➔
+  Π x: D. { h x ≃ iter a x } .

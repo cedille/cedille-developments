@@ -1,0 +1,7 @@
+module data-char/case-typing (F: ★ ➔ ★) .
+
+AlgCase ◂ ★ ➔ ★ ➔ ★
+= λ D: ★. λ X: ★. F ·D ➔ X .
+
+Case ◂ ★ ➔ ★
+= λ D: ★. ∀ X: ★. AlgCase ·D ·X ➔ D ➔ X .

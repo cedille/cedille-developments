@@ -28,12 +28,3 @@ listMapCompose ◂ FmapCompose ·List listMap
     (λ hd. λ tl. λ ih.
        ρ ih @x.{ cons (f (g hd)) x ≃ cons (f (g hd)) (listMap (λ x. f (g x)) tl) }
      - β).
-
-listMapExt ◂ FmapExt ·List listMap
-= Λ A. Λ B. λ f. λ g. λ eq.
-  indList ·A ·(λ x: List ·A. { listMap f x ≃ listMap g x })
-    β
-    (λ hd. λ tl. λ ih.
-       ρ (eq hd) @x.{ cons x (listMap f tl) ≃ cons (g hd) (listMap g tl) }
-     - ρ ih      @x.{ cons (g hd) x ≃ cons (g hd) (listMap g tl) }
-     - β) .

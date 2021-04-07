@@ -1,0 +1,10 @@
+import functor.
+import mono .
+
+module lepigre-raffalli
+  (F: ★ ➔ ★) {mono : Mono ·F}
+  (fmap: Fmap ·F) {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import public lepigre-raffalli/generic/encoding ·F -mono .
+import public lepigre-raffalli/generic/induction ·F fmap -fmapId -fmapCompose .
+import public lepigre-raffalli/generic/props ·F fmap -fmapId -fmapCompose .

@@ -3,24 +3,23 @@ import cast .
 import recType .
 import utils .
 
-module parigot/generic/props
+module lepigre-raffalli/generic/propos
   (F: ★ ➔ ★) (fmap: Fmap ·F)
   {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
 
 import functorThms ·F fmap -fmapId -fmapCompose .
-import parigot/generic/encoding ·F fmap -fmapId -fmapCompose .
+import scott/generic/encoding ·F -monoFunctor .
+import lepigre-raffalli/generic/encoding as LR ·F -monoFunctor .
+import lepigre-raffalli/generic/induction ·F fmap -fmapId -fmapCompose .
+
 import data-char/primrec-typing ·F .
-
-normD ◂ Cast ·D ·(AlgRec ·D ·D ➔ D)
-= intrCast -(λ x. (unrollD x).1 ·D) -(λ x. β) .
-
 import data-char/primrec ·F fmap -fmapId -fmapCompose ·D inD .
+
+recD ◂ PrimRec ·D
+= Λ X. λ a. indD ·(λ x: D. X) a .
 
 recDBeta ◂ PrimRecBeta recD
 = Λ X. Λ a. Λ xs. β .
-
-reflectD ◂ Π x: D. { recD (fromAlg inD) x ≃ x }
-= λ x. (unrollD x).2 .
 
 recDEta ◂ PrimRecEta recD
 = Λ X. Λ a. Λ h. λ hBeta.
@@ -70,70 +69,32 @@ recDEta ◂ PrimRecEta recD
            - β]
         - ρ lem2 - lem1 .
 
-import data-char/case-typing ·F .
-import data-char/case ·F ·D inD .
-
-caseD ◂ Case ·D
-= Λ X. λ a. recD (fromAlgCase a) .
-
-_ ◂ ∀ X: ★. ∀ a: AlgCase ·D ·X. ∀ xs: F ·D.
-    { caseD a (inD xs) ≃ a (fmap proj1 (fmap (fork id (caseD a)) xs)) }
-= Λ X. Λ a. Λ xs. β .
-
-caseDBeta ◂ CaseBeta caseD
-= Λ X. Λ a. Λ xs.
-  ρ (fmapCompose ·D ·(Pair ·D ·X) ·D
-       (λ x. proj1 x) (fork (id ·D) (caseD a)) xs)
-    @x.{ a x ≃ a xs }
-- ρ (fmapId ·D ·D (λ x. proj1 (fork (id ·D) (caseD a) x)) (λ x. β) xs)
-    @x.{ a x ≃ a xs }
-- β.
-
-caseDEta ◂ CaseEta caseD
-= Λ X. Λ a. Λ h. λ hBeta.
-  recDEta ·X -(fromAlgCase a) -h
-    (Λ xs.
-       ρ (hBeta -xs)
-         @x.{ x ≃ a (fmap proj1 (fmap (fork id h) xs)) }
-     - ρ (fmapCompose ·D ·(Pair ·D ·X) ·D
-            (λ x. proj1 x) (fork (id ·D) h) xs)
-         @x.{ a xs ≃ a x }
-     - ρ (fmapId ·D ·D (λ x. proj1 (fork (id ·D) h x)) (λ x. β) xs)
-         @x.{ a xs ≃ a x }
-     - β) .
-
-import data-char/destruct ·F ·D inD .
-
-outD ◂ Destructor
-= caseD (λ xs. xs) .
-
-lambek1D ◂ Lambek1 outD
-= λ xs. ρ (caseDBeta ·(F ·D) -(λ x. x) -xs) @x.{ x ≃ xs } - β .
-
-lambek2D ◂ Lambek2 outD
-= indD ·(λ x: D. { inD (outD x) ≃ x })
-    λ xs. ρ (lambek1D (fmap ·(Sigma ·D ·(λ x: D. { inD (outD x) ≃ x })) ·D (λ x. proj1 x) xs))
-        - β .
-
 import data-char/iter-typing ·F .
 import data-char/iter ·F fmap ·D inD .
 
+lrFromAlg ◂ ∀ X: ★. Alg ·X ➔ LR.PrfAlgLR ·(λ x: D. X)
+= Λ X. λ a. Λ Y. λ xs. λ y.
+  a (fmap ·(ι x: D. LR.DRec ·(λ x: D. X) x ·Y) ·X (λ x. x.2 y y) xs) .
+
 foldD ◂ Iter ·D
-= Λ X. λ a. recD (fromAlg a) .
+= Λ X. λ a. λ x. LR.indLRD ·(λ x: D. X) (lrFromAlg a) x (lrFromAlg a) .
 
 foldDBeta ◂ IterBeta foldD
-= Λ X. Λ a. Λ xs.
-  ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
-       (λ x. proj2 x) (fork (id ·D) (foldD a)) xs)
-    @x.{ a x ≃ a (fmap (foldD a) xs) }
-- β .
+= Λ X. Λ a. Λ xs. β .
+
+algHomLemma ◂ ∀ X: ★. ∀ a: Alg ·X. ∀ h: D ➔ X. AlgHom ·X a h ➔ AlgRecHom ·X (fromAlg a) h
+= Λ X. Λ a. Λ h. λ hHom. Λ xs.
+  ρ (hHom -xs)
+    @x.{ x ≃ a (fmap proj2 (fmap (fork id h) xs)) }
+- ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
+       (λ x. proj2 x) (fork (id ·D) h) xs)
+    @x.{ a (fmap h xs) ≃ a x }
+- β.
+
+foldDRecD ◂ ∀ X: ★. ∀ a: Alg ·X. AlgRecHom ·X (fromAlg a) (foldD a)
+= Λ X. Λ a. algHomLemma ·X -a -(foldD a) (foldDBeta -a) .
 
 foldDEta ◂ IterEta foldD
-= Λ X. Λ a. Λ h. λ hBeta.
-  recDEta ·X
-    -(λ xs. a (fmap ·(Pair ·D ·X) ·X (λ x. proj2 x) xs)) -h
-    (Λ xs.
-       ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
-            (λ x. proj2 x) (fork (id ·D) h) xs)
-         @x.{ h (inD xs) ≃ a x }
-     - hBeta -xs) .
+= Λ X. Λ a. Λ h. λ hBeta. λ x.
+  ρ (recDEta ·X -(fromAlg a) -(foldD a) (foldDRecD -a) x) -
+  recDEta ·X -(fromAlg a) -h (algHomLemma -a -h hBeta) x .

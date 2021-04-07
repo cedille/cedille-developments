@@ -18,6 +18,9 @@ NatRS ◂ ★ ➔ ★
 
 NatR ◂ ★ = ∀ X: ★. NatRG ·X ·(NatRZ ·X) ·(NatRS ·X).
 
+recNatR ◂ ∀ X: ★. NatRZ ·X ➔ NatRS ·X ➔ NatRZ ·X ➔ NatRS ·X ➔ Nat ➔ NatR ➔ X
+= Λ X. λ z1. λ s1. λ z2. λ s2. λ n. λ r. r z1 s1 z2 s2 n .
+
 -- to illustrate
 zeroR ◂ NatR
 = Λ X. λ z1. λ s1. λ z2. λ s2. λ m. z1 z2 s2 m .

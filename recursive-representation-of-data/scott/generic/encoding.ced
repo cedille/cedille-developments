@@ -7,17 +7,18 @@ import cast .
 import recType .
 import utils .
 
-AlgCase ◂ ★ ➔ ★ ➔ ★ = λ D: ★. λ X: ★. F ·D ➔ X .
+import data-char/case-typing ·F .
+
 DF ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. AlgCase ·D ·X ➔ X .
+
+inDF ◂ ∀ D: ★. AlgCase ·D ·(DF ·D)
+= Λ D. λ xs. Λ X. λ a. a xs .
 
 monoDF ◂ Mono ·DF
 = Λ D1. Λ D2. λ c.
   intrCast
     -(λ d. Λ X. λ a. d (λ ds. a (elimCast -(mono c) ds)))
     -(λ x. β) .
-
-inDF ◂ ∀ D: ★. AlgCase ·D ·(DF ·D)
-= Λ D. λ xs. Λ X. λ a. a xs .
 
 WkPrfAlg ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
 = λ D: ★. λ P: DF ·D ➔ ★.
@@ -55,7 +56,7 @@ D ◂ ★ = Rec ·DFI .
 rollD   ◂ DFI ·D ➔ D = roll -monoDFI .
 unrollD ◂ D ➔ DFI ·D = unroll -monoDFI .
 
-inD ◂ AlgCase ·D ·D
+inD ◂ F ·D ➔ D
 = λ xs. rollD [ inDF xs , inWkIndDF xs ] .
 
 _ ◂ { inD ≃ inDF } = β .
@@ -64,29 +65,10 @@ LiftD ◂ (D ➔ ★) ➔ DF ·D ➔ ★
 = λ P: D ➔ ★. λ x: DF ·D.
   ∀ v: View ·D β{| x |}. P (elimView β{| x |} -v) .
 
+import data-char/case ·F ·D inD .
+
 wkIndD ◂ ∀ P: D ➔ ★. (Π xs: F ·D. P (inD xs)) ➔ Π x: D. P x
 = Λ P. λ a. λ x.
   (unrollD x).2 ·(LiftD ·P)
-    (λ xs. Λ v. a xs)
-    -(selfView x) .
+    (λ xs. Λ v. a xs) -(selfView x) .
 
--- computation and extensionality
-caseD ◂ ∀ X: ★. AlgCase ·D ·X ➔ D ➔ X
-= Λ X. λ a. λ x. (unrollD x).1 a .
-
-caseDBeta ◂ ∀ X: ★. ∀ a: AlgCase ·D ·X. ∀ xs: F ·D. { caseD a (inD xs) ≃ a xs }
-= Λ X. Λ a. Λ xs. β .
-
-caseDEta ◂ Π x: D. { caseD inD x ≃ x }
-= wkIndD ·(λ x: D. { caseD inD x ≃ x }) (λ xs. β) .
-
-_ ◂ { wkIndD ≃ caseD } = β .
-
-outD ◂ D ➔ F ·D
-= caseD λ xs. xs .
-
-lambek1D ◂ Π xs: F ·D. { outD (inD xs) ≃ xs }
-= λ xs. β .
-
-lambek2D ◂ Π x: D. { inD (outD x) ≃ x }
-= wkIndD ·(λ x: D. { inD (outD x) ≃ x }) λ xs. β .

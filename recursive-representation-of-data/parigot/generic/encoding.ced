@@ -9,7 +9,6 @@ module parigot/generic/encoding
   (F: ★ ➔ ★) (fmap: Fmap ·F)
   {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap } .
 
-
 import functorThms ·F fmap -fmapId -fmapCompose .
 
 recU ◂ Top
@@ -26,8 +25,7 @@ DC ◂ Top ➔ ★ = λ x: Top. { reflectU x ≃ x } .
 inC ◂ Π xs: F ·(ι x: Top. DC x). DC β{| inU xs |}
 = λ xs.
   ρ (fmapCompose ·(ι x: Top. DC x) ·(Pair ·Top ·Top) ·Top
-       (λ x. proj2 x) (fork (λ x. x.1) (λ x. β{| reflectU x |}))
-       xs)
+       (λ x. proj2 x) (fork (λ x. x.1) (λ x. β{| reflectU x |})) xs)
     @x.{ inU x ≃ inU xs }
 - ρ (fmapId ·(ι x: Top. DC x) ·Top (λ x. β{| reflectU x.1 |}) (λ x. x.2) xs)
     @x.{ inU x ≃ inU xs }
@@ -35,7 +33,7 @@ inC ◂ Π xs: F ·(ι x: Top. DC x). DC β{| inU xs |}
 
 _ ◂ { inC ≃ inU } = β .
 
-AlgRec ◂ ★ ➔ ★ ➔ ★ = λ D: ★. λ X: ★. F ·(Pair ·D ·X) ➔ X .
+import data-char/primrec-typing ·F .
 
 DF' ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. AlgRec ·D ·X ➔ X .
 DF  ◂ ★ ➔ ★ = λ D: ★. ι x: DF' ·D. DC β{| x |} .
@@ -57,7 +55,7 @@ D ◂ ★ = Rec ·DF .
 rollD   ◂ DF ·D ➔ D = roll -monoDF .
 unrollD ◂ D ➔ DF ·D = unroll -monoDF .
 
-recD ◂ ∀ X: ★. AlgRec ·D ·X ➔ D ➔ X
+recD ◂ PrimRec ·D
 = Λ X. λ a. λ x. (unrollD x).1 a .
 
 inD' ◂ F ·D ➔ DF' ·D
@@ -72,15 +70,13 @@ inD ◂ F ·D ➔ D
 _ ◂ { recD ≃ recU } = β .
 _ ◂ { inD  ≃ inU }  = β .
 
-RecPrfAlg ◂ Π X: ★. (F ·X ➔ X) ➔ (X ➔ ★) ➔ ★
-= λ X: ★. λ a: F ·X ➔ X. λ P: X ➔ ★.
-  Π xs: F ·(Sigma ·X ·P). P (a (fmap (proj1 ·X ·P) xs)) .
+import data-char/primrec ·F fmap -fmapId -fmapCompose ·D inD .
 
-IndD ◂ D ➔ ★ = λ x: D. ∀ P: D ➔ ★. RecPrfAlg ·D inD ·P ➔ P x .
+IndD ◂ D ➔ ★ = λ x: D. ∀ P: D ➔ ★. PrfAlgRec ·P ➔ P x .
 
 DI ◂ ★ = ι x: D. IndD x .
 
-recDI ◂ ∀ P: D ➔ ★. RecPrfAlg ·D inD ·P ➔ Π x: DI. P x.1
+recDI ◂ ∀ P: D ➔ ★. PrfAlgRec ·P ➔ Π x: DI. P x.1
 = Λ P. λ a. λ x. x.2 a .
 
 fromDI ◂ Cast ·DI ·D
@@ -110,5 +106,5 @@ _ ◂ { reflectDI ≃ reflectU } = β .
 toDI ◂ Cast ·D ·DI
 = intrCast -reflectDI -(λ x. (unrollD x).2) .
 
-indD ◂ ∀ P: D ➔ ★. RecPrfAlg ·D inD ·P ➔ Π x: D. P x
+indD ◂ ∀ P: D ➔ ★. PrfAlgRec ·P ➔ Π x: D. P x
 = Λ P. λ a. λ x. recDI a (elimCast -toDI x) .

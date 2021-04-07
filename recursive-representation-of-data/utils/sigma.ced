@@ -22,22 +22,24 @@ mksigma ◂ ∀ X: ★. ∀ Y: X ➔ ★. Π x: X. Y x ➔ Sigma ·X ·Y =
  Λ X . Λ Y . λ x . λ y . [ mkcsigma · X · Y x y , [ β{| mkcsigma x y |}  , Λ X' . Λ Q . Λ pr . λ e . e x y  ] ] .
 
 
-indSigma ◂ ∀ A : ★ . ∀ B : A ➔ ★ . Π x : Sigma · A · B .
- ∀ P : Sigma · A · B ➔ ★ . (Π a : A . Π b : B a . P (mksigma · A · B a b)) ➔ P x
-  = Λ A . Λ B . λ x . Λ P . λ p . ρ ς x.2.1 - (x.2.2 · (Sigma · A · B) · P -(mksigma · A · B) p) .
+indsigma
+◂ ∀ A: ★. ∀ B: A ➔ ★. Π x: Sigma ·A ·B .
+  ∀ P: Sigma ·A ·B ➔ ★. (Π a: A. Π b: B a. P (mksigma a b)) ➔ P x
+= Λ A. Λ B. λ x. Λ P. λ p.
+  ρ ς x.2.1 - (x.2.2 -(mksigma ·A ·B) p) .
 
 recSigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Sigma ·A ·B ➔
  ∀ X: ★. (Π a: A. B a ➔ X) ➔ X
-= Λ A. Λ B. λ p. Λ X. λ f. indSigma p ·(λ _: Sigma ·A ·B. X)
+= Λ A. Λ B. λ p. Λ X. λ f. indsigma p ·(λ _: Sigma ·A ·B. X)
   (λ a. λ b. f a b).
 
 etaSigma ◂ ∀ A: ★. ∀ B: A ➔ ★. Π p: Sigma ·A ·B. {recSigma p (λ a. λ b. mksigma a b) ≃ p}
-= Λ A. Λ B. λ p. θ<p> (indSigma p) (λ a. λ b. β).
+= Λ A. Λ B. λ p. θ<p> (indsigma p) (λ a. λ b. β).
 
 proj1 ◂ ∀ A: ★. ∀ B: A ➔ ★. Sigma ·A ·B  ➔ A = Λ A. Λ B. λ s. s.1 ·A (λ a. λ b. a).
 
 proj2 ◂ ∀ A : ★. ∀ B: A ➔ ★. Π s: Sigma ·A ·B. B (proj1 s) =
-  Λ A. Λ B. λ s. indSigma s ·(λ s: Sigma ·A ·B. B (proj1 s)) (λ a. λ b. b).
+  Λ A. Λ B. λ s. indsigma s ·(λ s: Sigma ·A ·B. B (proj1 s)) (λ a. λ b. b).
 
 
 -- helpers for non-dependent Sigma
@@ -57,7 +59,7 @@ snd ◂ ∀ A: ★. ∀ B: ★. Pair ·A ·B ➔ B
 
 indPair ◂ ∀ A: ★. ∀ B: ★. Π x: Pair ·A ·B.
     ∀ P: Pair ·A ·B ➔ ★. (Π a: A. Π b: B. P (mkpair a b)) ➔ P x
-  = Λ A. Λ B. λ x. Λ P. λ prf. θ<x> (indSigma x) prf.
+  = Λ A. Λ B. λ x. Λ P. λ prf. θ<x> (indsigma x) prf.
 
 recPair : ∀ A: ★. ∀ B: ★. Pair ·A ·B ➔ ∀ X: ★. (A ➔ B ➔ X) ➔ X
   = Λ A. Λ B. λ x. Λ X. λ alg. indPair x ·(λ _: Pair ·A ·B. X) alg.
@@ -71,9 +73,17 @@ monoPair1 ◂ ∀ B: ★. Mono ·(λ A: ★. Pair ·A ·B)
     -(λ p. recPair p (λ a. λ b. mkpair (elimCast -c a) b))
     -(λ p. θ<p> (indPair p) (λ a. λ b. β)) .
 
-MonoSigma2 ◂ ∀ A: ★. ∀ B1: A ➔ ★. ∀ B2: A ➔ ★.
+monoSigma1
+◂ ∀ A1: ★. ∀ A2: ★. ∀ c: Cast ·A1 ·A2.
+  ∀ B: A2 ➔ ★. Cast ·(Sigma ·A1 ·(λ x: A1. B (elimCast -c x))) ·(Sigma ·A2 ·B)
+= Λ A1. Λ A2. Λ c. Λ B.
+  intrCast
+    -(λ p. θ<p> (indsigma p) (λ a. λ b. mksigma (elimCast -c a) b))
+    -(λ p. θ<p> (indsigma p) (λ a. λ b. β)) .
+
+monoSigma2 ◂ ∀ A: ★. ∀ B1: A ➔ ★. ∀ B2: A ➔ ★.
   ∀ c: (Π a: A. Cast ·(B1 a) ·(B2 a)).
   Cast ·(Sigma ·A ·B1) ·(Sigma ·A ·B2)
 = Λ A. Λ B1. Λ B2. Λ c.
-  intrCast -(λ p. indSigma p ·(λ x: Sigma ·A ·B1. Sigma ·A ·B2) (λ a. λ b. mksigma a (elimCast -(c a) b)))
-           -(λ p. θ<p> (indSigma p) (λ a. λ b. β)).
+  intrCast -(λ p. indsigma p ·(λ x: Sigma ·A ·B1. Sigma ·A ·B2) (λ a. λ b. mksigma a (elimCast -(c a) b)))
+           -(λ p. θ<p> (indsigma p) (λ a. λ b. β)).

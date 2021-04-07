@@ -79,16 +79,25 @@ wkIndNat ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π x: Nat. P (suc x)) ➔ Π n: Nat
 caseNat ◂ ∀ X: ★. X ➔ (Nat ➔ X) ➔ Nat ➔ X
 = Λ X. λ z. λ s. λ n. (unrollNat n).1 z s .
 
+wkIndNatComp ◂ { caseNat ≃ wkIndNat } = β .
+
 caseNatBeta1 ◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X. { caseNat z s zero ≃ z }
 = Λ X. Λ z. Λ s. β .
 
 caseNatBeta2 ◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X. ∀ n: Nat. { caseNat z s (suc n) ≃ s n }
 = Λ X. Λ z. Λ s. Λ n. β .
 
-caseNatEta ◂ Π n: Nat. { caseNat zero suc n ≃ n }
-= wkIndNat ·(λ x: Nat. { caseNat zero suc x ≃ x }) β (λ x. β) .
+caseNatEta
+◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X.
+  ∀ h: Nat ➔ X. { h zero ≃ z } ➾ (Π n: Nat. { h (suc n) ≃ s n }) ➾
+  Π n: Nat. { caseNat z s n ≃ h n }
+= Λ X. Λ z. Λ s. Λ h. Λ hBeta1. Λ hBeta2.
+  wkIndNat ·(λ x: Nat. { caseNat z s x ≃ h x })
+    (ρ hBeta1 @x.{ z ≃ x } - β)
+    (λ m. ρ (hBeta2 m) @x.{ s m ≃ x } - β) .
 
-wkIndNatComp ◂ { caseNat ≃ wkIndNat } = β .
+reflectNat ◂ Π n: Nat. { caseNat zero suc n ≃ n }
+= caseNatEta ·Nat -zero -suc -(λ x. x) -β -(λ m. β) .
 
 pred ◂ Nat ➔ Nat = caseNat zero λ p. p .
 

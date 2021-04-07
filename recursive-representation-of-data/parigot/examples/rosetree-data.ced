@@ -14,18 +14,22 @@ RoseTree ◂ ★ = P.D .
 rose ◂ A ➔ List ·RoseTree ➔ RoseTree
 = λ x. λ t. P.inD (mksigma x t) .
 
-rose' ◂ ∀ P: RoseTree ➔ ★. A ➔ List ·(Sigma ·RoseTree ·P) ➔ RoseTree
-= Λ P. λ x. λ t.
-  rose x (listMap ·(Sigma ·RoseTree ·P) ·RoseTree (λ x. proj1 x) t) .
+rose' ◂ ∀ P: RoseTree ➔ ★. TreeF ·(Sigma ·RoseTree ·P) ➔ RoseTree
+= Λ P. λ xs. P.inD (treeFmap (proj1 ·RoseTree ·P) xs) .
 
 indRoseTree
-◂ ∀ P: RoseTree ➔ ★.
-  (Π x: A. Π t: List ·(Sigma ·RoseTree ·P). P (rose' x t)) ➔
+◂ ∀ P: RoseTree ➔ ★. ∀ Q: List ·RoseTree ➔ ★.
+  Q (nil ·RoseTree) ➔
+  (Π t: RoseTree. P t ➔ Π ts: List ·RoseTree. Q ts ➔ Q (cons t ts)) ➔
+  (Π x: A. Π ts: List ·RoseTree. Q ts ➔ P (rose x ts)) ➔
   Π t: RoseTree. P t
-= Λ P. λ r.
-  P.indD (λ xs.
-    [in ◂ TreeF ·(Sigma ·RoseTree ·P) ➔ RoseTree
-     = λ t. P.inD (treeFmap (proj1 ·RoseTree ·P) t)]
-  - indSigma xs
-      ·(λ x: TreeF ·(Sigma ·RoseTree ·P). P (in x))
-      r) .
+= Λ P. Λ Q. λ n. λ c. λ r.
+  P.indD ·P (λ xs.
+     indsigma xs ·(λ x: TreeF ·(Sigma ·RoseTree ·P). P (rose' x))
+       (λ x. λ ts.
+          [conv ◂ List ·(Sigma ·RoseTree ·P) ➔ List ·RoseTree
+           = listMap (proj1 ·RoseTree ·P)]
+        - [pf ◂ Q (conv ts)
+           = indList ·(Sigma ·RoseTree ·P) ·(λ x: List ·(Sigma ·RoseTree ·P). Q (conv x))
+               n (λ hd. λ tl. λ ih. c (proj1 hd) (proj2 hd) (conv tl) ih) ts]
+        - r x (conv ts) pf)) .

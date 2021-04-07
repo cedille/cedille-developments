@@ -1,0 +1,33 @@
+import functor .
+import cast .
+import mono .
+import utils .
+
+module lepigre-raffalli/generic/induction
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId : FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import functorThms ·F fmap -fmapId -fmapCompose .
+
+import scott/generic/encoding as S ·F -monoFunctor .
+import lepigre-raffalli/generic/encoding ·F -monoFunctor .
+
+import data-char/primrec-typing ·F .
+import data-char/primrec ·F fmap -fmapId -fmapCompose ·S.D S.inD .
+
+applyDRec ◂ ∀ P: S.D ➔ ★. ∀ Y: ★. Y ➔ (ι x: S.D. DRec ·P x ·Y) ➔ Sigma ·S.D ·P
+= Λ P. Λ Y. λ y. λ x. mksigma x.1 (x.2 y y) .
+
+fromPrfAlgRec
+◂ ∀ P: S.D ➔ ★. PrfAlgRec ·P ➔ PrfAlgLR ·P
+= Λ P. λ a. Λ Y. λ xs. λ y.
+  ρ ς (fmapId ·(ι x: S.D. DRec ·P x ·Y) ·S.D
+         (λ x. proj1 (applyDRec y x)) (λ x. β) xs)
+      @x.(P (S.inD x))
+- ρ ς (fmapCompose (proj1 ·S.D ·P) (applyDRec ·P y) xs)
+      @x.(P (S.inD x))
+- a (fmap (applyDRec ·P y) xs) .
+
+indD ◂ ∀ P: S.D ➔ ★. PrfAlgRec ·P ➔ Π x: S.D. P x
+= Λ P. λ a. λ x.
+  indLRD (fromPrfAlgRec a) x (fromPrfAlgRec a) .

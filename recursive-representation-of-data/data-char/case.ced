@@ -1,0 +1,17 @@
+module data-char/case
+  (F: ★ ➔ ★) (D: ★) (inD: F ·D ➔ D).
+
+import data-char/case-typing ·F .
+
+AlgCaseHom ◂ Π X: ★. AlgCase ·D ·X ➔ (D ➔ X) ➔ ★
+= λ X: ★. λ a: AlgCase ·D ·X. λ h: D ➔ X.
+  ∀ xs: F ·D. { h (inD xs) ≃ a xs } .
+
+CaseBeta ◂ Case ·D ➔ ★
+= λ case: Case ·D.
+  ∀ X: ★. ∀ a: AlgCase ·D ·X. AlgCaseHom ·X a (case a) .
+
+CaseEta ◂ Case ·D ➔ ★
+= λ case: Case ·D.
+  ∀ X: ★. ∀ a: AlgCase ·D ·X. ∀ h: D ➔ X. AlgCaseHom ·X a h ➔
+  Π x: D. { h x ≃ case a x } .

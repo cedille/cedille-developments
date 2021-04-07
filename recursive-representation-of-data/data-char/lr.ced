@@ -1,0 +1,15 @@
+import cast .
+import mono .
+
+module data-char/lr
+  (F: ★ ➔ ★) {mono: Mono ·F} (D: ★) (inD: F ·D ➔ D) .
+
+import data-char/lr-typing ·F .
+
+AlgLRHom ◂ Π X: ★. AlgLR ·D ·X ➔ (D ➔ AlgLR ·D ·X ➔ X) ➔ ★
+= λ X: ★. λ a: AlgLR ·D ·X. λ h: D ➔ AlgLR ·D ·X ➔ X.
+  ∀ xs: F ·D. { h (inD xs) ≃ a xs } .
+
+RecLRBeta ◂ RecLR ·D ➔ ★
+= λ recLR: RecLR ·D.
+  ∀ X: ★. ∀ a: AlgLR ·D ·X. AlgLRHom ·X a (recLR a) .

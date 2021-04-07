@@ -28,6 +28,12 @@ sucC ◂ Π n: Top. NatC n ➾ NatC (sucU n)
 _ ◂ { zeroC ≃ zeroU } = β .
 _ ◂ { sucC  ≃ sucU  } = β .
 
+sucU' ◂ Top ➔ Top
+= λ n. β{| λ z. λ s. s zeroU (recNatU z s n) |} .
+
+_ ◂ { reflectNatU (sucU' (sucU zeroU)) ≃ sucU (sucU zeroU) }
+= β .
+
 NatF' ◂ ★ ➔ ★
 = λ N: ★. ∀ X: ★. X ➔ (N ➔ X ➔ X) ➔ X .
 
@@ -102,9 +108,6 @@ recNatBeta2
   { recNat z s (suc n) ≃ s n (recNat z s n) }
 = Λ X. Λ z. Λ s. Λ n. β .
 
-recNatEta ◂ Π n: Nat. { recNat zero (λ _. suc) n ≃ n }
-= λ n. (unrollNat n).2 .
-
 indNatComp ◂ { indNat ≃ recNat } = β .
 
 pred ◂ Nat ➔ Nat
@@ -114,3 +117,14 @@ predBeta1 ◂ { pred zero ≃ zero } = β .
 
 predBeta2 ◂ ∀ n: Nat. { pred (suc n) ≃ n }
 = Λ n. β .
+
+recNatEta
+◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X ➔ X.
+  ∀ h: Nat ➔ X. { h zero ≃ z } ➾ (Π n: Nat. { h (suc n) ≃ s n (h n) }) ➾
+  Π n: Nat. { h n ≃ recNat z s n }
+= Λ X. Λ z. Λ s. Λ h. Λ hBeta1. Λ hBeta2.
+  indNat ·(λ x: Nat. { h x ≃ recNat z s x })
+    (ρ hBeta1 @x.{ x ≃ z } - β)
+    (λ m. λ ih.
+       ρ (hBeta2 m) @x.{ x ≃ s m (recNat z s m) }
+     - ρ ih @x.{ s m x ≃ s m (recNat z s m) } - β) .

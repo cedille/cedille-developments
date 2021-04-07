@@ -22,9 +22,3 @@ listFmapCompose ◂ FmapCompose ·ListF listFmap
   θ<x> (indSum x)
     (λ _. β)
     (λ p. θ<p> (indPair p) (λ a. λ tl. β)).
-
-listFmapExt ◂ FmapExt ·ListF listFmap
-= Λ X. Λ Y. λ f. λ g. λ ext. λ l.
-  indSum l ·(λ x: ListF ·X. {listFmap f x ≃ listFmap g x})
-    (λ _. β)
-    (λ p. θ<p> (indPair p) (λ hd. λ tl. ρ+ (ext tl) - β)) .

@@ -10,11 +10,11 @@ TreeF ◂ ★ ➔ ★
 
 treeFmap ◂ Fmap ·TreeF
 = Λ X. Λ Y. λ f. λ t.
-  recPair t (λ x. λ xs. mksigma x (fmap f xs)) .
+  mksigma (proj1 t) (fmap f (proj2 t)) .
 
 treeFmapId ◂ FmapId ·TreeF treeFmap
 = Λ X. Λ Y. λ c. λ ci. λ t.
-  θ<t> (indPair t)
+  indsigma t ·(λ x: TreeF ·X. { treeFmap c x ≃ x })
     (λ x. λ xs.
        ρ (fmapId c ci xs)
          @y.{ mksigma x y ≃ mkpair x xs }
@@ -22,16 +22,8 @@ treeFmapId ◂ FmapId ·TreeF treeFmap
 
 treeFmapCompose ◂ FmapCompose ·TreeF treeFmap
 = Λ X. Λ Y. Λ Z. λ f. λ g. λ t.
-  θ<t> (indPair t)
+  indsigma t ·(λ x: TreeF ·X. { treeFmap f (treeFmap g x) ≃ treeFmap (λ x. f (g x)) x })
     (λ x. λ xs.
        ρ (fmapCompose f g xs)
          @y.{ mkpair x y ≃ mkpair x (fmap (λ x. f (g x)) xs) }
      - β).
-
-treeFmapExt ◂ FmapExt ·F fmap ➔ FmapExt ·TreeF treeFmap
-= λ fext. Λ X. Λ Y. λ f. λ g. λ eq. λ t.
-  θ<t> (indPair t)
-    (λ x. λ xs.
-       ρ (fext f g eq xs)
-         @y.{ mkpair x y ≃ mkpair x (fmap g xs) }
-     - β) .
