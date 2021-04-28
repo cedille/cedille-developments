@@ -1,0 +1,110 @@
+import functor .
+import utils .
+
+import cast .
+import mono .
+import recType .
+
+module parigot/generic/encoding
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap } .
+
+import functorThms ·F fmap -fmapId -fmapCompose .
+
+recU ◂ Top
+= β{| λ a. λ x. x a |} .
+
+inU ◂ Top
+= β{| λ xs. λ a. a (fmap (fork id (recU a)) xs) |} .
+
+reflectU ◂ Top
+= β{| recU (λ xs. inU (fmap proj2 xs)) |} .
+
+DC ◂ Top ➔ ★ = λ x: Top. { reflectU x ≃ x } .
+
+inC ◂ Π xs: F ·(ι x: Top. DC x). DC β{| inU xs |}
+= λ xs.
+  ρ (fmapCompose ·(ι x: Top. DC x) ·(Pair ·Top ·Top) ·Top
+       (λ x. proj2 x) (fork (λ x. x.1) (λ x. β{| reflectU x |})) xs)
+    @x.{ inU x ≃ inU xs }
+- ρ (fmapId ·(ι x: Top. DC x) ·Top (λ x. β{| reflectU x.1 |}) (λ x. x.2) xs)
+    @x.{ inU x ≃ inU xs }
+- β{| inU xs |} .
+
+_ ◂ { inC ≃ inU } = β .
+
+import data-char/primrec-typing ·F .
+
+DF' ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. AlgRec ·D ·X ➔ X .
+DF  ◂ ★ ➔ ★ = λ D: ★. ι x: DF' ·D. DC β{| x |} .
+
+monoDF ◂ Mono ·DF
+= Λ D1. Λ D2. λ c.
+  intrCast
+    -(λ x.
+      [ Λ X. λ a.
+        x.1
+          (λ xs.
+           a (elimCast
+                -(monoComp -monoFunctor -(monoPair1 ·X) c)
+                xs))
+      , x.2 ] )
+    -(λ x. β) .
+
+D ◂ ★ = Rec ·DF .
+rollD   ◂ DF ·D ➔ D = roll -monoDF .
+unrollD ◂ D ➔ DF ·D = unroll -monoDF .
+
+recD ◂ PrimRec ·D
+= Λ X. λ a. λ x. (unrollD x).1 a .
+
+inD' ◂ F ·D ➔ DF' ·D
+= λ xs. Λ X. λ a. a (fmap (fork (id ·D) (recD a)) xs) .
+
+toDC ◂ Cast ·D ·(ι x: Top. DC x)
+= intrCast -(λ x. [ β{| x |} , (unrollD x).2 ]) -(λ x. β) .
+
+inD ◂ F ·D ➔ D
+= λ xs. rollD [ inD' xs , inC (elimCast -(monoFunctor toDC) xs) ] .
+
+_ ◂ { recD ≃ recU } = β .
+_ ◂ { inD  ≃ inU }  = β .
+
+import data-char/primrec ·F fmap -fmapId -fmapCompose ·D inD .
+
+IndD ◂ D ➔ ★ = λ x: D. ∀ P: D ➔ ★. PrfAlgRec ·P ➔ P x .
+
+DI ◂ ★ = ι x: D. IndD x .
+
+recDI ◂ ∀ P: D ➔ ★. PrfAlgRec ·P ➔ Π x: DI. P x.1
+= Λ P. λ a. λ x. x.2 a .
+
+fromDI ◂ Cast ·DI ·D
+= intrCast -(λ x. x.1) -(λ x. β) .
+
+inDI' ◂ F ·DI ➔ D
+= λ xs. inD (elimCast -(monoFunctor fromDI) xs) .
+
+indInDI' ◂ Π xs: F ·DI. IndD (inDI' xs)
+= λ xs. Λ P. λ a.
+  ρ ς (fmapId ·DI ·D (λ x. proj1 (mksigma x.1 (recDI a x))) (λ x. β) xs)
+    @x.(P (inD x))
+- ρ ς (fmapCompose (proj1 ·D ·P) (λ x: DI. mksigma x.1 (recDI a x)) xs)
+    @x.(P (inD x))
+- a (fmap ·DI ·(Sigma ·D ·P) (λ x. mksigma x.1 (recDI a x)) xs) .
+
+inDI ◂ F ·DI ➔ DI
+= λ xs. [ inDI' xs , indInDI' xs ] .
+
+_ ◂ { inDI ≃ inU } = β .
+
+reflectDI ◂ D ➔ DI
+= recD (λ xs. inDI (fmap ·(Pair ·D ·DI) ·DI (λ x. proj2 x) xs)) .
+
+_ ◂ { reflectDI ≃ reflectU } = β .
+
+toDI ◂ Cast ·D ·DI
+= intrCast -reflectDI -(λ x. (unrollD x).2) .
+
+indD ◂ ∀ P: D ➔ ★. PrfAlgRec ·P ➔ Π x: D. P x
+= Λ P. λ a. λ x. recDI a (elimCast -toDI x) .

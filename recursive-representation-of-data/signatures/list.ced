@@ -1,0 +1,24 @@
+module signatures/list (A: ★) .
+
+import functor .
+import utils .
+
+ListF ◂ ★ ➔ ★ = λ L: ★. Sum ·Unit ·(Pair ·A ·L).
+
+listFmap ◂ Fmap ·ListF
+= Λ X. Λ Y. λ f. λ l.
+  recSum l
+    (λ u. in1 u)
+    (λ p. in2 (recPair p (λ a. λ tl. mkpair a (f tl)))).
+
+listFmapId ◂ FmapId ·ListF listFmap
+= Λ X. Λ Y. λ c. λ ci. λ l.
+  indSum l ·(λ x: ListF ·X. {listFmap c x ≃ x})
+    (λ _. β)
+    (λ p. θ<p> (indPair p) (λ a. λ tl. ρ+ (ci tl) - β)).
+
+listFmapCompose ◂ FmapCompose ·ListF listFmap
+= Λ X. Λ Y. Λ Z. λ f. λ g. λ x.
+  θ<x> (indSum x)
+    (λ _. β)
+    (λ p. θ<p> (indPair p) (λ a. λ tl. β)).

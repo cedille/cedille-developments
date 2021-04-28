@@ -1,8 +1,7 @@
-module natfunctor.
+module signatures/nat .
 
 import functor.
-import sum.
-import unit.
+import utils .
 
 NatF ◂ ★ ➔ ★ = λ X: ★ . Sum ·Unit ·X.
 

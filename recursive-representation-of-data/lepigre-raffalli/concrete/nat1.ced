@@ -1,0 +1,64 @@
+import cast.
+import mono.
+import recType.
+
+import scott/concrete/nat as S .
+
+module lepigre-raffalli/concrete/nat1 .
+
+NatRec ◂ ★ ➔ ★ ➔ ★ ➔ ★
+= λ X: ★. λ Z: ★. λ S: ★. Z ➔ S ➔ Z ➔ S ➔ X .
+
+NatZ ◂ ★ ➔ ★
+= λ X: ★. ∀ Z: ★. ∀ S: ★. Z ➔ S ➔ X .
+
+NatS ◂ ★ ➔ ★
+= λ X: ★. ∀ Z: ★. ∀ S: ★. NatRec ·X ·Z ·S ➔ Z ➔ S ➔ X .
+
+Nat ◂ ★ = ∀ X: ★. NatRec ·X ·(NatZ ·X) ·(NatS ·X) .
+
+recLRNat ◂ ∀ X: ★. NatZ ·X ➔ NatS ·X ➔ Nat ➔ NatZ ·X ➔ NatS ·X ➔ X
+= Λ X. λ z. λ s. λ n. n z s .
+
+_ ◂ { recLRNat ≃ S.caseNat } = β .
+
+zero ◂ Nat
+= Λ X. λ z. λ s. z ·(NatZ ·X) ·(NatS ·X) .
+
+suc ◂ Nat ➔ Nat
+= λ n. Λ X. λ z. λ s.
+  s ·(NatZ ·X) ·(NatS ·X) (λ z'. λ s'. recLRNat z' s' n) .
+
+_ ◂ { zero ≃ S.zero } = β .
+_ ◂ { suc  ≃ S.suc  } = β .
+
+rollNat ◂ Cast ·(S.NatFI ·Nat) ·Nat
+= intrCast
+    -(λ n. n.1 zero suc)
+    -(λ n. n.2 ·(λ x: S.NatF ·Nat. { x zero suc ≃ x }) β (λ m. β)) .
+
+toNat ◂ Cast ·S.Nat ·Nat
+= recLB -rollNat .
+
+recNatZ ◂ ∀ X: ★. X ➔ NatZ ·(S.Nat ➔ X)
+= Λ X. λ x. Λ Z. Λ S. λ z. λ s. λ m. x .
+
+recNatS ◂ ∀ X: ★. (S.Nat ➔ X ➔ X) ➔ NatS ·(S.Nat ➔ X)
+= Λ X. λ f. Λ Z. Λ S. λ r. λ z. λ s. λ m.
+  f m (r z s z s (S.pred m)) .
+
+recNat ◂ ∀ X: ★. X ➔ (S.Nat ➔ X ➔ X) ➔ S.Nat ➔ X
+= Λ X. λ x. λ f. λ n.
+  recLRNat ·(S.Nat ➔ X) (recNatZ x) (recNatS f)
+    (elimCast -toNat n)
+    (recNatZ x) (recNatS f) (S.pred n) .
+
+recNatBeta1
+◂ ∀ X: ★. ∀ x: X. ∀ f: S.Nat ➔ X ➔ X.
+  { recNat x f S.zero ≃ x }
+= Λ X. Λ x. Λ f. β .
+
+recNatBeta2
+◂ ∀ X: ★. ∀ x: X. ∀ f: S.Nat ➔ X ➔ X. ∀ n: S.Nat.
+  { recNat x f (S.suc n) ≃ f n (recNat x f n) }
+= Λ X. Λ x. Λ f. Λ n. β .

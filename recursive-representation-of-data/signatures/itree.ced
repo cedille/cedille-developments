@@ -1,0 +1,37 @@
+-- A monotone type scheme which is not a functor
+
+module signatures/itree .
+
+import functor .
+import cast .
+import mono .
+import utils .
+
+import scott/concrete/nat .
+
+ITreeF ◂ ★ ➔ ★ = λ X: ★. Sum ·Unit ·(Nat ➔ X) .
+
+itreeFmap ◂ Fmap ·ITreeF
+= Λ X. Λ Y. λ f. λ t.
+  indSum t ·(λ _: ITreeF ·X. ITreeF ·Y)
+    (λ u. in1 u) (λ x. in2 (λ n. f (x n))) .
+
+monoITreeF ◂ Mono ·ITreeF
+= Λ X. Λ Y. λ c.
+  intrCast
+    -(itreeFmap (elimCast -c))
+    -(λ t. indSum t ·(λ x: ITreeF ·X. { itreeFmap (elimCast -c) x ≃ x })
+             (λ u. β)
+             (λ x. β)) .
+
+t1 ◂ ITreeF ·Nat
+= in2 (λ x. x) .
+
+t2 ◂ ITreeF ·Nat
+= itreeFmap (caseNat zero suc) t1 .
+
+itreeFmapIdAbsurd ◂ FmapId ·ITreeF itreeFmap ➔ ∀ X: ★. X
+= λ fid. Λ X.
+  [pf ◂ { t2 ≃ t1 }
+   = fid (caseNat zero suc) (caseNatEta) t1]
+- δ - pf .

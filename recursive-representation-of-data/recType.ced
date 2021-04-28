@@ -1,26 +1,31 @@
-module recType (F : ★ ➔ ★).
+module recType (F : ★ ➔ ★) .
 
-import cast.
-
-Mono ◂ ★ = ∀ X: ★. ∀ Y: ★. Cast ·X ·Y ➔ Cast ·(F ·X) ·(F ·Y).
+import cast .
+import mono .
 
 Rec ◂ ★ = ∀ X: ★. Cast ·(F ·X) ·X ➾ X.
 
-recCast ◂ ∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Rec ·X
+recLB ◂ ∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Rec ·X
 = Λ X. Λ c. intrCast -(λ x. x -c) -(λ _. β) .
 
-recCast' ◂ ∀ Y: ★. (∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Y ·X) ➾ Cast ·Y ·Rec
+recGLB ◂ ∀ Y: ★. (∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Y ·X) ➾ Cast ·Y ·Rec
 = Λ Y. Λ u. intrCast -(λ y. Λ X. Λ c. elimCast -(u -c) y) -λ _. β .
 
-recRoll ◂ Mono ➾ Cast ·(F ·Rec) ·Rec
+recRoll ◂ Mono ·F ➾ Cast ·(F ·Rec) ·Rec
 = Λ mono.
-  recCast' ·(F ·Rec)
-    -Λ X. Λ c. castTrans ·(F ·Rec) ·(F ·X) ·X -(mono (recCast -c)) -c .
+  recGLB ·(F ·Rec)
+    -(Λ X. Λ c. castTrans ·(F ·Rec) ·(F ·X) ·X -(mono (recLB -c)) -c) .
 
-recUnroll ◂ Mono ➾ Cast ·Rec ·(F ·Rec)
-= Λ mono. recCast -(mono (recRoll -mono)).
+recUnroll ◂ Mono ·F ➾ Cast ·Rec ·(F ·Rec)
+= Λ mono. recLB ·(F ·Rec) -(mono (recRoll -mono)).
 
-_ ◂ { recRoll   ≃ λ x. x } = β.
-_ ◂ { recUnroll ≃ λ x. x } = β.
-recIso1 ◂ { λ a. recRoll (recUnroll a) ≃ λ a. a} = β.
-recIso2 ◂ { λ a. recUnroll (recRoll a) ≃ λ a. a} = β.
+roll ◂ Mono ·F ➾ F ·Rec ➔ Rec
+= Λ m. elimCast -(recRoll -m) .
+
+unroll ◂ Mono ·F ➾ Rec ➔ F ·Rec
+= Λ m. elimCast -(recUnroll -m) .
+
+_ ◂ { roll   ≃ λ x. x } = β.
+_ ◂ { unroll ≃ λ x. x } = β.
+recIso1 ◂ { λ a. roll (unroll a) ≃ λ a. a} = β.
+recIso2 ◂ { λ a. unroll (roll a) ≃ λ a. a} = β.

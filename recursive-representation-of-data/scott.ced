@@ -1,7 +1,7 @@
-import functor.
+import mono .
 
 module scott
-  (F: ★ ➔ ★) (fmap: Fmap ·F)
-  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+  (F: ★ ➔ ★) {mono: Mono ·F} .
 
-import public scott/encoding  ·F fmap -fmapId -fmapCompose.
+import public scott/generic/encoding ·F -mono .
+import public scott/generic/props ·F -mono .

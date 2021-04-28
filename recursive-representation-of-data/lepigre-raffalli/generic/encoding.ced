@@ -1,0 +1,55 @@
+import cast .
+import mono .
+import recType .
+
+module scott-rec/generic/encoding
+  (F: ★ ➔ ★) {mono: Mono ·F} .
+
+import scott/generic/encoding as S ·F -mono .
+import data-char/iter-typing ·F .
+import data-char/primrec-typing ·F .
+
+DRec ◂ (S.D ➔ ★) ➔ S.D ➔ ★ ➔ ★
+= λ P: S.D ➔ ★. λ x: S.D. λ Y: ★. Y ➔ Y ➔ P x .
+
+inDRec ◂ ∀ P: S.D ➔ ★. ∀ Y: ★. F ·(ι x: S.D. DRec ·P x ·Y) ➔ S.D
+= Λ P. Λ Y. λ xs.
+  [c ◂ Cast ·(ι x: S.D. DRec ·P x ·Y) ·S.D
+   = intrCast -(λ x. x.1) -(λ x. β)]
+- S.inD (elimCast -(mono c) xs) .
+
+PrfAlgLR ◂ (S.D ➔ ★) ➔ ★
+= λ P: S.D ➔ ★.
+  ∀ Y: ★. Π xs: F ·(ι x: S.D. DRec ·P x ·Y). Y ➔ P (inDRec xs) .
+
+D ◂ ★ = ι x: S.D. ∀ P: S.D ➔ ★. DRec ·P x ·(PrfAlgLR ·P) .
+
+recLRD ◂ ∀ P: S.D ➔ ★. PrfAlgLR ·P ➔ Π x: D. PrfAlgLR ·P ➔ P x.1
+= Λ P. λ a. λ x. x.2 a .
+
+fromD ◂ Cast ·D ·S.D
+= intrCast -(λ x. x.1) -(λ x. β) .
+
+instDRec ◂ ∀ P: S.D ➔ ★. Cast ·D ·(ι x: S.D. DRec ·P x ·(PrfAlgLR ·P))
+= Λ P.
+  intrCast -(λ x. [ x.1 , λ a. recLRD a x ]) -(λ x. β) .
+
+inD ◂ Alg ·D
+= λ xs.
+  [ S.inD (elimCast -(mono fromD) xs)
+  , Λ P. λ a.
+    a ·(PrfAlgLR ·P) (elimCast -(mono (instDRec ·P)) xs) ].
+
+_ ◂ { inD ≃ S.inD } = β .
+
+rollD ◂ Cast ·(S.DFI ·D) ·D
+= intrCast
+    -(λ x. x.1 inD)
+    -(λ x. x.2 ·(λ x: S.DF ·D. { x inD ≃ x })
+             (λ xs. β)) .
+
+toD ◂ Cast ·S.D ·D
+= recLB -rollD .
+
+indLRD ◂ ∀ P: S.D ➔ ★. PrfAlgLR ·P ➔ Π x: S.D. PrfAlgLR ·P ➔ P x
+= Λ P. λ a. λ x. recLRD a (elimCast -toD x) .

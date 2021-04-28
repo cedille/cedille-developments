@@ -1,23 +1,25 @@
 module cast.
 
 import view .
-import utils.top .
 
-opaque Cast ◂ ★ ➔ ★ ➔ ★
-= λ A: ★. λ B: ★. View ·(A ➔ B) β{| λ x. x |} .
+Cast ◂ ★ ➔ ★ ➔ ★ = λ S: ★. λ T: ★. View ·(S ➔ T) β{| λ x. x |} .
 
-intrCast ◂ ∀ A: ★. ∀ B: ★. ∀ f: A ➔ B. (Π a: A. { f a ≃ a }) ➾ Cast ·A ·B
-= open Cast - Λ A. Λ B. Λ f. Λ e.
-  intrView ·(A ➔ B) β{| λ x. x |} -(λ x. φ (e x) - (f x) {| x |}) -β .
+intrCast ◂ ∀ S: ★. ∀ T: ★. ∀ t: S ➔ T. (Π x: S. { t x ≃ x }) ➾ Cast ·S ·T
+= Λ S. Λ T. Λ t. Λ t'.
+  extView ·S ·T β{| λ x. x |} -(λ x. intrView β{| x |} -(t x) -(t' x)) .
 
-elimCast ◂ ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ A ➔ B
-= open Cast - Λ A. Λ B. Λ c. elimView β{| λ x. x |} -c .
+elimCast ◂ ∀ S: ★. ∀ T: ★. Cast ·S ·T ➾ S ➔ T
+= Λ S. Λ T. Λ c. elimView β{| λ x. x |} -c .
 
-castRefl ◂ ∀ A: ★. Cast ·A ·A
-= Λ A. intrCast -(λ x. x) -λ _. β .
+eqCast ◂ ∀ S: ★. ∀ T: ★. ∀ c: Cast ·S ·T. { λ x. x ≃ c }
+= Λ S. Λ T. Λ c. eqView -β{| λ x. x |} -c .
 
-castTrans ◂ ∀ A: ★. ∀ B: ★. ∀ C: ★. Cast ·A ·B ➾ Cast ·B ·C ➾ Cast ·A ·C
-= Λ A. Λ B. Λ C. Λ c1. Λ c2.
-  intrCast
-    -(λ x. elimCast -c2 (elimCast -c1 x))
-    -λ _. β .
+castRefl ◂ ∀ S: ★. Cast ·S ·S
+= Λ S. intrCast -(λ x. x) -(λ _. β) .
+
+castTrans ◂ ∀ S: ★. ∀ T: ★. ∀ U: ★. Cast ·S ·T ➾ Cast ·T ·U ➾ Cast ·S ·U
+= Λ S. Λ T. Λ U. Λ c1. Λ c2.
+intrCast -(λ x. elimCast -c2 (elimCast -c1 x)) -(λ _. β) .
+
+castUnique ◂ ∀ S: ★. ∀ T: ★. ∀ c1: Cast ·S ·T. ∀ c2: Cast ·S ·T. { c1 ≃ c2 }
+= Λ S. Λ T. Λ c1. Λ c2. ρ ς (eqCast -c1) @x.{ x ≃ c2 } - eqCast -c2 .

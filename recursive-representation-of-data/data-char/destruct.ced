@@ -1,0 +1,9 @@
+module data-char/destruct (F: ★ ➔ ★) (D: ★) (inD : F ·D ➔ D) .
+
+Destructor ◂ ★ = D ➔ F ·D .
+
+Lambek1 ◂ Destructor ➔ ★
+= λ outD: Destructor. Π xs: F ·D. { outD (inD xs) ≃ xs } .
+
+Lambek2 ◂ Destructor ➔ ★
+= λ outD: Destructor. Π x: D. { inD (outD x) ≃ x } .

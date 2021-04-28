@@ -1,0 +1,139 @@
+import functor .
+import cast .
+import recType .
+import utils .
+
+module parigot/generic/props
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import functorThms ·F fmap -fmapId -fmapCompose .
+import parigot/generic/encoding ·F fmap -fmapId -fmapCompose .
+import data-char/primrec-typing ·F .
+
+normD ◂ Cast ·D ·(AlgRec ·D ·D ➔ D)
+= intrCast -(λ x. (unrollD x).1 ·D) -(λ x. β) .
+
+import data-char/primrec ·F fmap -fmapId -fmapCompose ·D inD .
+
+recDBeta ◂ PrimRecBeta recD
+= Λ X. Λ a. Λ xs. β .
+
+reflectD ◂ Π x: D. { recD (fromAlg inD) x ≃ x }
+= λ x. (unrollD x).2 .
+
+recDEta ◂ PrimRecEta recD
+= Λ X. Λ a. Λ h. λ hBeta.
+  indD ·(λ x: D. { h x ≃ recD a x })
+    λ xs. [P ◂ D ➔ ★ = λ x: D. { h x ≃ recD a x }]
+        - [P' ◂ D ➔ ★ = λ x: D. ι y: P x. { y ≃ recD a x }]
+          -- clever use of the Kleene trick so that the mapped operation
+          -- fork proj1 (λ x. (h proj1 x)) is an identity function on xs'
+          -- This avoids a previous requirement that fmap respects extensional equality of functions
+        - [conv : Sigma ·D ·P ➔ Sigma ·D ·P'
+           = λ x. mksigma (proj1 x)
+                  [ ρ (proj2 x) @y.{ y ≃ recD a (proj1 x) }
+                  - β{| recD a (proj1 x) |}
+                  , β{| recD a (proj1 x) |} ]]
+        - [xs' ◂ F ·(Sigma ·D ·P') = fmap conv xs]
+        - [lem1 ◂ { h (inD (fmap proj1 xs')) ≃ recD a (inD (fmap proj1 xs')) }
+           = ρ (hBeta -(fmap (proj1 ·D ·P') xs'))
+               @x.{ x ≃ a (fmap (fork id (recD a)) (fmap proj1 xs'))}
+           - ρ (fmapCompose ·(Sigma ·D ·P') ·D ·(Pair ·D ·X)
+                  (fork (id ·D) h) (proj1 ·D ·P') xs')
+               @x.{ a x ≃ a (fmap (fork id (recD a)) (fmap proj1 xs')) }
+           - ρ (fmapCompose ·(Sigma ·D ·P') ·D ·(Pair ·D ·X)
+                  (fork (id ·D) (recD a)) (proj1 ·D ·P') xs')
+               @x.{ a (fmap (fork proj1 (λ x. h (proj1 x))) xs') ≃ a x }
+           - ρ (fmapId ·(Sigma ·D ·P') ·(Pair ·D ·X)
+                  (fork (proj1 ·D ·P') (λ x. h (proj1 x)))
+                  (λ x. indsigma x ·(λ x: Sigma ·D ·P'. { mksigma (proj1 x) (h (proj1 x)) ≃ x })
+                          λ d. λ p.
+                            ρ p.2 @x.{ mksigma d (h d) ≃ mksigma d x }
+                          - ρ p.1 @x.{ mksigma d x ≃ mksigma d (recD a d) }
+                          - β)
+                  xs')
+               @x.{ a x ≃ a (fmap (fork proj1 (λ x. recD a (proj1 x))) xs') }
+           - ρ (fmapId ·(Sigma ·D ·P') ·(Pair ·D ·X)
+                  (fork (proj1 ·D ·P') (λ x. recD a (proj1 x)))
+                  (λ x. indsigma x ·(λ x: Sigma ·D ·P'. { mksigma (proj1 x) (recD a (proj1 x)) ≃ x })
+                          λ d. λ p.
+                            ρ p.2 @x.{ mksigma d (recD a d) ≃ mksigma d x }
+                          - β)
+                  xs')
+               @x.{ a xs' ≃ a x }
+           - β]
+        - [lem2 ◂ { fmap proj1 xs ≃ fmap proj1 xs' }
+           = ρ (fmapCompose ·(Sigma ·D ·P) ·(Sigma ·D ·P') ·D
+                  (proj1 ·D ·P') conv xs)
+               @x.{ fmap proj1 xs ≃ x }
+           - β]
+        - ρ lem2 - lem1 .
+
+import data-char/case-typing ·F .
+import data-char/case ·F ·D inD .
+
+caseD ◂ Case ·D
+= Λ X. λ a. recD (fromAlgCase a) .
+
+_ ◂ ∀ X: ★. ∀ a: AlgCase ·D ·X. ∀ xs: F ·D.
+    { caseD a (inD xs) ≃ a (fmap proj1 (fmap (fork id (caseD a)) xs)) }
+= Λ X. Λ a. Λ xs. β .
+
+caseDBeta ◂ CaseBeta caseD
+= Λ X. Λ a. Λ xs.
+  ρ (fmapCompose ·D ·(Pair ·D ·X) ·D
+       (λ x. proj1 x) (fork (id ·D) (caseD a)) xs)
+    @x.{ a x ≃ a xs }
+- ρ (fmapId ·D ·D (λ x. proj1 (fork (id ·D) (caseD a) x)) (λ x. β) xs)
+    @x.{ a x ≃ a xs }
+- β.
+
+caseDEta ◂ CaseEta caseD
+= Λ X. Λ a. Λ h. λ hBeta.
+  recDEta ·X -(fromAlgCase a) -h
+    (Λ xs.
+       ρ (hBeta -xs)
+         @x.{ x ≃ a (fmap proj1 (fmap (fork id h) xs)) }
+     - ρ (fmapCompose ·D ·(Pair ·D ·X) ·D
+            (λ x. proj1 x) (fork (id ·D) h) xs)
+         @x.{ a xs ≃ a x }
+     - ρ (fmapId ·D ·D (λ x. proj1 (fork (id ·D) h x)) (λ x. β) xs)
+         @x.{ a xs ≃ a x }
+     - β) .
+
+import data-char/destruct ·F ·D inD .
+
+outD ◂ Destructor
+= caseD (λ xs. xs) .
+
+lambek1D ◂ Lambek1 outD
+= λ xs. ρ (caseDBeta ·(F ·D) -(λ x. x) -xs) @x.{ x ≃ xs } - β .
+
+lambek2D ◂ Lambek2 outD
+= indD ·(λ x: D. { inD (outD x) ≃ x })
+    λ xs. ρ (lambek1D (fmap ·(Sigma ·D ·(λ x: D. { inD (outD x) ≃ x })) ·D (λ x. proj1 x) xs))
+        - β .
+
+import data-char/iter-typing ·F .
+import data-char/iter ·F fmap ·D inD .
+
+foldD ◂ Iter ·D
+= Λ X. λ a. recD (fromAlg a) .
+
+foldDBeta ◂ IterBeta foldD
+= Λ X. Λ a. Λ xs.
+  ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
+       (λ x. proj2 x) (fork (id ·D) (foldD a)) xs)
+    @x.{ a x ≃ a (fmap (foldD a) xs) }
+- β .
+
+foldDEta ◂ IterEta foldD
+= Λ X. Λ a. Λ h. λ hBeta.
+  recDEta ·X
+    -(λ xs. a (fmap ·(Pair ·D ·X) ·X (λ x. proj2 x) xs)) -h
+    (Λ xs.
+       ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
+            (λ x. proj2 x) (fork (id ·D) h) xs)
+         @x.{ h (inD xs) ≃ a x }
+     - hBeta -xs) .

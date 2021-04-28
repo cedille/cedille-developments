@@ -1,9 +1,9 @@
 module utils.
 
-import public utils/listFunctor.
-import public utils/natFunctor.
+import public utils/id.
 import public utils/sigma.
 import public utils/sum.
 import public utils/top.
 import public utils/unit.
 import public utils/wksigma.
+import public utils/wrap.

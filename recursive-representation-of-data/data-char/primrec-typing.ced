@@ -1,0 +1,10 @@
+import utils .
+
+module data-char/primrec-typing (F: ★ ➔ ★) .
+
+AlgRec ◂ ★ ➔ ★ ➔ ★
+= λ D: ★. λ X: ★. F ·(Pair ·D ·X) ➔ X .
+
+PrimRec ◂ ★ ➔ ★
+= λ D: ★. ∀ X: ★. AlgRec ·D ·X ➔ D ➔ X .
+

@@ -1,0 +1,7 @@
+module data-char/iter-typing (F: ★ ➔ ★) .
+
+Alg ◂ ★ ➔ ★
+= λ X: ★. F ·X ➔ X .
+
+Iter ◂ ★ ➔ ★
+= λ D: ★. ∀ X: ★. Alg ·X ➔ D ➔ X .

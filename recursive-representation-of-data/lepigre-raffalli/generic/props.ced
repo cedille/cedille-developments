@@ -1,0 +1,100 @@
+import functor .
+import cast .
+import recType .
+import utils .
+
+module lepigre-raffalli/generic/propos
+  (F: ★ ➔ ★) (fmap: Fmap ·F)
+  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap} .
+
+import functorThms ·F fmap -fmapId -fmapCompose .
+import scott/generic/encoding ·F -monoFunctor .
+import lepigre-raffalli/generic/encoding as LR ·F -monoFunctor .
+import lepigre-raffalli/generic/induction ·F fmap -fmapId -fmapCompose .
+
+import data-char/primrec-typing ·F .
+import data-char/primrec ·F fmap -fmapId -fmapCompose ·D inD .
+
+recD ◂ PrimRec ·D
+= Λ X. λ a. indD ·(λ x: D. X) a .
+
+recDBeta ◂ PrimRecBeta recD
+= Λ X. Λ a. Λ xs. β .
+
+recDEta ◂ PrimRecEta recD
+= Λ X. Λ a. Λ h. λ hBeta.
+  indD ·(λ x: D. { h x ≃ recD a x })
+    λ xs. [P ◂ D ➔ ★ = λ x: D. { h x ≃ recD a x }]
+        - [P' ◂ D ➔ ★ = λ x: D. ι y: P x. { y ≃ recD a x }]
+          -- clever use of the Kleene trick so that the mapped operation
+          -- fork proj1 (λ x. (h proj1 x)) is an identity function on xs'
+          -- This avoids a previous requirement that fmap respects extensional equality of functions
+        - [conv : Sigma ·D ·P ➔ Sigma ·D ·P'
+           = λ x. mksigma (proj1 x)
+                  [ ρ (proj2 x) @y.{ y ≃ recD a (proj1 x) }
+                  - β{| recD a (proj1 x) |}
+                  , β{| recD a (proj1 x) |} ]]
+        - [xs' ◂ F ·(Sigma ·D ·P') = fmap conv xs]
+        - [lem1 ◂ { h (inD (fmap proj1 xs')) ≃ recD a (inD (fmap proj1 xs')) }
+           = ρ (hBeta -(fmap (proj1 ·D ·P') xs'))
+               @x.{ x ≃ a (fmap (fork id (recD a)) (fmap proj1 xs'))}
+           - ρ (fmapCompose ·(Sigma ·D ·P') ·D ·(Pair ·D ·X)
+                  (fork (id ·D) h) (proj1 ·D ·P') xs')
+               @x.{ a x ≃ a (fmap (fork id (recD a)) (fmap proj1 xs')) }
+           - ρ (fmapCompose ·(Sigma ·D ·P') ·D ·(Pair ·D ·X)
+                  (fork (id ·D) (recD a)) (proj1 ·D ·P') xs')
+               @x.{ a (fmap (fork proj1 (λ x. h (proj1 x))) xs') ≃ a x }
+           - ρ (fmapId ·(Sigma ·D ·P') ·(Pair ·D ·X)
+                  (fork (proj1 ·D ·P') (λ x. h (proj1 x)))
+                  (λ x. indsigma x ·(λ x: Sigma ·D ·P'. { mksigma (proj1 x) (h (proj1 x)) ≃ x })
+                          λ d. λ p.
+                            ρ p.2 @x.{ mksigma d (h d) ≃ mksigma d x }
+                          - ρ p.1 @x.{ mksigma d x ≃ mksigma d (recD a d) }
+                          - β)
+                  xs')
+               @x.{ a x ≃ a (fmap (fork proj1 (λ x. recD a (proj1 x))) xs') }
+           - ρ (fmapId ·(Sigma ·D ·P') ·(Pair ·D ·X)
+                  (fork (proj1 ·D ·P') (λ x. recD a (proj1 x)))
+                  (λ x. indsigma x ·(λ x: Sigma ·D ·P'. { mksigma (proj1 x) (recD a (proj1 x)) ≃ x })
+                          λ d. λ p.
+                            ρ p.2 @x.{ mksigma d (recD a d) ≃ mksigma d x }
+                          - β)
+                  xs')
+               @x.{ a xs' ≃ a x }
+           - β]
+        - [lem2 ◂ { fmap proj1 xs ≃ fmap proj1 xs' }
+           = ρ (fmapCompose ·(Sigma ·D ·P) ·(Sigma ·D ·P') ·D
+                  (proj1 ·D ·P') conv xs)
+               @x.{ fmap proj1 xs ≃ x }
+           - β]
+        - ρ lem2 - lem1 .
+
+import data-char/iter-typing ·F .
+import data-char/iter ·F fmap ·D inD .
+
+lrFromAlg ◂ ∀ X: ★. Alg ·X ➔ LR.PrfAlgLR ·(λ x: D. X)
+= Λ X. λ a. Λ Y. λ xs. λ y.
+  a (fmap ·(ι x: D. LR.DRec ·(λ x: D. X) x ·Y) ·X (λ x. x.2 y y) xs) .
+
+foldD ◂ Iter ·D
+= Λ X. λ a. λ x. LR.indLRD ·(λ x: D. X) (lrFromAlg a) x (lrFromAlg a) .
+
+foldDBeta ◂ IterBeta foldD
+= Λ X. Λ a. Λ xs. β .
+
+algHomLemma ◂ ∀ X: ★. ∀ a: Alg ·X. ∀ h: D ➔ X. AlgHom ·X a h ➔ AlgRecHom ·X (fromAlg a) h
+= Λ X. Λ a. Λ h. λ hHom. Λ xs.
+  ρ (hHom -xs)
+    @x.{ x ≃ a (fmap proj2 (fmap (fork id h) xs)) }
+- ρ (fmapCompose ·D ·(Pair ·D ·X) ·X
+       (λ x. proj2 x) (fork (id ·D) h) xs)
+    @x.{ a (fmap h xs) ≃ a x }
+- β.
+
+foldDRecD ◂ ∀ X: ★. ∀ a: Alg ·X. AlgRecHom ·X (fromAlg a) (foldD a)
+= Λ X. Λ a. algHomLemma ·X -a -(foldD a) (foldDBeta -a) .
+
+foldDEta ◂ IterEta foldD
+= Λ X. Λ a. Λ h. λ hBeta. λ x.
+  ρ (recDEta ·X -(fromAlg a) -(foldD a) (foldDRecD -a) x) -
+  recDEta ·X -(fromAlg a) -h (algHomLemma -a -h hBeta) x .

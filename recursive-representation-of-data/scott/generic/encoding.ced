@@ -1,0 +1,74 @@
+import mono .
+
+module scott/encoding (F: ★ ➔ ★) {mono: Mono ·F} .
+
+import view .
+import cast .
+import recType .
+import utils .
+
+import data-char/case-typing ·F .
+
+DF ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. AlgCase ·D ·X ➔ X .
+
+inDF ◂ ∀ D: ★. AlgCase ·D ·(DF ·D)
+= Λ D. λ xs. Λ X. λ a. a xs .
+
+monoDF ◂ Mono ·DF
+= Λ D1. Λ D2. λ c.
+  intrCast
+    -(λ d. Λ X. λ a. d (λ ds. a (elimCast -(mono c) ds)))
+    -(λ x. β) .
+
+WkPrfAlg ◂ Π D: ★. (DF ·D ➔ ★) ➔ ★
+= λ D: ★. λ P: DF ·D ➔ ★.
+  Π xs: F ·D. P (inDF xs) .
+
+WkIndDF ◂ Π D: ★. DF ·D ➔ ★
+= λ D: ★. λ x: DF ·D.
+  ∀ P: DF ·D ➔ ★. WkPrfAlg ·D ·P ➔ P x .
+
+monoWkIndDF
+◂ ∀ D1: ★. ∀ D2: ★. Π c: Cast ·D1 ·D2. ∀ x: DF ·D1.
+  Cast ·(WkIndDF ·D1 x) ·(WkIndDF ·D2 (elimCast -(monoDF c) x))
+= Λ D1. Λ D2. λ c. Λ x.
+  intrCast
+    -(λ d. Λ P. λ a.
+      d ·(λ x: DF ·D1. P (elimCast -(monoDF c) x))
+        λ ds. a (elimCast -(mono c) ds))
+    -(λ x. β) .
+
+inWkIndDF ◂ ∀ D: ★. WkPrfAlg ·D ·(WkIndDF ·D)
+= Λ D. λ xs. Λ P. λ a. a xs .
+
+_ ◂ { inWkIndDF ≃ inDF } = β .
+
+DFI ◂ ★ ➔ ★ = λ D: ★. ι x: DF ·D. WkIndDF ·D x .
+
+monoDFI ◂ Mono ·DFI
+= Λ D1. Λ D2. λ c.
+  intrCast
+    -(λ x. [ elimCast -(monoDF c) x.1
+           , elimCast -(monoWkIndDF c -x.1) x.2 ])
+    -(λ x. β) .
+
+D ◂ ★ = Rec ·DFI .
+rollD   ◂ DFI ·D ➔ D = roll -monoDFI .
+unrollD ◂ D ➔ DFI ·D = unroll -monoDFI .
+
+inD ◂ F ·D ➔ D
+= λ xs. rollD [ inDF xs , inWkIndDF xs ] .
+
+_ ◂ { inD ≃ inDF } = β .
+
+LiftD ◂ (D ➔ ★) ➔ DF ·D ➔ ★
+= λ P: D ➔ ★. λ x: DF ·D.
+  ∀ v: View ·D β{| x |}. P (elimView β{| x |} -v) .
+
+import data-char/case ·F ·D inD .
+
+wkIndD ◂ ∀ P: D ➔ ★. (Π xs: F ·D. P (inD xs)) ➔ Π x: D. P x
+= Λ P. λ a. λ x.
+  (unrollD x).2 ·(LiftD ·P)
+    (λ xs. Λ v. a xs) -(selfView x) .
+

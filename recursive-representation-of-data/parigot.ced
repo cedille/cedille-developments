@@ -2,7 +2,7 @@ import functor.
 
 module parigot
   (F: ★ ➔ ★) (fmap: Fmap ·F)
-  {fmapId : FmapId · F fmap} {fmapCompose : FmapCompose · F fmap}.
+  {fmapId : FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}.
 
-import public parigot/encoding ·F fmap -fmapId -fmapCompose .
-import public parigot/props    ·F fmap -fmapId -fmapCompose .
+import public parigot/generic/encoding ·F fmap -fmapId -fmapCompose .
+import public parigot/generic/props    ·F fmap -fmapId -fmapCompose .

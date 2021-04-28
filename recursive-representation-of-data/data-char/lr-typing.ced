@@ -1,0 +1,10 @@
+module data-char/lr-typing (F: ★ ➔ ★) .
+
+PredLR ◂ ★ ➔ ★ ➔ ★
+= λ X: ★. λ Y: ★. Y ➔ Y ➔ X .
+
+AlgLR ◂ ★ ➔ ★ ➔ ★
+= λ D: ★. λ X: ★. ∀ Y: ★. F ·(ι x: D. PredLR ·X ·Y) ➔ Y ➔ X .
+
+RecLR ◂ ★ ➔ ★
+= λ D: ★. ∀ X: ★. AlgLR ·D ·X ➔ D ➔ AlgLR ·D ·X ➔ X .

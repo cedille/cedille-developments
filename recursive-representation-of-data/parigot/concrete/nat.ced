@@ -1,0 +1,130 @@
+import cast .
+import mono .
+import recType .
+import view .
+import utils/top .
+
+module parigot/concrete/nat .
+
+recNatU ◂ Top
+= β{| λ z. λ s. λ n. n z s |} .
+
+zeroU ◂ Top
+= β{| λ z. λ s. z |} .
+
+sucU ◂ Top ➔ Top
+= λ n. β{| λ z. λ s. s n (recNatU z s n) |} .
+
+reflectNatU ◂ Top
+= β{| recNatU zeroU (λ _. sucU) |} .
+
+NatC ◂ Top ➔ ★ = λ n: Top. { reflectNatU n ≃ n } .
+
+zeroC ◂ NatC zeroU = β{|zeroU|} .
+
+sucC ◂ Π n: Top. NatC n ➾ NatC (sucU n)
+= λ n. Λ nc. ρ nc @x.{ sucU x ≃ sucU n } - β{|sucU n|} .
+
+_ ◂ { zeroC ≃ zeroU } = β .
+_ ◂ { sucC  ≃ sucU  } = β .
+
+sucU' ◂ Top ➔ Top
+= λ n. β{| λ z. λ s. s zeroU (recNatU z s n) |} .
+
+_ ◂ { reflectNatU (sucU' (sucU zeroU)) ≃ sucU (sucU zeroU) }
+= β .
+
+NatF' ◂ ★ ➔ ★
+= λ N: ★. ∀ X: ★. X ➔ (N ➔ X ➔ X) ➔ X .
+
+NatF ◂ ★ ➔ ★
+= λ N: ★. ι n: NatF' ·N. NatC β{| n |} .
+
+monoNatF ◂ Mono ·NatF
+= Λ N1. Λ N2. λ c.
+  intrCast
+    -(λ n. [ Λ X. λ z. λ s. n.1 z (λ m. s (elimCast -c m)) , n.2 ])
+    -(λ n. β) .
+
+Nat ◂ ★ = Rec ·NatF .
+rollNat   ◂ NatF ·Nat ➔ Nat = roll -monoNatF .
+unrollNat ◂ Nat ➔ NatF ·Nat = unroll -monoNatF .
+
+recNat ◂ ∀ X: ★. X ➔ (Nat ➔ X ➔ X) ➔ Nat ➔ X
+= Λ X. λ z. λ s. λ n. (unrollNat n).1 z s .
+
+zero' ◂ NatF' ·Nat
+= Λ X. λ z. λ s. z .
+
+zero ◂ Nat = rollNat [ zero' , zeroC ] .
+
+suc' ◂ Nat ➔ NatF' ·Nat
+= λ n. Λ X. λ z. λ s. s n (recNat z s n) .
+
+suc ◂ Nat ➔ Nat
+= λ n. rollNat [ suc' n , sucC β{|n|} -(unrollNat n).2 ] .
+
+_ ◂ { recNat ≃ recNatU } = β .
+_ ◂ { zero'  ≃ zeroU }   = β .
+_ ◂ { suc    ≃ sucU }    = β .
+
+
+IndNat ◂ Nat ➔ ★
+= λ n: Nat. ∀ P: Nat ➔ ★. P zero ➔ (Π m: Nat. P m ➔ P (suc m)) ➔ P n .
+
+NatI ◂ ★ = ι n: Nat. IndNat n .
+
+recNatI
+◂ ∀ P: Nat ➔ ★. P zero ➔ (Π m: Nat. P m ➔ P (suc m)) ➔ Π n: NatI. P n.1
+= Λ P. λ z. λ s. λ n. n.2 z s .
+
+indZero ◂ IndNat zero
+= Λ P. λ z. λ s. z .
+
+zeroI ◂ NatI = [ zero , indZero ] .
+
+indSuc ◂ Π n: NatI. IndNat (suc n.1)
+= λ n. Λ P. λ z. λ s. s n.1 (recNatI z s n) .
+
+sucI ◂ NatI ➔ NatI
+= λ n. [ suc n.1 , indSuc n ] .
+
+reflectNatI ◂ Nat ➔ NatI
+= recNat zeroI (λ _. sucI) .
+
+toNatI ◂ Cast ·Nat ·NatI
+= intrCast -reflectNatI -(λ n. (unrollNat n).2) .
+
+indNat ◂ ∀ P: Nat ➔ ★. P zero ➔ (Π m: Nat. P m ➔ P (suc m)) ➔ Π n: Nat. P n
+= Λ P. λ z. λ s. λ n. recNatI z s (elimCast -toNatI n) .
+
+-- computational and extensional character
+recNatBeta1
+◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X ➔ X. { recNat z s zero ≃ z }
+= Λ X. Λ z. Λ s. β .
+
+recNatBeta2
+◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X ➔ X. ∀ n: Nat.
+  { recNat z s (suc n) ≃ s n (recNat z s n) }
+= Λ X. Λ z. Λ s. Λ n. β .
+
+indNatComp ◂ { indNat ≃ recNat } = β .
+
+pred ◂ Nat ➔ Nat
+= recNat zero (λ n. λ _. n) .
+
+predBeta1 ◂ { pred zero ≃ zero } = β .
+
+predBeta2 ◂ ∀ n: Nat. { pred (suc n) ≃ n }
+= Λ n. β .
+
+recNatEta
+◂ ∀ X: ★. ∀ z: X. ∀ s: Nat ➔ X ➔ X.
+  ∀ h: Nat ➔ X. { h zero ≃ z } ➾ (Π n: Nat. { h (suc n) ≃ s n (h n) }) ➾
+  Π n: Nat. { h n ≃ recNat z s n }
+= Λ X. Λ z. Λ s. Λ h. Λ hBeta1. Λ hBeta2.
+  indNat ·(λ x: Nat. { h x ≃ recNat z s x })
+    (ρ hBeta1 @x.{ x ≃ z } - β)
+    (λ m. λ ih.
+       ρ (hBeta2 m) @x.{ x ≃ s m (recNat z s m) }
+     - ρ ih @x.{ s m x ≃ s m (recNat z s m) } - β) .
