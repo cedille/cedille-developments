@@ -1,5 +1,7 @@
+import data-char/iter-typing .
+
 module data-char/case
-  (F: ★ ➔ ★) (D: ★) (inD: F ·D ➔ D).
+  (F: ★ ➔ ★) (D: ★) (inD: Alg ·F ·D).
 
 import data-char/case-typing ·F .
 

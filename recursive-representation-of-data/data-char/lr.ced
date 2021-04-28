@@ -1,8 +1,10 @@
 import cast .
 import mono .
 
+import data-char/iter-typing .
+
 module data-char/lr
-  (F: ★ ➔ ★) {mono: Mono ·F} (D: ★) (inD: F ·D ➔ D) .
+  (F: ★ ➔ ★) {mono: Mono ·F} (D: ★) (inD: Alg ·F ·D) .
 
 import data-char/lr-typing ·F .
 

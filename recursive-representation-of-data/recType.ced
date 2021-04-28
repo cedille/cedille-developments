@@ -14,10 +14,10 @@ recGLB ◂ ∀ Y: ★. (∀ X: ★. Cast ·(F ·X) ·X ➾ Cast ·Y ·X) ➾ Cas
 recRoll ◂ Mono ·F ➾ Cast ·(F ·Rec) ·Rec
 = Λ mono.
   recGLB ·(F ·Rec)
-    -Λ X. Λ c. castTrans ·(F ·Rec) ·(F ·X) ·X -(mono (recLB -c)) -c .
+    -(Λ X. Λ c. castTrans ·(F ·Rec) ·(F ·X) ·X -(mono (recLB -c)) -c) .
 
 recUnroll ◂ Mono ·F ➾ Cast ·Rec ·(F ·Rec)
-= Λ mono. recLB -(mono (recRoll -mono)).
+= Λ mono. recLB ·(F ·Rec) -(mono (recRoll -mono)).
 
 roll ◂ Mono ·F ➾ F ·Rec ➔ Rec
 = Λ m. elimCast -(recRoll -m) .
