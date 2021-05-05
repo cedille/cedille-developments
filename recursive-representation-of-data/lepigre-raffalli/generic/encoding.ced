@@ -6,8 +6,6 @@ module scott-rec/generic/encoding
   (F: ★ ➔ ★) {mono: Mono ·F} .
 
 import scott/generic/encoding as S ·F -mono .
-import data-char/iter-typing ·F .
-import data-char/primrec-typing ·F .
 
 DRec ◂ (S.D ➔ ★) ➔ S.D ➔ ★ ➔ ★
 = λ P: S.D ➔ ★. λ x: S.D. λ Y: ★. Y ➔ Y ➔ P x .
@@ -31,10 +29,9 @@ fromD ◂ Cast ·D ·S.D
 = intrCast -(λ x. x.1) -(λ x. β) .
 
 instDRec ◂ ∀ P: S.D ➔ ★. Cast ·D ·(ι x: S.D. DRec ·P x ·(PrfAlgLR ·P))
-= Λ P.
-  intrCast -(λ x. [ x.1 , λ a. recLRD a x ]) -(λ x. β) .
+= Λ P. intrCast -(λ x. [ x.1 , λ a. recLRD a x ]) -(λ x. β) .
 
-inD ◂ Alg ·D
+inD ◂ F ·D ➔ D
 = λ xs.
   [ S.inD (elimCast -(mono fromD) xs)
   , Λ P. λ a.
@@ -45,8 +42,7 @@ _ ◂ { inD ≃ S.inD } = β .
 rollD ◂ Cast ·(S.DFI ·D) ·D
 = intrCast
     -(λ x. x.1 inD)
-    -(λ x. x.2 ·(λ x: S.DF ·D. { x inD ≃ x })
-             (λ xs. β)) .
+    -(λ x. x.2 ·(λ x: S.DF ·D. { x inD ≃ x }) (λ xs. β)) .
 
 toD ◂ Cast ·S.D ·D
 = recLB -rollD .

@@ -4,21 +4,21 @@ module parigot/examples/list-data (A : ★).
 
 import signatures/list ·A .
 
-import parigot/generic/encoding as P
+import parigot/generic/encoding as R
   ·ListF listFmap -listFmapId -listFmapCompose .
 
-List ◂ ★ = P.D .
-nil ◂ List = P.inD (in1 unit) .
+List ◂ ★ = R.D .
+nil ◂ List = R.inD (in1 unit) .
 cons ◂ A ➔ List ➔ List
-= λ hd. λ tl. P.inD (in2 (mkpair hd tl)) .
+= λ hd. λ tl. R.inD (in2 (mkpair hd tl)) .
 
 indList
 ◂ ∀ P: List ➔ ★. P nil ➔ (Π hd: A. Π tl: List. P tl ➔ P (cons hd tl)) ➔
   Π xs: List. P xs
 = Λ P. λ n. λ c.
-  P.indD (λ xs.
+  R.indD (λ xs.
       [in ◂ ListF ·(Sigma ·List ·P) ➔ List
-        = λ xs. P.inD (listFmap (proj1 ·List ·P) xs)]
+        = λ xs. R.inD (listFmap (proj1 ·List ·P) xs)]
     - indSum xs ·(λ x: ListF ·(Sigma ·List ·P). P (in x))
         (λ u. ρ (etaUnit u) @y.(P (in (in1 y))) - n)
         (λ p. indPair p ·(λ x: Pair ·A ·(Sigma ·List ·P). P (in (in2 x)))

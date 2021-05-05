@@ -33,5 +33,5 @@ t2 ◂ ITreeF ·Nat
 itreeFmapIdAbsurd ◂ FmapId ·ITreeF itreeFmap ➔ ∀ X: ★. X
 = λ fid. Λ X.
   [pf ◂ { t2 ≃ t1 }
-   = fid (caseNat zero suc) (caseNatEta) t1]
+   = fid (caseNat zero suc) reflectNat t1]
 - δ - pf .

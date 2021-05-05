@@ -40,3 +40,5 @@ import lepigre-raffalli/concrete/nat2 as LRN2 .
 -- generic Lepigre-Raffalli encoding
 import lepigre-raffalli as LR.
 
+-- monotone type schemes strictly contain functorial type schemes
+import signatures/itree .
