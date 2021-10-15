@@ -27,7 +27,7 @@ the generic zero-cost reuse combinators for the following types:
 * [Fixpoints (forgetful `ifix2fix`)](GenericReuse/FogFix.ced)
 * [Fixpoints (enriching `fix2ifix` & `fix2ifixP`)](GenericReuse/EnrFix.ced)
 
-The [auxiliary combinators](GenericReuse/Aux.ced) also appear here.
+The [auxiliary combinators](GenericReuse/Util.ced) also appear here.
 
 [Examples](Examples)
 ---------------------------------

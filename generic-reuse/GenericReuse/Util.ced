@@ -1,4 +1,4 @@
-module Aux.
+module Util.
 import Unit.
 import Id.
 import Product.

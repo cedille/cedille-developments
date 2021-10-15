@@ -3,7 +3,7 @@ import Ctx.
 import Tp.
 import Raw.
 import Term.
-import Aux.
+import Util.
 import FogFun.
 import EnrFun.
 module StepReuse

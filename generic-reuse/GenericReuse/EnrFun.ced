@@ -1,7 +1,7 @@
 module EnrFun.
 import Unit.
 import Id.
-import Aux.
+import Util.
 
 pi2allPiP' ◂ ∀ Y : ★. ∀ Y' : Y ➔ ★. ∀ P : Π y : Y. Y' y ➔ ★.
   ∀ I : ★. ∀ X : I ➔ ★. ∀ X' : Π i : I. X i ➔ ★.

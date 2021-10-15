@@ -11,7 +11,7 @@ import ListF.
 import List.
 import VecF.
 import Vec.
-import Aux.
+import Util.
 
 vf2lf ◂ ∀ A : ★. ∀ X : Nat ➔ ★. ∀ Y :  ★. 
   Π c : ∀ n : Nat. Id · (X n) · Y.
