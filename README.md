@@ -28,10 +28,12 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 
 ## [Quotients by Idempotent Functions in Cedille](idem-quotients)
 * Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
-* Venue: [TFP'19](https://www.tfp2019.org/)
+* Venue: [TFP'19](https://dblp.org/db/conf/sfp/tfp2019.html)
 
 ## [Efficient Lambda Encodings for Mendler-style Coinductive Types in Cedille](efficient-mendler-codata)
- * Author: Christopher Jenkins, Aaron Stump, Larry Diehl
+* Author: Christopher Jenkins, Aaron Stump, Larry Diehl
 
 ## [Zero-Cost Constructor Subtyping](constructor-subtyping)
 * Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
+* Venue: [IFL'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
+* Paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
