@@ -1,0 +1,39 @@
+module lepigre-raffalli/examples/itree .
+
+import signatures/itree .
+import scott/generic/encoding as S ·ITreeF -monoITreeF .
+import lepigre-raffalli/generic/encoding ·ITreeF -monoITreeF .
+import scott/concrete/nat .
+
+import utils .
+
+ITree ◂ ★ = S.D .
+
+leaf ◂ ITree
+= S.inD (in1 unit) .
+
+node ◂ (Nat ➔ ITree) ➔ ITree
+= λ f. S.inD (in2 f) .
+
+indITree ◂ ∀ P: ITree ➔ ★. P leaf ➔ (Π f: Nat ➔ ITree. (Π n: Nat. P (f n)) ➔ P (node f)) ➔ Π x: ITree. P x
+= Λ P. λ l. λ n. λ x.
+  [a ◂ PrfAlgLR ·P
+   = Λ Y. λ xs. λ y.
+     indSum xs ·(λ x: ITreeF ·(ι x1: ITree. DRec ·P x1 ·Y). P (inDRec x))
+       (λ u. ρ (etaUnit u) - l)
+       (λ f. n (λ n. (f n).1) (λ n. (f n).2 y y))]
+- indLRD ·P a x a
+.
+
+recITree ◂ ∀ X: ★. X ➔ ((Nat ➔ ITree) ➔ (Nat ➔ X) ➔ X) ➔ ITree ➔ X
+= Λ X. indITree ·(λ x: ITree. X) .
+
+recITreeBeta1
+◂ ∀ X: ★. ∀ l: X. ∀ n: (Nat ➔ ITree) ➔ (Nat ➔ X) ➔ X.
+  { recITree l n leaf ≃ l }
+= Λ X. Λ l. Λ n. β .
+
+recITreeBeta2
+◂ ∀ X: ★. ∀ l: X. ∀ n: (Nat ➔ ITree) ➔ (Nat ➔ X) ➔ X. ∀ f: Nat ➔ ITree.
+  { recITree l n (node f) ≃ n f (λ m. recITree l n (f m)) }
+= Λ X. Λ l. Λ n. Λ f. β .

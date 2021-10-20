@@ -5,9 +5,7 @@ import data-char/iter-typing .
 import data-char/case-typing .
 
 module data-char/primrec
-  (F: ★ ➔ ★) (fmap: Fmap ·F)
-  {fmapId: FmapId ·F fmap} {fmapCompose: FmapCompose ·F fmap}
-  (D: ★) (inD: Alg ·F ·D).
+  (F: ★ ➔ ★) (fmap: Fmap ·F) (D: ★) (inD: Alg ·F ·D).
 
 import data-char/primrec-typing ·F .
 

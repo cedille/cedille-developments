@@ -18,4 +18,4 @@ selfView ◂ ∀ T: ★. Π t: T. View ·T β{| t |}
 
 extView ◂ ∀ S: ★. ∀ T: ★. Π t: Top. (Π x: S. View ·T β{|t x|}) ➾ View ·(S ➔ T) t
 = Λ S. Λ T. λ t. Λ v.
-  intrView ·(S ➔ T) β{| t |} -(λ x. elimView β{| t x |} -(v x)) -β .
+  intrView ·(S ➔ T) t -(λ x. elimView β{| t x |} -(v x)) -β .

@@ -11,6 +11,8 @@ module parigot/generic/encoding
 
 import functorThms ·F fmap -fmapId -fmapCompose .
 
+import data-char/primrec-typing ·F .
+
 recU ◂ Top
 = β{| λ a. λ x. x a |} .
 
@@ -33,7 +35,6 @@ inC ◂ Π xs: F ·(ι x: Top. DC x). DC β{| inU xs |}
 
 _ ◂ { inC ≃ inU } = β .
 
-import data-char/primrec-typing ·F .
 
 DF' ◂ ★ ➔ ★ = λ D: ★. ∀ X: ★. AlgRec ·D ·X ➔ X .
 DF  ◂ ★ ➔ ★ = λ D: ★. ι x: DF' ·D. DC β{| x |} .
