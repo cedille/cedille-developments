@@ -17,7 +17,7 @@ module SubReuse
 .
 import Sigma.
 import Product.
-import Aux.
+import Util.
 import FogFun.
 import EnrFun.
 

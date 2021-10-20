@@ -3,7 +3,7 @@ import Sigma.
 import Id.
 import FixIndM.
 import IFixIndM.
-import Aux.
+import Util.
 import FogFix.
 import EnrFix.
 import NatF.
