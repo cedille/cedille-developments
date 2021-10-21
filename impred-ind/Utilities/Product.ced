@@ -1,4 +1,6 @@
 
+module Product.
+
 cProduct ◂ ★ ➔ ★ ➔ ★ 
  = λ A : ★. λ B : ★. ∀ X : ★. (A ➔ B ➔ X) ➔ X.
 
@@ -13,7 +15,7 @@ param-Product ◂ Π A : ★. Π B : ★. cProduct · A · B ➔ ★
 Product ◂ ★ ➔ ★ ➔ ★ 
  = λ A : ★. λ B : ★. 
  ι x : cProduct · A · B. 
-  ι _ : x cpair ≃ x. param-Product · A · B x.
+  ι _ : {x cpair ≃ x}. param-Product · A · B x.
 
 pair ◂ ∀ A : ★. ∀ B : ★. A ➔ B ➔ Product · A · B
  = Λ A. Λ B. λ a. λ b. 

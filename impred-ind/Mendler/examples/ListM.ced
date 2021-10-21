@@ -1,17 +1,19 @@
-import Product.
-import Sum.
-import Unit.
+import ../../Utilities/Product.
+import ../../Utilities/Sum.
+import ../../Utilities/Unit.
 
-import FixIndM.
-import InductionM.
+import ../FixIndM.
+import ../InductionM.
 
 import ListF.
 
-% ListM datatype as a Mendler-style fixed point of signature functor ListF
+module ListM.
+
+-- ListM datatype as a Mendler-style fixed point of signature functor ListF
 ListM ◂ ★ ➔ ★ = λ A : ★. FixIndM · (ListF · A) (ListFmap · A).
 
 
-% generically derived induction principle for ListM 
+-- generically derived induction principle for ListM 
 inductionListGen ◂ ∀ A : ★. ∀ Q : ListM · A ➔ ★. 
  PrfAlgM · (ListF · A) (ListFmap · A) · (ListM · A) · Q 
   (inFixIndM · (ListF · A)  (ListFmap · A) (ListFlaw1 · A)) ➔
@@ -19,7 +21,7 @@ inductionListGen ◂ ∀ A : ★. ∀ Q : ListM · A ➔ ★.
  inductionM · (ListF · A) (ListFmap · A) (ListFlaw1 · A) (ListFeq · A).
 
 
-% ListM constructors
+-- ListM constructors
 nil ◂ ∀ A : ★. ListM · A 
  = Λ A. inFixIndM' · (ListF · A) (ListFmap · A) (ListFlaw1 · A) 
               (in1 · Unit · (Product · A · (ListM · A)) unit).
@@ -32,8 +34,8 @@ cons ◂ ∀ A : ★. A ➔ ListM · A ➔ ListM · A
                      (pair · A · (ListM · A) x xs)).
    
 
-% "flat" version of induction principle stated in terms of defined
-% constructors
+-- "flat" version of induction principle stated in terms of defined
+-- constructors
 inductionListM ◂ ∀ A : ★. ∀ Q : ListM · A ➔ ★.
  Q (nil · A) ➔
  (Π x : A. Π xs : ListM · A. Q xs ➔ Q (cons · A x xs)) ➔ 

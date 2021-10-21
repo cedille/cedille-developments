@@ -1,17 +1,20 @@
-import Functor.
-import Sigma.
-import Unary.
-import Top.
+import ../Utilities/Functor.
+import ../Utilities/Sigma.
+import ../Utilities/Unary.
+import ../Utilities/Top.
 
 import FixC.
 import FixIndC.
 import PropertiesC.
-import ConvM.
+import ../Mendler/ConvM.
+import ../Mendler/FixM.
+import ../Mendler/FixIndM.
 import ConvC.
 
+module IsoC.
 
-% defining the composition of conversions
-% Church (FixIndC) -> Mendler (FixIndM) -> Church (FixIndC)
+-- defining the composition of conversions
+-- Church (FixIndC) -> Mendler (FixIndM) -> Church (FixIndC)
 ch2ch ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π flaw2 : Flaw2 · F fmap. Π flaw1 : Flaw1 · F fmap. 
  FixIndC · F fmap ➔ FixIndC · F fmap 
@@ -19,19 +22,19 @@ ch2ch ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F.
  men2ch · F fmap flaw2 flaw1 (ch2men · F fmap flaw1 fix).
 
 
-% Second part of the proof that Mendler (FixIndM) is isomorphic to
-% Church (FixIndC).  Namely, that conversion Mendler -> Church ->
-% Mendler is identity.
+-- Second part of the proof that Mendler (FixIndM) is isomorphic to
+-- Church (FixIndC).  Namely, that conversion Mendler -> Church ->
+-- Mendler is identity.
 isoC ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π flaw2 : Flaw2 · F fmap. 
  Π flaw1 : Flaw1 · F fmap. 
  Π fmapEq : Feq · F fmap.
  Π fix : (FixIndC · F fmap).  
- (ch2ch fmap flaw2 flaw1 fix) ≃ fix 
+ {(ch2ch fmap flaw2 flaw1 fix) ≃ fix} 
  = Λ F. λ fmap. λ flaw2. λ flaw1. λ eq. λ fix. 
  ρ (universalC · F fmap flaw1 flaw2 eq fix ·  (FixIndC · F fmap) 
-     (ch2ch · F fmap flaw2 flaw1) (inFixIndC · F fmap flaw2 flaw1) (λ e. ε     
- ρ (flaw2 · (Unary · (FixIndC · F fmap)) 
+     (ch2ch · F fmap flaw2 flaw1) (inFixIndC · F fmap flaw2 flaw1) (λ e.      
+ ρ+ (flaw2 · (Unary · (FixIndC · F fmap)) 
    -β{(λ z. unary (foldC' (λ fun. (inFixIndM fmap flaw2 (λ x. x) 
        (fmap uproj fun))) (uproj z)))} 
    -β{(λ x.  unary (uproj x))} ((fmap · (FixIndC · F fmap) · 
@@ -84,7 +87,7 @@ isoC ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F.
      ((λ z. ((λ x. x) ((λ z. (uproj ((λ z. ((λ z. (unary (foldC' (λ fun. 
      (inFixIndM fmap flaw2 (λ x. x) (fmap uproj fun))) (uproj z)))) ((λ x. 
       (unary (uproj x))) z))) z))) z))) z))) z))) z)))} -β{unary} e) -
- ρ (flaw2 · (FixIndC · F fmap) -β{unary} -β{(ch2ch fmap flaw2 flaw1)} e) -
+ ρ+ (flaw2 · (FixIndC · F fmap) -β{unary} -β{(ch2ch fmap flaw2 flaw1)} e) -
  ρ (flaw2 · (FixIndC · F fmap) -β{(λ x.  unary (uproj x))} 
    -β{(λ z. (unary (ch2ch fmap flaw2 flaw2 z)))} e) - β)) -
  (reflectionC · F fmap flaw1 flaw2 eq fix).

@@ -1,33 +1,34 @@
-import Functor. 
-import Sigma.
-import Product.
-import Top.
-import Utils.
+import ../Utilities/Functor. 
+import ../Utilities/Sigma.
+import ../Utilities/Product.
+import ../Utilities/Top.
+import ../Utilities/Utils.
 
 import FixM.
 import FixIndM.
 import WithFixIndM.
-import PredicateLifting.
+import ../Utilities/PredicateLifting.
 import PrfAlgEqM.
 
+module InductionM.
 
-% conversion of proof algebra PrfAlgM' FixIndM Q inFixIndM
-% to PrfAlgM' FixM Y inM by exploiting the logical equivalence
-% of Q and Y
+-- conversion of proof algebra PrfAlgM' FixIndM Q inFixIndM
+-- to PrfAlgM' FixM Y inM by exploiting the logical equivalence
+-- of Q and Y
 convIH ◂  ∀ F : ★ ➔ ★. Π fmap : Functor · F. Π Flaw1 : Flaw1 · F fmap.
  ∀ Q : FixIndM · F fmap ➔ ★. 
  ∀ Y : FixM · F ➔ ★.     
  Π Yprop1 : ∀ e : FixIndM · F fmap. Y e.1 ➔ Q e.
  Π Yprop2 : Π e : FixIndM · F fmap. Q e ➔ Y e.1.
  Π Yprop3 : ∀ e : FixM · F. Y e ➔ FixIndM · F fmap.
- Π Yprop4 : ∀ e : FixM · F. ∀ p : Y e. Yprop3 p ≃ e.
+ Π Yprop4 : ∀ e : FixM · F. ∀ p : Y e. {Yprop3 p ≃ e}.
  PrfAlgM' · F fmap · (FixIndM · F fmap) · Q (inFixIndM · F fmap Flaw1) ➔
  PrfAlgM' · F fmap · (FixM · F) · Y (inM · F fmap)
  = Λ F. λ fmap. λ flaw1. Λ Q. Λ Y. λ qp3. λ qp4. λ qp1. λ qp2. λ q. 
  Λ R. Λ cst. Λ ce. λ ih. λ gr.  
- let inin ◂ inFixIndM fmap flaw1 cst gr ≃ inM fmap cst gr = 
-  ε (ρ (flaw1 · (FixM · F) -β{λ x. x} (fmap · R · (FixM · F) cst gr) -(λ _. β)) - 
-     ρ (flaw1 · (FixM · F) -β{λ x. x} (fmap · R · (FixM · F) cst gr) -(λ _. β)) - β) in
+ [inin : {inFixIndM fmap flaw1 cst gr ≃ inM fmap cst gr} = 
+   ρ+ (flaw1 · (FixM · F) -β{λ x. x} (fmap · R · (FixM · F) cst gr) -(λ _. β)) - 
+   ρ (flaw1 · (FixM · F) -β{λ x. x} (fmap · R · (FixM · F) cst gr) -(λ _. β)) - β] -
  ρ ς inin - 
  ρ+ (flaw1 · R -β{cst}   gr -(λ z. ρ (ce -z) - β)) -
  ρ ς (flaw1 · R  -β{(λ r. qp1 -(cst r) (ih r))} gr 
@@ -40,9 +41,9 @@ convIH ◂  ∀ F : ★ ➔ ★. Π fmap : Functor · F. Π Flaw1 : Flaw1 · F f
    gr)).
 
 
-% Predicate Q on FixIndM is  converted to the predicate on FixM (WithFixIndM F fmap Q). 
-% Since (WithFixIndM F fmap Q) satisfies the properties required by convIH above then
-% the induction rule is derived by using inductivity of FixIndM:
+-- Predicate Q on FixIndM is  converted to the predicate on FixM (WithFixIndM F fmap Q). 
+-- Since (WithFixIndM F fmap Q) satisfies the properties required by convIH above then
+-- the induction rule is derived by using inductivity of FixIndM:
 inductionM' ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π flaw1 : Flaw1 · F fmap.
  ∀ Q : FixIndM · F fmap ➔ ★. 
@@ -57,8 +58,8 @@ inductionM' ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F.
     (WithFixIndMProp4 · F fmap · Q) q)).
 
 
-% final version of induction rule based on "strong" Mendler-style
-% proof algebras (with explicit cast).
+-- final version of induction rule based on "strong" Mendler-style
+-- proof algebras (with explicit cast).
 inductionM ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π flaw1 : Flaw1 · F fmap.   Π eq : Feq · F fmap.
  ∀ Q : FixIndM · F fmap ➔ ★. 
@@ -75,7 +76,7 @@ inductionM ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F.
      (inNatural · F fmap law1) · Q pra)) e).
 
 
-% The induction rule adjusted for "elimination with the motive"
+-- The induction rule adjusted for "elimination with the motive"
 inductionThetaM ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π flaw1 : Flaw1 · F fmap.
  Π eq : Feq · F fmap.
@@ -83,4 +84,4 @@ inductionThetaM ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F.
  ∀ Q : FixIndM · F fmap ➔ ★. 
  PrfAlgM' · F fmap · (FixIndM · F fmap) · Q (inFixIndM · F fmap flaw1) ➔ Q e 
  = Λ F. λ fmap. λ flaw1. λ eq. λ e. Λ Q. λ q. 
- inductionM · F fmap flaw1 eq · Q q e.
+ inductionM' · F fmap flaw1 · Q q e.

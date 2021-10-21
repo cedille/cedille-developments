@@ -1,19 +1,20 @@
-import Functor.
+import ../Utilities/Functor.
 
-import FixM.
-import FixIndM.
+import ../Mendler/FixM.
+import ../Mendler/FixIndM.
 import FixC.
 import FixIndC.
 
+module ConvC.
 
-% AlgC to AlgM
+-- AlgC to AlgM
 ca2ma ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. ∀ X : ★.
  AlgC · F · X ➔ AlgM · F · X 
  = Λ F. λ fmap. Λ X. λ alg. Λ R . λ f. λ fr. 
  alg (fmap · R · X f fr).
 
 
-% FixIndC to FixIndM
+-- FixIndC to FixIndM
 ch2men ◂ ∀ F : ★ ➔ ★ . Π fmap : Fmap · F. Π flaw1 : Flaw1 · F fmap.
  (FixIndC · F fmap) ➔ (FixIndM · F fmap) 
  = Λ F. λ fmap. λ flaw1.

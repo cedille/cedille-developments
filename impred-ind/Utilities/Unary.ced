@@ -1,5 +1,7 @@
 import Functor.
 
+module Unary.
+
 cUnary ◂ ★ ➔ ★ 
  = λ A : ★. ∀ X : ★. (A ➔ X) ➔ X.
 
@@ -14,7 +16,7 @@ param-Unary ◂ Π A : ★. cUnary · A ➔ ★
 Unary ◂ ★ ➔ ★ 
  = λ A : ★. 
  ι x : cUnary · A. 
-   ι _ : x cunary ≃ x. param-Unary · A x.
+   ι _ : {x cunary ≃ x}. param-Unary · A x.
 
 unary ◂ ∀ A : ★. A ➔ Unary · A
  = Λ A. λ a. 
@@ -43,7 +45,7 @@ ufmap ◂ ∀ F : ★ ➔ ★. Fmap · F ➔ Fmap · (UnF · F)
   (λ ux. unary · Y (f (uproj · X ux))) fx.
 
 qqq' ◂ ∀ X : ★. ∀ F : ★ ➔ ★. Π fmap : Functor · F. Flaw1 · F fmap ➔ 
- Π v : F · (Unary · X). (ufmap · F fmap (λ x. x) v) ≃ v 
- = Λ X. Λ F. λ fmap. λ law1.   λ v.  ε ρ (law1 · (Unary · X)  
+ Π v : F · (Unary · X). {(ufmap · F fmap (λ x. x) v) ≃ v}
+ = Λ X. Λ F. λ fmap. λ law1.   λ v. ρ (law1 · (Unary · X)  
  -β{(λ ux. (unary ((λ x. x) (uproj ux))))} v 
  -(λ z. θ<z> (ind-Unary · X z) (λ a. β) )) - β.

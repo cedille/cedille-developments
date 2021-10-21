@@ -1,9 +1,10 @@
-import Functor.
-import Sum.
-import Unit.
+import ../../Utilities/Functor.
+import ../../Utilities/Sum.
+import ../../Utilities/Unit.
 
+module NatF.
 
-%%% Signature functor for natural numbers + laws
+-- Signature functor for natural numbers + laws
 NatF ◂ ★ ➔ ★ = λ X : ★. Sum · Unit · X.
 
 NatFmap ◂ Fmap · NatF =

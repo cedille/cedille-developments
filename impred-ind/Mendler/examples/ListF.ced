@@ -1,10 +1,11 @@
-import Product.
-import Sum.
-import Unit.
-import Functor.
+import ../../Utilities/Product.
+import ../../Utilities/Sum.
+import ../../Utilities/Unit.
+import ../../Utilities/Functor.
 
+module ListF.
 
-% signature functor for polymorphic lists + laws
+-- signature functor for polymorphic lists + laws
 ListF ◂ ★ ➔ ★ ➔ ★ = λ A : ★. λ X : ★. Sum · Unit · (Product · A · X).
 
 ListFmap ◂ ∀ A : ★. ∀ X : ★. ∀ Y : ★. (X ➔ Y) ➔ ListF · A · X ➔ ListF · A · Y 
