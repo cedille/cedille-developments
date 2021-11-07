@@ -1,0 +1,116 @@
+module hhc.
+
+import core/cast.
+import cast2.
+import data/nat.
+import RecType2 .
+import core/top.
+import core/view.
+
+Trmga ◂ (★ ➔ ★) ➔ ★ ➔ ★ = λ Alg : ★ ➔ ★ . λ X : ★ . Alg · X ➔ X .
+
+AlgF ◂ (★ ➔ ★) ➔ ★ ➔ ★ =
+  λ Alg : ★ ➔ ★ . λ X : ★ .
+    ∀ Alga : ★ ➔ ★ .
+    [Trma ◂ ★ ➔ ★ = Trmga · Alga] -
+    Π f : ∀ Y : ★ . (X ➔ Y) ➔ Y ➔ Trma · Y .
+    (Cast2 · Alg · Alga) ➾ 
+    Alga · X ➔
+    X .
+
+AlgFunctor ◂ RecFunctor2 · AlgF =
+  Λ X . Λ Y . λ c . Λ Z . [ λ alg . Λ Alga . λ f . Λ embed . λ alg' . (alg · Alga) f - (castCompose2 · X · Y · Alga c embed) alg' , β ].
+
+Alg ◂ ★ ➔ ★ = Rec2 · AlgF .
+
+unfoldAlg ◂ ∀ X : ★ . Alg · X ➔ AlgF · Alg · X = cast2 · Alg · (AlgF · Alg) -(recUnfold2 · AlgF -AlgFunctor) .
+foldAlg ◂ ∀ X : ★ . AlgF · Alg · X ➔ Alg · X = cast2 · (AlgF · Alg) · Alg -(recFold2 · AlgF -AlgFunctor) . 
+
+Trma ◂ ★ ➔ ★ = Trmga · Alg.
+
+Trm ◂ ★ = ∀ X : ★ . Trmga · Alg · X .
+    
+fold ◂ ∀ X : ★ . Alg · X ➔ Trm ➔ X =
+  Λ X . λ alg . λ t . t alg.
+
+lamAlg ◂ Alg · Trm =
+  foldAlg
+  (Λ Alga .
+   λ f .
+    Λ embed .
+    λ talg .
+      Λ X . λ alg . (unfoldAlg alg · Alga) (Λ Y . λ mx . f · Y (λ t . mx (t alg))) -embed (cast2 -embed alg) ).
+
+lam ◂ ∀ X : ★ . (∀ Y : ★ . (X ➔ Y) ➔ Y ➔ Trma · Y) ➔ Trma · X =
+  Λ X . λ f . 
+    λ alg . (unfoldAlg alg · Alg) f -(castId2 · Alg) alg.
+
+lam2 ◂ (∀ Y : ★ . (Trm ➔ Y) ➔ Y ➔ Trma · Y) ➔ Trm =
+  λ f . 
+    Λ X . λ alg . (unfoldAlg alg · Alg) (Λ Y . λ e . λ y . f · Y (λ t . e (t alg)) y) -(castId2 · Alg) alg.
+
+IsHom : Π X1 : ★ . (Alg · X1) ➔
+        Π X2 : ★ . (Alg · X2) ➔ 
+        Π h : X1 ➔ X2 . ★ =
+  λ X1 : ★ . λ alg1 : Alg · X1 .
+  λ X2 : ★ . λ alg2 : Alg · X2 .
+  λ h : X1 ➔ X2 .                  
+    ∀ Alga : ★ ➔ ★ .
+    ∀ f : ∀ Y : ★ . (X1 ➔ Y) ➔ Y ➔ Trmga · Alga · Y .
+    ∀ c : Cast2 · Alg · Alga .
+--    ∀ alga : {-View · (Alga · X1) β{alg1} -} Alga · X1.
+    { h (alg1 f alg1) ≃ alg2 (λ mx . f (λ a . mx (h a))) alg2 }.
+                 
+IdHom : ∀ X : ★ . ∀ alg : Alg · X .
+        IsHom · X alg · X alg (λ x . x) =
+   Λ X . Λ alg . Λ Alga . Λ f . Λ c . β.
+
+ComposeHom : ∀ X1 : ★ . ∀ alg1 : Alg · X1 .
+             ∀ X2 : ★ . ∀ alg2 : Alg · X2 .
+             ∀ X3 : ★ . ∀ alg3 : Alg · X3 .
+             ∀ h1 : X1 ➔ X2 .
+             ∀ h2 : X2 ➔ X3 .
+             IsHom · X1 alg1 · X2 alg2 h1 ➔
+             IsHom · X2 alg2 · X3 alg3 h2 ➔              
+             IsHom · X1 alg1 · X3 alg3 (λ x . h2 (h1 x)) =
+   Λ X1 . Λ alg1 .
+   Λ X2 . Λ alg2 .
+   Λ X3 . Λ alg3 .      
+   Λ h1 . Λ h2 . λ H1 . λ H2 .
+   Λ Alga . Λ f . Λ c . 
+     ρ+ (H1 · Alga -f -c {-,β{alg1}]-}) -
+     ρ (H2 · Alga -(Λ Y . λ mx . f (λ a . mx (h1 a))) -c {-,β{alg2}]-}) - β.
+
+foldHom : ∀ X : ★ . ∀ alg : Alg · X .
+          IsHom · Trm lamAlg · X alg (fold alg) =
+   Λ X . Λ alg . Λ Alga . Λ f . Λ c . β .
+
+place ◂ ∀ X : ★ . X ➔ Trma · X = Λ X . λ x . λ alg . x.
+
+test ◂ Trm = 
+   Λ O . lam (Λ X . λ mo . λ x .
+           lam (Λ Y . λ mx . λ y . place (mx x))) .
+
+test1 ◂ Trm = 
+   Λ O . lam (Λ X . λ mo . λ x .
+           lam (Λ Y . λ mx . λ y . place y)) .
+
+size ◂ Trm ➔ Nat =
+  λ t . t (foldAlg (Λ Alga . λ f . Λ embed . λ alg .
+                              succ (f (λ x . x) (succ zero) alg))) .
+
+data dbTrm : ★ =
+  Var : Nat ➔ dbTrm
+| Lam : dbTrm ➔ dbTrm .
+
+toDebruijn ◂ Trm ➔ Nat ➔ dbTrm =
+  λ t . t (foldAlg (Λ Alga .  λ f . Λ _ . λ alg . λ v . [v' = succ v] -
+                              Lam (f · (Nat ➔ dbTrm) (λ x . x) (λ n . Var (minus n v')) alg v'))) .
+
+size-test = size test.
+
+toDebruijn-test = toDebruijn test zero .
+toDebruijn-test1 = toDebruijn test1 zero .
+
+subst ◂ (∀ Y : ★ . (Trm ➔ Y) ➔ Y ➔ Trma · Y) ➔ Trm ➔ Trm =
+  λ f . λ t . f · Trm (λ x . x) t lamAlg.

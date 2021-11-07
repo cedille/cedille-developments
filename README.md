@@ -37,3 +37,8 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
 * Venue: [IFL'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
 * Paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
+
+## [A Weakly Initial Algebra for Higher-Order Abstract Syntax in Cedilled ](lfmtp19)
+* Author: Aaron Stump
+* Venue: [LFMTP'19](http://eptcs.web.cse.unsw.edu.au/content.cgi?LFMTP2019)
+* Paper: http://eptcs.web.cse.unsw.edu.au/paper.cgi?LFMTP2019.6
