@@ -1,6 +1,6 @@
 module RecType2(F : (★ ➔ ★) ➔ ★ ➔ ★).
 
-import core/top.
+import top.
 import cast2.
 
 RecFunctor2 ◂ ★ =

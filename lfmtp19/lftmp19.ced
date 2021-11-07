@@ -1,11 +1,11 @@
-module hhc.
+module lfmtp19.
 
-import core/cast.
+import cast.
 import cast2.
-import data/nat.
+import nat.
 import RecType2 .
-import core/top.
-import core/view.
+import top.
+import view.
 
 Trmga ◂ (★ ➔ ★) ➔ ★ ➔ ★ = λ Alg : ★ ➔ ★ . λ X : ★ . Alg · X ➔ X .
 
