@@ -112,5 +112,7 @@ size-test = size test.
 toDebruijn-test = toDebruijn test zero .
 toDebruijn-test1 = toDebruijn test1 zero .
 
+squash : Trma · Trm ➔ Trm = λ t . t lamAlg.
+
 subst ◂ (∀ Y : ★ . (Trm ➔ Y) ➔ Y ➔ Trma · Y) ➔ Trm ➔ Trm =
-  λ f . λ t . f · Trm (λ x . x) t lamAlg.
+  λ f . λ t . squash (f · Trm (λ x . x) t).
