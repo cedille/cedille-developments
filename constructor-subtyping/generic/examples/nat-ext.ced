@@ -18,8 +18,8 @@ zeroE : D.Ind
 succE : D.Ind ➔ D.Ind
 = λ n. D.in (natsig2f (succS n)) .
 
-addE : Nat.Alg ·(D.Ind ➔ D.Ind)
+addAlg : Nat.Alg ·(D.Ind ➔ D.Ind)
 = Λ R. λ add. λ m. λ n.
   caseNatSig m ·D.Ind n
-    (λ m'. [sum = add m' n] - succE sum)
+    (λ m'. succE (add m' n))
 .

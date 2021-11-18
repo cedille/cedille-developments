@@ -7,3 +7,11 @@ SigSub : (★ ➔ ★) ➔ (★ ➔ ★) ➔ ★
 
 sigsubRefl : ∀ F: ★ ➔ ★. Monotonic ·F ➾ SigSub ·F ·F
 = Λ F. Λ mono. Λ X. Λ Y. Λ c. intrCast (elimCast -(mono c)) (λ _. β) .
+
+sigsubTrans
+: ∀ F: ★ ➔ ★. ∀ G: ★ ➔ ★. ∀ H: ★ ➔ ★.
+  SigSub ·F ·G ➾ SigSub ·G ·H ➾ SigSub ·F ·H
+= Λ F. Λ G. Λ H. Λ s1. Λ s2. Λ X. Λ Y. Λ c.
+  intrCast
+    (λ x. elimCast -(s2 -c) (elimCast -(s1 -(castRefl ·X)) x))
+    (λ x. β) .
