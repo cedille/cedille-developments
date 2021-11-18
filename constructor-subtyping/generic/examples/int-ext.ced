@@ -1,0 +1,30 @@
+import ../../lib/lib .
+import ../reuse .
+
+import int-sig .
+import int-reuse-nat .
+import nat-sig .
+
+module generic/examples/int-ext (F: ★ ➔ ★) {mono: Monotonic ·F} {sub: SigSub ·IntSig ·F} .
+
+subNat : SigSub ·NatSig ·F
+= sigsubTrans -snat2sint -sub .
+
+int2sigf : ∀ X: ★. IntSig ·X ➔ F ·X
+= Λ X. cast -(sub -(castRefl ·X)) .
+
+import ../encoding as D ·F -mono .
+import ../encoding as Nat ·NatSig -monoNatSig .
+import ../encoding as Int ·IntSig -monoIntSig .
+
+import nat-ext ·F -mono -subNat .
+
+izeroE : D.Ind = zeroE .
+isuccE : D.Ind ➔ D.Ind = succE .
+ipredE : D.Ind ➔ D.Ind
+= λ n. D.in (int2sigf (ipredS n)) .
+
+iaddAlg : Int.Alg ·(D.Ind ➔ D.Ind)
+= nat2intalg addAlg
+    (Λ R. λ iadd. λ m. λ n.
+     ipredE (iadd (m.2.2.1 -β) n)) .
