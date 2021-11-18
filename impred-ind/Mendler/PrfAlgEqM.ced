@@ -1,15 +1,16 @@
-import Functor. 
-import Sigma.
-import Product.
-import Top.
+import ../Utilities/Functor. 
+import ../Utilities/Sigma.
+import ../Utilities/Product.
+import ../Utilities/Top.
 
 import FixM.
 import FixIndM.
-import PredicateLifting.
+import ../Utilities/PredicateLifting.
 
+module PrfAlgEqM.
 
-% "strong" proof algebras PrfAlgM for predicate (WWId X Q) are
-% logically equivalent to "weak" proof algebras PrfAlgM'
+-- "strong" proof algebras PrfAlgM for predicate (WWId X Q) are
+-- logically equivalent to "weak" proof algebras PrfAlgM'
 str2alg' ◂ ∀ X : ★.  ∀ F : ★ ➔ ★. Π fmap : Fmap · F. 
  Π Flaw1 : Flaw1 · F fmap.
  Π fmapEq : Feq · F fmap.

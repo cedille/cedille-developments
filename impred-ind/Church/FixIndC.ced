@@ -1,16 +1,18 @@
-import Functor.
-import Sigma.
-import SigmaImplicit.
-import Unary.
-import PredicateLifting.
+import ../Utilities/Functor.
+import ../Utilities/Sigma.
+import ../Utilities/SigmaImplicit.
+import ../Utilities/Unary.
+import ../Utilities/PredicateLifting.
 
 import FixC.
 
+module FixIndC.
 
-% Church-style proof algebra with inductive hypothesis being simply
-% F (Sigma X Q). Unfortunately, this representation of inductive
-% hypothesis does not align with representation of results of
-% recursive calls of AlgC.
+{- Church-style proof algebra with inductive hypothesis being simply
+   F (Sigma X Q). Unfortunately, this representation of inductive
+   hypothesis does not align with representation of results of
+   recursive calls of AlgC.
+-}
 PrfAlgC ◂ Π F : ★ ➔ ★.  Fmap · F ➔ Π X : ★. 
  (X ➔ ★) ➔ AlgC · F · X ➔ ★
  = λ F : ★ ➔ ★. λ fmap : Fmap · F. λ X : ★. 
@@ -19,8 +21,8 @@ PrfAlgC ◂ Π F : ★ ➔ ★.  Fmap · F ➔ Π X : ★.
    Q (alg (fmap · (Sigma · X · Q) · X (proj1 · X · Q) gr)).
 
 
-% Proof algebra specifically tuned for alignment with
-% AlgC'.
+-- Proof algebra specifically tuned for alignment with
+-- AlgC'.
 PrfAlgC' ◂ Π F : ★ ➔ ★.  Fmap · F ➔ Π X : ★. 
  (X ➔ ★) ➔ AlgC' · F · X ➔ ★
  = λ F : ★ ➔ ★. λ fmap : Fmap · F. λ X : ★. 
@@ -30,16 +32,16 @@ PrfAlgC' ◂ Π F : ★ ➔ ★.  Fmap · F ➔ Π X : ★.
       (alg (wsMap · F fmap · X · Q gr)).
 
 
-% Inductivity predicate. Note that the conclusion is also for "lifted"
-% predicates only.
+-- Inductivity predicate. Note that the conclusion is also for "lifted"
+-- predicates only.
 IsIndFixC ◂ Π F : ★ ➔ ★. Functor · F ➔ FixC · F ➔ ★ 
  = λ F : ★ ➔ ★. λ fmap : Functor · F. λ e : FixC · F. 
  ∀ Q : (FixC · F) ➔ ★. 
   PrfAlgC' · F fmap · (FixC · F) · Q (inC' · F fmap) ➔ (WWId · (FixC · F) · Q) e.
 
 
-% FixIndC is an inductive subset of FixM defined as an intersection type
-% One can think of FixIndC as {x : FixC | IsIndFixC x}
+-- FixIndC is an inductive subset of FixM defined as an intersection type
+-- One can think of FixIndC as {x : FixC | IsIndFixC x}
 FixIndC ◂ Π F : ★ ➔ ★. Functor · F ➔ ★
  = λ F : ★ ➔ ★. λ fmap : Fmap · F.
  ι x : FixC · F. IsIndFixC · F fmap x.  
@@ -51,20 +53,20 @@ foldIndC ◂ ∀ F : ★ ➔ ★. Π fmap : Fmap · F. ∀ X : ★.
  foldC · F fmap · X alg fix.1.
 
 
-% first component of intersection in the definition of inFixIndC
+-- first component of intersection in the definition of inFixIndC
 tc1' ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F. 
  F · (Unary · (FixIndC · F fmap)) ➔ FixC · F
  = Λ F. λ fmap. λ v. inC' · F fmap 
  (ufmap · F fmap · (FixIndC · F fmap) · (FixC · F) (λ x. x.1) v).  
 
 
-% equality needed for proving that "tc1' v" is inductive
+-- equality needed for proving that "tc1' v" is inductive
 tc2h ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F. 
  Flaw2 · F fmap ➔ Flaw1 · F fmap ➔ 
  ∀ Q : (FixC · F) ➔ ★. 
  Π prfalg : PrfAlgC' · F fmap · (FixC · F) · Q (inC' · F fmap). 
  Π v : F · (Unary · (FixIndC · F fmap)). 
- (ufmap fmap (λ x. x) v) ≃ (wsMap fmap (fmap (λ fx. (mksigmaer ((uproj fx) prfalg))) v))
+ {(ufmap fmap (λ x. x) v) ≃ (wsMap fmap (fmap (λ fx. (mksigmaer ((uproj fx) prfalg))) v))}
  = Λ F. λ fmap. λ law2. λ law1. Λ Q. λ prfalg. λ v. 
  ρ (qqq' · (FixIndC · F fmap) · F fmap law1 v) - 
  ρ (law2 · (Unary · (FixIndC · F fmap))  
@@ -79,7 +81,7 @@ tc2h ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  β.
 
 
-% second component of intersection in the definition of inFixIndC
+-- second component of intersection in the definition of inFixIndC
 tc2' ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F. 
  Flaw2 · F fmap ➔ Flaw1 · F fmap ➔ 
  Π v : F · (Unary · (FixIndC · F fmap)). 
@@ -93,20 +95,21 @@ tc2' ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
                ((uproj · (FixIndC · F fmap) fx).2 · Q prfalg))) v)).
 
 
-% Since every element (tc1' v) : FixC has the same erasure as the
-% proof of its inductivity (tc2' v) : IsIndFixC (tc1' v) then we can
-% implement the function for constructing elements of FixIndC:
+-- Since every element (tc1' v) : FixC has the same erasure as the
+-- proof of its inductivity (tc2' v) : IsIndFixC (tc1' v) then we can
+-- implement the function for constructing elements of FixIndC:
 inFixIndC' ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F. 
  Flaw2 · F fmap ➔ Flaw1 · F fmap ➔
  AlgC' · F · (FixIndC · F fmap) 
- = Λ F. λ fmap. λ law2. λ law1. λ v. 
- [ tc1' · F fmap v 
- , tc2' · F fmap law2 law1 v 
- { ε ρ (qqq' · (FixIndC · F fmap) · F fmap law1 v) - β } ].
+ = Λ F. λ fmap. λ law2. λ law1. λ v.
+  [a = tc1' ·F fmap v]
+  - [b = tc2' ·F fmap law2 law1 v]
+  - [eq : {b ≃ λ alg. alg (ufmap fmap (foldC' alg) (ufmap fmap (λ x. x) v))} =
+    ρ (qqq' ·(FixIndC ·F fmap) · F fmap law1 v) - β]
+  - [a, φ eq - b {a}].
 
-
-% Since Unary X is isomorphic to X then we can convert inFixIndC
-% to standard Church-style algebra AlgC F (FixIndC · F fmap)
+-- Since Unary X is isomorphic to X then we can convert inFixIndC
+-- to standard Church-style algebra AlgC F (FixIndC · F fmap)
 inFixIndC ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Flaw2 · F fmap ➔ Flaw1 · F fmap ➔
  AlgC · F · (FixIndC · F fmap) 
@@ -115,7 +118,7 @@ inFixIndC ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
   (unary · (FixIndC · F fmap)) fx).
 
 
-% canonical definition of inverse of inFixIndC
+-- canonical definition of inverse of inFixIndC
 outAlgC ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Flaw2 · F fmap ➔ Flaw1 · F fmap ➔ 
  AlgC · F · (F · (FixIndC · F fmap))

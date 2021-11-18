@@ -1,5 +1,6 @@
 import Top.
 
+module SigmaImplicit.
 
 cSigmaEr ◂ Π A : ★. (A ➔ ★) ➔ ★
  = λ A : ★. λ B : A ➔ ★.
@@ -17,7 +18,7 @@ param-Sigmaer ◂ Π A : ★. Π P : A ➔ ★. cSigmaEr · A · P ➔ ★
 SigmaEr ◂ Π A : ★. (A ➔ ★) ➔ ★
  = λ A : ★. λ PA : A ➔ ★. 
  ι d : cSigmaEr · A · PA.
-  ι _ : d cmksigmaer ≃ d. param-Sigmaer · A · PA d.
+  ι _ : {d cmksigmaer ≃ d}. param-Sigmaer · A · PA d.
 
 mksigmaer ◂ ∀ X : ★. ∀ Y : X ➔ ★. 
  ∀ x : X. Y x ➔ SigmaEr · X · Y
@@ -35,24 +36,24 @@ ind-sigmaer ◂ ∀ A : ★. ∀ B : A ➔ ★. Π x : SigmaEr · A · B.
 sigmaer-comp ◂ ∀ X : ★. ∀ P : X ➔ ★. 
  Π s : SigmaEr · X · P. 
  ∀ f : Top. ∀ g : Top. 
- ((s (λ a'. (mksigmaer (f a')))) (λ a'. (mksigmaer (g a')))) ≃ 
-  (s (λ a'. (mksigmaer (g (f a')))))
+ {((s (λ a'. (mksigmaer (f a')))) (λ a'. (mksigmaer (g a')))) ≃ 
+  (s (λ a'. (mksigmaer (g (f a')))))}
  = Λ X. Λ P. λ s. Λ f. Λ g. 
  ρ ς (s.2.1) - 
  (s.2.2 · (SigmaEr · X · P) · (λ s : (SigmaEr · X · P).  
-    (((s (λ a'.(mksigmaer (f a')))) (λ a'. (mksigmaer (g a')))) ≃ 
-          (s (λ a'. (mksigmaer (g (f a')))))))
+    {((s (λ a'.(mksigmaer (f a')))) (λ a'. (mksigmaer (g a')))) ≃ 
+          (s (λ a'. (mksigmaer (g (f a')))))})
    -(mksigmaer · X · P) (Λ a. λ b. ε β)).
   
 FuncEq' ◂ Π X : ★. Π Y : X ➔ ★. Top ➔ Top ➔ ★ 
  =  λ X : ★. λ Y : X ➔ ★. λ f : Top. λ f' : Top. 
- ∀ x : X. Π y : Y x. f y ≃ f' y.
+ ∀ x : X. Π y : Y x. {f y ≃ f' y}.
 
 sigmaer-ext ◂ ∀ X : ★. ∀ P : X ➔ ★. 
  Π s : SigmaEr · X · P. Π f : Top. Π g : Top. 
- FuncEq' · X · P f g ➔  s f ≃ s g 
+ FuncEq' · X · P f g ➔ {s f ≃ s g} 
  = Λ X. Λ P. λ s. λ f. λ g. λ eq. 
  ρ ς (s.2.1) - (s.2.2 · (SigmaEr · X · P) · 
-  (λ s : (SigmaEr · X · P). s f ≃ s g) 
+  (λ s : (SigmaEr · X · P). {s f ≃ s g}) 
   -(mksigmaer · X · P) (Λ a. λ b. eq -a b)).
 

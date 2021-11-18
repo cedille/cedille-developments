@@ -1,24 +1,25 @@
-import Functor.
+import ../Utilities/Functor.
 
 import FixM.
 import FixIndM.
 import InductionM.
 
+module PropertiesM.
 
-% universal property of foldIndM
+-- universal property of foldIndM
 UniversalPropertyM ◂ Π F : (★ ➔ ★). Π fmap : Functor · F.
  Flaw1 · F fmap ➔
  (FixIndM · F fmap) ➔ ★ = λ F : ★ ➔ ★. λ fmap : Functor · F.
  λ flaw1 : Flaw1 · F fmap. λ fix : (FixIndM · F fmap).
- Π A : ★. 
+ ∀ A : ★. 
  Π h : (FixIndM · F fmap) ➔ A.
  Π f : AlgM · F · A. Natural · F fmap · A f ➔ 
  (Π e : F · (FixIndM · F fmap). 
-   h (inFixIndM' fmap flaw1 e) ≃ f h e) ➔ 
- h fix ≃ foldIndM · F fmap · A f fix.
+   {h (inFixIndM' fmap flaw1 e) ≃ f h e}) ➔ 
+ {h fix ≃ foldIndM · F fmap · A f fix}.
 
 
-% proof that foldIndM is universal
+-- proof that foldIndM is universal
 universalM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π flaw1 : Flaw1 · F fmap.
  Π flaw2 : Flaw2 · F fmap.
@@ -27,48 +28,49 @@ universalM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  UniversalPropertyM · F fmap flaw1 fix
  = Λ F. λ fmap. λ flaw1. λ flaw2. λ fmapEq. λ fix. 
  θ<fix> (inductionThetaM · F fmap flaw1 fmapEq fix)
- (Λ R. Λ cast. Λ castEq. λ q. λ gr. λ A. λ h. λ f. λ wf. λ z.
-  ε ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
-    ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
+ (Λ R. Λ cast. Λ castEq. λ q. λ gr. Λ A. λ h. λ f. λ wf. λ z.
     ρ (inNatural · F fmap flaw1 · R -cast -gr) -
     ρ (z (fmap · R · (FixIndM · F fmap) cast gr)) -
     ρ (wf · (FixIndM · F fmap) -h -(fmap · R · (FixIndM · F fmap) cast gr))  -
-    ρ (wf · (FixIndM · F fmap) -(foldIndM · F fmap · A f) -(fmap · R · (FixIndM · F fmap) cast gr))  -
+    ρ+ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
+    ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
+    ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
+    ρ+ (wf · (FixIndM · F fmap) -(foldIndM · F fmap · A f) -(fmap · R · (FixIndM · F fmap) cast gr))  -
     ρ (flaw2 · R -β{h} -β{cast} gr) -
     ρ (flaw2 · R -β{(foldIndM · F fmap · A f)} -β{cast} gr) -
-    ρ (fmapEq · R -β{(λ x'. (h (cast x')))} -β{(λ x'. (foldIndM fmap f (cast x')))}
+    ρ+ (fmapEq · R -β{(λ x'. (h (cast x')))} -β{(λ x'. (foldIndM fmap f (cast x')))}
         (λ r. q r · A h f wf z) gr) - β).
 
 
-% The reflection (rebuilding) property states that folding the value
-% with its constructors does not change it:
+-- The reflection (rebuilding) property states that folding the value
+-- with its constructors does not change it:
 reflectionM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π flaw1 : Flaw1 · F fmap.
  Π flaw2 : Flaw2 · F fmap.
  Π fmapEq : Feq · F fmap.
  Π fix : FixIndM · F fmap.
- foldIndM fmap (inFixIndM · F fmap flaw1) fix ≃ fix
+ {foldIndM fmap (inFixIndM · F fmap flaw1) fix ≃ fix}
  = Λ F. λ fmap. λ flaw1. λ flaw2. λ fmapEq. λ fix. 
  ρ ς ((universalM · F fmap flaw1 flaw2 fmapEq fix) ·
        (FixIndM · F fmap)
        (λ x. x)
        (inFixIndM · F fmap flaw1)
        (inNatural · F fmap flaw1)
-       (λ e. ε (ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) -
-                ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) - 
-                ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) - β))) -
-                β.
+       (λ e. ρ+ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) -
+             ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) - 
+             ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} e -(λ z. β)) - β)) -
+             β.
 
 
-% The cancellation property can be viewed as the reduction rule where
-% the fold is applied to a data constructor. The reduction recursively
-% replaces the constructors of FixIndM with given F-algebra.
+-- The cancellation property can be viewed as the reduction rule where
+-- the fold is applied to a data constructor. The reduction recursively
+-- replaces the constructors of FixIndM with given F-algebra.
 cancellationM  ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F. 
  Π flaw1 : Flaw1 · F fmap.
  Π gfix : F · (FixIndM · F fmap).
  ∀ A : ★. Π alg : AlgM · F · A. Natural · F fmap · A alg ➔
- foldIndM fmap alg (inFixIndM' fmap flaw1 gfix) ≃ 
-   alg (λ x. x) (fmap (foldIndM fmap alg) gfix) 
+ {foldIndM fmap alg (inFixIndM' fmap flaw1 gfix) ≃ 
+   alg (λ x. x) (fmap (foldIndM fmap alg) gfix)}
  = Λ F. λ fmap. λ flaw1. λ gfix. Λ A. λ alg. λ wfalg. 
  ρ+ (flaw1 · (FixIndM · F fmap)   -β{λ x. x} gfix -(λ z. β)) - 
  ρ  (flaw1 · ((FixIndM · F fmap)) -β{λ x. x} gfix -(λ z. β)) -
@@ -76,9 +78,9 @@ cancellationM  ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  (wfalg · (FixIndM · F fmap) -(foldIndM  · F  fmap · A alg) -gfix).
 
 
-% The fusion law describes the composition of fold with another
-% function. It gives conditions under which the intermediate values
-% produced by folding can be eliminated.
+-- The fusion law describes the composition of fold with another
+-- function. It gives conditions under which the intermediate values
+-- produced by folding can be eliminated.
 fusionM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π flaw1 : Flaw1 · F fmap.
  Π flaw2 : Flaw2 · F fmap.
@@ -88,8 +90,8 @@ fusionM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π f : C ➔ D. 
  Π alg1 : AlgM · F · C. Natural · F fmap · C alg1 ➔ 
  Π alg2 : AlgM · F · D. Natural · F fmap · D alg2 ➔ 
- (Π gc : F · C.  f (alg1 (λ x. x) gc) ≃ alg2 (λ x. x) (fmap f gc)) ➔ 
- f (foldIndM fmap alg1 fix) ≃ foldIndM fmap alg2 fix 
+ (Π gc : F · C.  {f (alg1 (λ x. x) gc) ≃ alg2 (λ x. x) (fmap f gc)}) ➔ 
+ {f (foldIndM fmap alg1 fix) ≃ foldIndM fmap alg2 fix}
  = Λ F. λ fmap. λ flaw1. λ flaw2. λ fmapEq. λ fix. θ<fix> (inductionThetaM · F fmap flaw1 fmapEq fix)
    (Λ R. Λ cast. Λ castEq. λ q. λ gr. Λ C. Λ D. λ f. λ alg1. λ wf1. λ alg2. λ wf2. λ ih.
    ρ+ (flaw1 ·  (FixIndM · F fmap) -β{(λ x. x)} (fmap · R · (FixIndM · F fmap) cast gr) -(λ z. β)) -
@@ -104,19 +106,19 @@ fusionM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
    ρ (ih (fmap  · R · C (λ x'. (foldIndM · F fmap · C alg1 (cast x'))) gr)) - β).
 
 
-% First part of Lambek's lemma: in o out = id
+-- First part of Lambek's lemma: in o out = id
 inoutM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π flaw1 : Flaw1 · F fmap.
  Π flaw2 : Flaw2 · F fmap.
  Π fmapEq : Feq · F fmap.
  Π fix : (FixIndM · F fmap).
- inFixIndM' · F fmap flaw1 (outFixIndM · F fmap flaw1 fix) ≃ fix
+ {inFixIndM' · F fmap flaw1 (outFixIndM · F fmap flaw1 fix) ≃ fix}
  = Λ F. λ fmap. λ flaw1. λ flaw2. λ fmapEq. λ fix.
  ρ (fusionM · F fmap flaw1 flaw2 fmapEq fix · (F · (FixIndM · F fmap)) 
      · (FixIndM · F fmap)  (inFixIndM' · F fmap flaw1) 
      (outAlgM · F fmap flaw1)   (outNatural · F fmap flaw1 flaw2) 
      (inFixIndM · F fmap flaw1) (inNatural · F fmap flaw1)
-     (λ gc. ε ρ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} 
+     (λ gc.   ρ+ (flaw1 · (FixIndM · F fmap) -β{(λ x. x)} 
                   (fmap · (F · (FixIndM · F fmap)) · (FixIndM · F fmap) 
                     (inFixIndM' · F fmap flaw1) gc) 
                   -(λ z. β)) -
@@ -128,13 +130,13 @@ inoutM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
               (reflectionM · F fmap flaw1 flaw2 fmapEq fix).
 
 
-% Second part of Lambek's lemma: out o in = id
+-- Second part of Lambek's lemma: out o in = id
 outinM ◂ ∀ F : ★ ➔ ★. Π fmap : Functor · F.
  Π flaw1 : Flaw1 · F fmap.
  Π flaw2 : Flaw2 · F fmap.
  Π fmapEq : Feq · F fmap.
  Π gfix : F · (FixIndM · F fmap).
- outFixIndM · F fmap flaw1 (inFixIndM' · F fmap flaw1 gfix) ≃ gfix
+ {outFixIndM · F fmap flaw1 (inFixIndM' · F fmap flaw1 gfix) ≃ gfix}
  = Λ F. λ fmap. λ flaw1. λ flaw2. λ fmapEq. λ gfix.
  ρ+ (cancellationM · F fmap flaw1 gfix · (F · (FixIndM · F fmap)) 
       (outAlgM · F fmap flaw1) (outNatural · F fmap flaw1 flaw2)) -

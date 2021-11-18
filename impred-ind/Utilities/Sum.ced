@@ -1,4 +1,6 @@
 
+module Sum.
+
 cSum ◂ ★ ➔ ★ ➔ ★ 
  = λ A : ★. λ B : ★. 
  ∀ X : ★. (A ➔ X) ➔ (B ➔ X) ➔ X.
@@ -16,7 +18,7 @@ param-Sum ◂ Π A : ★. Π B : ★. cSum · A · B ➔ ★
 
 Sum ◂ ★ ➔ ★ ➔ ★ 
  = λ A : ★. λ B : ★. 
- ι x : cSum · A · B. ι _ : x cin1 cin2 ≃ x. param-Sum · A · B x.
+ ι x : cSum · A · B. ι _ : {x cin1 cin2 ≃ x}. param-Sum · A · B x.
 
 in1 ◂ ∀ A : ★. ∀ B : ★. A ➔ Sum · A · B 
  = Λ A. Λ B. λ a. 

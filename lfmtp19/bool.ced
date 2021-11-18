@@ -1,0 +1,31 @@
+module bool.
+
+data Bool: ★ =
+  | tt: Bool
+  | ff: Bool.
+
+not : Bool ➔ Bool
+= λ b. σ b {tt ➔ ff | ff ➔ tt}.
+
+ite : ∀ X: ★. Bool ➔ X ➔ X ➔ X
+= Λ X. λ b. λ t. λ f. σ b {tt ➔ t | ff ➔ f}.
+
+if = ite.
+
+indBool : ∀ P: Bool ➔ ★. Π b: Bool. P tt ➔ P ff ➔ P b
+= Λ P. λ b. λ t. λ f. σ b {
+  | tt ➔ t
+  | ff ➔ f
+  }.
+
+and : Bool ➔ Bool ➔ Bool
+= λ a. λ b. ite a b ff.
+
+or : Bool ➔ Bool ➔ Bool
+= λ a. λ b. ite a tt b.
+
+implies : Bool ➔ Bool ➔ Bool
+= λ a . λ b . ite a b tt.
+
+xor : Bool ➔ Bool ➔ Bool 
+= λ a . λ b . ite a (not b) b.

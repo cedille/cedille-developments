@@ -1,4 +1,6 @@
 
+module Sigma.
+
 cSigma ◂ Π A : ★. (A ➔ ★) ➔ ★
  = λ A : ★. λ B : A ➔ ★.
  ∀ X : ★. (Π a : A. B a ➔ X) ➔ X.
@@ -15,7 +17,7 @@ param-Sigma ◂ Π A : ★. Π P : A ➔ ★. cSigma · A · P ➔ ★
 Sigma ◂ Π A : ★. (A ➔ ★) ➔ ★
  = λ A : ★. λ PA : A ➔ ★. 
  ι d : cSigma · A · PA.
-   ι _ : d mkcsigma ≃ d. param-Sigma · A · PA d.
+   ι _ : {d mkcsigma ≃ d}. param-Sigma · A · PA d.
 
 mkdsigma ◂ ∀ X : ★. ∀ Y : X ➔ ★. Π x : X. Y x ➔ Sigma · X · Y
  = Λ X. Λ Y. λ x. λ y. 
