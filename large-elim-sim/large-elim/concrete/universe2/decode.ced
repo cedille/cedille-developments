@@ -1,0 +1,236 @@
+module large-elim/concrete/universe/decode (C: ★) (I: C ➔ ★) (R: ★) .
+
+import lib .
+import descr ·C ·I.
+import decodeR ·C ·I ·R .
+
+-- Existence
+Decode : Descr ➔ ★
+= λ e: Descr. ∀ X: ★. DecodeR e ·X ➾ X .
+
+-- - id
+decIdR' : DecodeR idD ·R
+= decIdR -(refl ·R) .
+
+decIdEq : TpEq ·(Decode idD) ·R
+= intrTpEq
+   -(intrCast -(λ x. x -decIdR') -(λ _. β))
+   -(intrCast
+      -(λ x. Λ X. Λ dr. tpEq1 -(decodeRUnique -idD decIdR' dr) x)
+      -(λ _. β))
+.
+
+decId : DecodeR idD ·(Decode idD)
+= decodeRResp -idD decIdR' -(sym -decIdEq) .
+
+-- - const
+decConstR' : DecodeR constD ·Unit
+= decConstR -(refl ·Unit) .
+
+decConstEq : TpEq ·(Decode constD) ·Unit
+= intrTpEq
+   -(intrCast -(λ x. x -decConstR') -(λ _. β))
+   -(intrCast
+      -(λ x. Λ X. Λ dr. tpEq1 -(decodeRUnique -constD decConstR' dr) x)
+      -(λ _. β))
+.
+
+decConst : DecodeR constD ·(Decode constD)
+= decodeRResp -constD decConstR' -(sym -decConstEq) .
+
+-- - pair
+decPairR'
+: ∀ d1: Descr. DecodeR d1 ·(Decode d1) ➔
+  ∀ d2: Descr. DecodeR d2 ·(Decode d2) ➔
+  DecodeR (pairD d1 d2) ·(Pair ·(Decode d1) ·(Decode d2))
+= Λ d1. λ dr1. Λ d2. λ dr2.
+  decPairR -d1 dr1 -d2 dr2 -(refl ·(Pair ·(Decode d1) ·(Decode d2))) .
+
+decPairEq
+: ∀ d1: Descr. DecodeR d1 ·(Decode d1) ➔
+  ∀ d2: Descr. DecodeR d2 ·(Decode d2) ➔
+  TpEq ·(Decode (pairD d1 d2)) ·(Pair ·(Decode d1) ·(Decode d2))
+= Λ d1. λ dr1. Λ d2. λ dr2.
+  intrTpEq
+    -(intrCast
+       -(λ x. x -(decPairR' -d1 dr1 -d2 dr2))
+       -(λ _. β))
+    -(intrCast
+       -(λ x. Λ X. Λ dr. tpEq1 -(decodeRUnique -(pairD d1 d2) (decPairR' -d1 dr1 -d2 dr2) dr) x)
+       -(λ _. β))
+.
+
+decPair
+: ∀ d1: Descr. DecodeR d1 ·(Decode d1) ➔
+  ∀ d2: Descr. DecodeR d2 ·(Decode d2) ➔
+  DecodeR (pairD d1 d2) ·(Decode (pairD d1 d2))
+= Λ d1. λ dr1. Λ d2. λ dr2.
+  decodeRResp -(pairD d1 d2) (decPairR' -d1 dr1 -d2 dr2) -(sym -(decPairEq -d1 dr1 -d2 dr2)) .
+
+
+-- - sum
+decSumR'
+: ∀ c: C. ∀ f: I c ➔ Descr. (Π i: I c. DecodeR (f i) ·(Decode (f i))) ➔
+  DecodeR (sumD c f) ·(Sigma ·(I c) ·(λ i: I c. Decode (f i)))
+= Λ c. Λ f. λ fr.
+  decSumR -c -f ·(λ i: I c. Decode (f i)) fr
+   -(refl ·(Sigma ·(I c) ·(λ i: I c. Decode (f i)))) .
+
+decSumEq
+: ∀ c: C. ∀ f: I c ➔ Descr. (Π i: I c. DecodeR (f i) ·(Decode (f i))) ➔
+  TpEq ·(Decode (sumD c f)) ·(Sigma ·(I c) ·(λ i: I c. Decode (f i)))
+= Λ c. Λ f. λ fr.
+  intrTpEq
+   -(intrCast
+      -(λ x. x -(decSumR' -c -f fr))
+      -(λ _. β))
+   -(intrCast
+      -(λ x. Λ X. Λ dr.
+        tpEq1 -(decodeRUnique -(sumD c f) (decSumR' -c -f fr) dr) x)
+      -(λ _. β))
+.
+
+decSum
+: ∀ c: C. ∀ f: I c ➔ Descr. (Π i: I c. DecodeR (f i) ·(Decode (f i))) ➔
+  DecodeR (sumD c f) ·(Decode (sumD c f))
+= Λ c. Λ f. λ fr.
+  decodeRResp -(sumD c f) (decSumR' -c -f fr) -(sym -(decSumEq -c -f fr)) .
+
+-- - sig
+decSigR'
+: ∀ c: Nat. ∀ f: Fin c ➔ Descr. (Π i: Fin c. DecodeR (f i) ·(Decode (f i))) ➔
+  DecodeR (sigD c f) ·(Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i)))
+= Λ c. Λ f. λ fr.
+  decSigR -c -f ·(λ i: Fin c. Decode (f i)) fr
+   -(refl ·(Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i)))) .
+
+decSigEq
+: ∀ c: Nat. ∀ f: Fin c ➔ Descr. (Π i: Fin c. DecodeR (f i) ·(Decode (f i))) ➔
+  TpEq ·(Decode (sigD c f)) ·(Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i)))
+= Λ c. Λ f. λ fr.
+  intrTpEq
+   -(intrCast
+      -(λ x. x -(decSigR' -c -f fr))
+      -(λ _. β))
+   -(intrCast
+      -(λ x. Λ X. Λ dr.
+        tpEq1 -(decodeRUnique -(sigD c f) (decSigR' -c -f fr) dr) x)
+      -(λ _. β))
+.
+
+decSig
+: ∀ c: Nat. ∀ f: Fin c ➔ Descr. (Π i: Fin c. DecodeR (f i) ·(Decode (f i))) ➔
+  DecodeR (sigD c f) ·(Decode (sigD c f))
+= Λ c. Λ f. λ fr.
+  decodeRResp -(sigD c f) (decSigR' -c -f fr) -(sym -(decSigEq -c -f fr)) .
+
+
+decodeREx : Π d: Descr. DecodeR d ·(Decode d)
+= λ d. μ decodeREx. d {
+  | idD ➔ decId
+  | constD ➔ decConst
+  | pairD d1 d2 ➔
+    decPair
+      -(to/Descr -isType/decodeREx d1) (decodeREx d1)
+      -(to/Descr -isType/decodeREx d2) (decodeREx d2)
+  | sumD c f ➔
+    decSum -c -(λ i. to/Descr -isType/decodeREx (f i)) (λ i. decodeREx (f i))
+  | sigD n f ➔
+    decSig -n -(λ i. to/Descr -isType/decodeREx (f i)) (λ i. decodeREx (f i))
+}
+.
+
+-- Computation laws
+
+decIdC = decIdEq .
+decConstC = decConstEq .
+
+decPairC : ∀ d1: Descr. ∀ d2: Descr. TpEq ·(Decode (pairD d1 d2)) ·(Pair ·(Decode d1) ·(Decode d2))
+= Λ d1. Λ d2.
+  tpEqIrrel -(decPairEq -d1 (decodeREx d1) -d2 (decodeREx d2))
+.
+
+decSumC : ∀ c: C. ∀ f: I c ➔ Descr. TpEq ·(Decode (sumD c f)) ·(Sigma ·(I c) ·(λ i: I c. Decode (f i)))
+= Λ c. Λ f.
+  tpEqIrrel -(decSumEq -c -f (λ i. decodeREx (f i)))
+.
+
+decSigC : ∀ c: Nat. ∀ f: Fin c ➔ Descr. TpEq ·(Decode (sigD c f)) ·(Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i)))
+= Λ c. Λ f.
+  tpEqIrrel -(decSigEq -c -f (λ i. decodeREx (f i)))
+.
+
+rollId : R ➔ Decode idD
+= tpEq1 -(sym -decIdC) .
+
+unrollId : Decode idD ➔ R
+= tpEq2 -(sym -decIdC) .
+
+rollConst : Unit ➔ Decode constD
+= tpEq1 -(sym -decConstC) .
+
+unrollConst : Decode constD ➔ Unit
+= tpEq2 -(sym -decConstC) .
+
+rollPair : ∀ d1: Descr. ∀ d2: Descr. Pair ·(Decode d1) ·(Decode d2) ➔ Decode (pairD d1 d2)
+= Λ d1. Λ d2. tpEq1 -(sym -(decPairC -d1 -d2)) .
+
+unrollPair : ∀ d1: Descr. ∀ d2: Descr. Decode (pairD d1 d2) ➔ Pair ·(Decode d1) ·(Decode d2)
+= Λ d1. Λ d2. tpEq2 -(sym -(decPairC -d1 -d2)) .
+
+rollSum : ∀ c: C. ∀ f: I c ➔ Descr. Sigma ·(I c) ·(λ i: I c. Decode (f i)) ➔ Decode (sumD c f)
+= Λ c. Λ f. tpEq1 -(sym -(decSumC -c -f)) .
+
+unrollSum : ∀ c: C. ∀ f: I c ➔ Descr. Decode (sumD c f) ➔ Sigma ·(I c) ·(λ i: I c. Decode (f i)) 
+= Λ c. Λ f. tpEq2 -(sym -(decSumC -c -f)) .
+
+rollSig : ∀ c: Nat. ∀ f: Fin c ➔ Descr. Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i)) ➔ Decode (sigD c f)
+= Λ c. Λ f. tpEq1 -(sym -(decSigC -c -f)) .
+
+unrollSig : ∀ c: Nat. ∀ f: Fin c ➔ Descr. Decode (sigD c f) ➔ Sigma ·(Fin c) ·(λ i: Fin c. Decode (f i))
+= Λ c. Λ f. tpEq2 -(sym -(decSigC -c -f)) .
+
+-- induction
+indDecode
+: ∀ P: Π d: Descr. Decode d ➔ ★.
+  (Π r: R. P idD (rollId r)) ➔
+  P constD (rollConst unit) ➔
+  (Π d1: Descr. Π e1: Decode d1. P d1 e1 ➔
+   Π d2: Descr. Π e2: Decode d2. P d2 e2 ➔
+   P (pairD d1 d2) (rollPair -d1 -d2 (sigma e1 e2))) ➔
+  (Π c: C. Π f: I c ➔ Descr.
+   Π i: I c. Π e: Decode (f i).
+   P (f i) e ➔ P (sumD c f) (rollSum -c -f (sigma i e))) ➔
+  (Π c: Nat. Π f: Fin c ➔ Descr.
+   Π i: Fin c. Π e: Decode (f i).
+   P (f i) e ➔ P (sigD c f) (rollSig -c -f (sigma i e))) ➔
+  Π d: Descr. Π e: Decode d. P d e
+= Λ P. λ id. λ co. λ pa. λ su. λ si. λ d.
+  μ indDecode. d {
+  | idD ➔ λ e. id (unrollId e)
+  | constD ➔ λ e.
+    σ (unrollConst e) @λ x: Unit. P constD (rollConst x) {
+    | unit ➔ co
+    }
+  | pairD d1 d2 ➔ λ e.
+    [d1' = to/Descr -isType/indDecode d1]
+  - [d2' = to/Descr -isType/indDecode d2]
+  - σ (unrollPair -d1' -d2' e)
+    @λ x: Pair ·(Decode d1') ·(Decode d2'). P (pairD d1' d2') (rollPair -d1' -d2' x) {
+    | sigma e1 e2 ➔
+      pa d1' e1 (indDecode d1 e1) d2' e2 (indDecode d2 e2)
+    }
+  | sumD c f ➔ λ e.
+    [f' : I c ➔ Descr = λ i. to/Descr -isType/indDecode (f i)]
+  - σ (unrollSum -c -f' e) @λ x: Sigma ·(I c) ·(λ i: I c. Decode (f' i)). P (sumD c f') (rollSum -c -f' x) {
+    | sigma i e ➔
+      su c f' i e (indDecode (f i) e)
+    }
+  | sigD n f ➔ λ e.
+    [f' : Fin n ➔ Descr = λ i. to/Descr -isType/indDecode (f i)]
+  - σ (unrollSig -n -f' e) @λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode (f' i)). P (sigD n f') (rollSig -n -f' x) {
+    | sigma i e ➔
+      si n f' i e (indDecode (f i) e)
+    }
+}
+.

@@ -1,0 +1,117 @@
+import lib .
+import descr as descr .
+
+module large-elim/concrete/universe/noconfusionR
+  (C: ★) (I: C ➔ ★) (n: Nat) (cs: Fin n ➔ descr.Descr ·C) .
+
+import descr ·C .
+import decode ·C ·I .
+import udata ·C ·I (sigD n cs) .
+
+inSig : Π i: Fin n. Decode ·D (cs i) ➔ D
+= λ i. λ d. in (encSig ·D -n -cs (sigma i d)) .
+
+data NoConfusionR : D ➔ D ➔ ★ ➔ ★
+= noConfEqR
+  : ∀ i1: Fin n. ∀ i2: Fin n. { i1 ≃ i2} ➾
+    ∀ a1: Decode ·D (cs i1). ∀ a2: Decode ·D (cs i2).
+    ∀ X: ★. TpEq ·X ·(∀ P: ★. ({ a1 ≃ a2 } ➔ P) ➔ P) ➾
+    NoConfusionR (inSig i1 a1) (inSig i2 a2) ·X
+| noConfNeqR
+  : ∀ i1: Fin n. ∀ i2: Fin n. Not ·{ i1 ≃ i2 } ➾
+    ∀ a1: Decode ·D (cs i1). ∀ a2: Decode ·D (cs i2).
+    ∀ X: ★. TpEq ·X ·Bot ➾
+    NoConfusionR (inSig i1 a1) (inSig i2 a2) ·X
+.
+
+noConfEqR'
+: ∀ i1: Fin n. ∀ i2: Fin n. { i1 ≃ i2 } ➾
+  ∀ a1: Decode ·D (cs i1). ∀ a2: Decode ·D (cs i2).
+  NoConfusionR (inSig i1 a1) (inSig i2 a2)
+    ·(∀ P: ★. ({ a1 ≃ a2 } ➔ P) ➔ P)
+= Λ i1. Λ i2. Λ eqi. Λ a1. Λ a2.
+  noConfEqR -i1 -i2 -eqi -a1 -a2 -(tpEqRefl ·(∀ P: ★. ({ a1 ≃ a2 } ➔ P) ➔ P))
+.
+
+noConfNeqR'
+: ∀ i1: Fin n. ∀ i2: Fin n. Not ·{ i1 ≃ i2 } ➾
+  ∀ a1: Decode ·D (cs i1). ∀ a2: Decode ·D (cs i2).
+  NoConfusionR (inSig i1 a1) (inSig i2 a2) ·Bot
+= Λ i1. Λ i2. Λ neqi. Λ a1. Λ a2.
+  noConfNeqR -i1 -i2 -neqi -a1 -a2 -(tpEqRefl ·Bot) .
+
+noconfusionFn
+: ∀ d1: D. ∀ d2: D. ∀ X1: ★. NoConfusionR d1 d2 ·X1 ➔
+  ∀ X2: ★. NoConfusionR d1 d2 ·X2 ➔
+  TpEq ·X1 ·X2
+= Λ d1. Λ d2. Λ X. λ nc1.
+  μ ncfn. nc1 {
+  | noConfEqR -i11 -i21 -eqi1 -a11 -a21 ·X1 -eqX1 ➔ Λ X2. λ nc2.
+    σ nc2
+    @(λ d1: D. λ d2: D. λ X2: ★. λ _: NoConfusionR d1 d2 ·X2.
+      { inSig i11 a11 ≃ d1 } ➾ { inSig i21 a21 ≃ d2 } ➾ TpEq ·X1 ·X2) {
+    | noConfEqR -i12 -i22 -eqi2 -a12 -a22 ·X2 -eqX2 ➔ Λ eq1. Λ eq2.
+      [eqa11a12 : { a11 ≃ a12 }
+       = ρ eq1 @x.{ snd (out x) ≃ snd (out (inSig i12 a12)) }
+       - β]
+    - [eqa21a22 : { a21 ≃ a22 }
+       = ρ eq2 @x.{ snd (out x) ≃ snd (out (inSig i22 a22)) }
+       - β]
+    - [eqP : TpEq ·(∀ P: ★. ({ a11 ≃ a21 } ➔ P) ➔ P) ·(∀ P: ★. ({ a12 ≃ a22 } ➔ P) ➔ P)
+       = polyRespTpEq
+           ·(λ P: ★. ({ a11 ≃ a21 } ➔ P) ➔ P)
+           ·(λ P: ★. ({ a12 ≃ a22 } ➔ P) ➔ P)
+           -(Λ P.
+             arrowRespTpEq2
+               ·({ a11 ≃ a21 } ➔ P) ·({ a12 ≃ a22 } ➔ P)
+               -(arrowRespTpEq2 ·{ a11 ≃ a21 } ·{ a12 ≃ a22 }
+                   -(ρ eqa11a12 - ρ eqa21a22 - tpEqRefl ·{ a12 ≃ a22 })
+                   ·P ·P -(tpEqRefl ·P))
+               ·P ·P -(tpEqRefl ·P))]
+    - tpEqTrans ·X1 ·(∀ P: ★. ({ a11 ≃ a21 } ➔ P) ➔ P) ·X2
+        -eqX1
+        -(tpEqTrans
+           ·(∀ P: ★. ({ a11 ≃ a21 } ➔ P) ➔ P)
+           ·(∀ P: ★. ({ a12 ≃ a22 } ➔ P) ➔ P)
+           ·X2
+           -eqP
+           -(tpEqSym -eqX2))
+    | noConfNeqR -i12 -i22 -neqi2 -a12 -a22 ·X2 -eqX2 ➔ Λ eq1. Λ eq2.
+      [eqi11i12 : { i11 ≃ i12 }
+       = ρ eq1 @x.{ fst (out x) ≃ fst (out (inSig i12 a12)) }
+       - β]
+    - [eqi21i22 : { i21 ≃ i22 }
+       = ρ eq2 @x.{ fst (out x) ≃ fst (out (inSig i22 a22)) }
+       - β]
+    - neqi2 (ρ ς eqi11i12 - ρ ς eqi21i22 - eqi1) ·(TpEq ·X1 ·X2)
+    } -β -β
+  | noConfNeqR -i11 -i21 -neqi1 -a11 -a21 ·X1 -eqX1 ➔ Λ X2. λ nc2.
+    σ nc2
+    @(λ d1: D. λ d2: D. λ X2: ★. λ _: NoConfusionR d1 d2 ·X2.
+      { inSig i11 a11 ≃ d1 } ➾ { inSig i21 a21 ≃ d2 } ➾ TpEq ·X1 ·X2) {
+    | noConfEqR -i12 -i22 -eqi2 -a12 -a22 ·X2 -eqX2 ➔ Λ eq1. Λ eq2.
+      [eqi11i12 : { i11 ≃ i12 }
+       = ρ eq1 @x.{ fst (out x) ≃ fst (out (inSig i12 a12)) }
+       - β]
+    - [eqi21i22 : { i21 ≃ i22 }
+       = ρ eq2 @x.{ fst (out x) ≃ fst (out (inSig i22 a22)) }
+       - β]
+    - neqi1 (ρ eqi11i12 - ρ eqi21i22 - eqi2) ·(TpEq ·X1 ·X2)
+    | noConfNeqR -i21 -i22 -neqi2 -a12 -a22 ·X2 -eqX2 ➔ Λ eq1. Λ eq2.
+      tpEqTrans -eqX1 -(tpEqSym -eqX2)
+    } -β -β
+  }
+.
+
+noconfusionWd
+: ∀ d1: D. ∀ d2: D. ∀ X1: ★. NoConfusionR d1 d2 ·X1 ➔
+  ∀ X2: ★. TpEq ·X1 ·X2 ➾ NoConfusionR d1 d2 ·X2
+= Λ d1. Λ d2. Λ X1. λ nc.
+  σ nc {
+  | noConfEqR -i1 -i2 -eqi -a1 -a2 ·X1 -eqX1 ➔ Λ X2. Λ eqX.
+    noConfEqR -i1 -i2 -eqi -a1 -a2 ·X2
+      -(tpEqTrans -(tpEqSym -eqX) -eqX1)
+  | noConfNeqR -i1 -i2 -neqi -a1 -a2 ·X1 -eqX1 ➔ Λ X2. Λ eqX.
+    noConfNeqR -i1 -i2 -neqi -a1 -a2 ·X2
+      -(tpEqTrans -(tpEqSym -eqX) -eqX1)
+  } .

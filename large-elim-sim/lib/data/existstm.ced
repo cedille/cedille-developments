@@ -1,0 +1,12 @@
+import ../stdcore.
+
+module data/existstm.
+
+data ExistsTm (A: ★) (P: A ➔ ★): ★
+= packTm : ∀ x: A. P x ➔ ExistsTm.
+
+unpackTm : ∀ A: ★. ∀ P: A ➔ ★. ExistsTm ·A ·P ➔ ∀ X: ★. (∀ x: A. P x ➔ X) ➔ X
+= Λ A. Λ P. λ e. Λ X. λ f.
+  μ' e {
+  packTm -x pf ➔ f -x pf
+  }.

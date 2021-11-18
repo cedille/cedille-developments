@@ -1,0 +1,120 @@
+module data.fin .
+
+import core .
+import nat .
+
+data Fin : Nat ➔ ★
+= zeroFin : ∀ n: Nat. Fin (succ n)
+| succFin : ∀ n: Nat. Fin n ➔ Fin (succ n) .
+
+fin1 : ∀ n: Nat. Fin (add num2 n)
+= Λ n. succFin -(succ n) (zeroFin -n) .
+
+fin2 : ∀ n: Nat. Fin (add num3 n)
+= Λ n. succFin -(add num2 n) (fin1 -n) .
+
+fin3 : ∀ n: Nat. Fin (add num4 n)
+= Λ n. succFin -(add num3 n) (fin2 -n) .
+
+fin4 : ∀ n: Nat. Fin (add num5 n)
+= Λ n. succFin -(add num4 n) (fin3 -n) .
+
+emptyFin : Fin zero ➔ Bot
+= λ i. σ i @(λ n: Nat. λ x: Fin n. { n ≃ zero } ➾ Bot) {
+       | zeroFin -n ➔ Λ abs. δ - abs
+       | succFin -n j ➔ Λ abs. δ - abs
+       } -β .
+
+uniqueFin1 : Π i: Fin num1. { i ≃ zeroFin }
+= λ i.
+  σ i @(λ n: Nat. λ i: Fin n. { n ≃ num1 } ➾ { i ≃ zeroFin }) {
+  | zeroFin -n ➔ Λ _. β
+  | succFin -n i' ➔
+    σ i' {
+    | zeroFin -n' ➔ Λ abs. δ - abs
+    | succFin -n' i'' ➔ Λ abs. δ - abs
+    }
+  } -β .
+
+convFin : ∀ m: Nat. ∀ n: Nat. { m ≃ n } ➾ Fin m ➔ Fin n
+= Λ m. Λ n. Λ eq. ρ eq - λ i. i .
+
+tpEqFin : ∀ m: Nat. ∀ n: Nat. { m ≃ n } ➾ TpEq ·(Fin m) ·(Fin n)
+= Λ m. Λ n. Λ eq.
+  intrTpEq
+    -(intrCast
+        -(convFin -m -n -eq)
+        -(λ x. β))
+    -(intrCast
+        -(convFin -n -m -(ς eq))
+        -(λ x. β)) .
+
+weakenFin : ∀ n: Nat. Cast ·(Fin n) ·(Fin (succ n))
+= Λ n.
+  intrCastI
+    -(λ n.
+      μ weak. n {
+      | zeroFin -n' ➔
+        [ zeroFin -(succ n') , β{| zeroFin |} ]
+      | succFin -n' i' ➔
+        [ih = weak -n' i']
+      - [ succFin -(succ n') ih.1 , ρ ih.2 - β{| succFin ih |} ]
+      }) .
+
+predFin : ∀ n: Nat. Fin n ➔ Fin n
+= Λ n. λ i.
+  σ i {
+  | zeroFin -n' ➔ zeroFin -n'
+  | succFin -n' i' ➔ (weakenFin -n').1 i'
+  } .
+
+succFinInj
+: ∀ m: Nat. Π i: Fin m. ∀ n: Nat. Π j: Fin n.
+  { succFin i ≃ succFin j } ➾ { i ≃ j }
+= Λ m. λ i. Λ n. λ j. Λ eq.
+  ρ eq @x.{ predFin x ≃ predFin (succFin j) } - β .
+
+import decidable .
+import nat-thms .
+eqFin : ∀ n: Nat. Π i1: Fin n. Π i2: Fin n. Decision ·{ i1 ≃ i2 }
+= Λ n. λ i1.
+  μ eqFin. i1 {
+  | zeroFin -n' ➔ λ i2.
+    σ i2 {
+    | zeroFin -n'' ➔
+      decYes β
+    | succFin -n'' i2' ➔
+      decNo λ abs. δ - abs
+    }
+  | succFin -n' i1' ➔ λ i2.
+    σ i2 @(λ n: Nat. λ i: Fin n. { n ≃ succ n' } ➾ Decision ·{ succFin i1' ≃ i }) {
+    | zeroFin -n'' ➔ Λ _.
+      decNo λ abs. δ - abs
+    | succFin -n'' i2' ➔ Λ eqsn.
+      [eqn : { n'' ≃ n' } = succInj n'' n' eqsn]
+    - [ih = eqFin -n' i1' (ρ ς eqn - i2')]
+    - σ ih {
+      | decYes y ➔ decYes (ρ y - β)
+      | decNo  n ➔
+        decNo λ eq.
+          n (ρ eq @x.{ predFin x ≃ predFin (succFin i2') } - β)
+      }
+    } -β
+  }
+.
+
+
+-- Vectors as functions from finite sets
+
+FVec : ★ ➔ Nat ➔ ★
+= λ A: ★. λ n: Nat. Fin n ➔ A .
+
+fvnil : ∀ A: ★. FVec ·A zero
+= Λ A. λ i. emptyFin i ·A .
+
+fvcons : ∀ A: ★. ∀ n: Nat. A ➔ FVec ·A n ➔ FVec ·A (succ n)
+= Λ A. Λ n. λ hd. λ tl. λ i.
+  σ i @(λ n: Nat. λ x: Fin n. FVec ·A (pred n) ➔ A) {
+  | zeroFin -n' ➔ λ _. hd
+  | succFin -n' i' ➔ λ tl. tl i'
+  } tl .

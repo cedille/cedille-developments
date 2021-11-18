@@ -1,0 +1,82 @@
+module sigma.
+
+data Sigma (A: ★) (B: A ➔ ★) : ★ =
+  | sigma : Π a: A. Π b: B a. Sigma.
+
+Pair : ★ ➔ ★ ➔ ★ = λ A: ★. λ B: ★. Sigma ·A ·(λ _: A. B).
+pair : ∀ A : ★ . ∀ B : ★ . A ➔ B ➔ Pair · A · B = Λ A . Λ B . λ a . λ b . sigma · A · (λ _ : A . B) a b.
+
+fst : ∀ A: ★. ∀ B: A ➔ ★. Sigma ·A ·B ➔ A
+  = Λ A. Λ B. λ p. σ p {sigma a _ ➔ a}.
+
+fst' : ∀ A: ★. ∀ B: ★. Pair ·A ·B ➔ A
+= Λ A. Λ B. fst ·A ·(λ _: A. B) .
+
+snd : ∀ A: ★. ∀ B: A ➔ ★. Π p: Sigma ·A ·B. B (fst p)
+  = Λ A. Λ B. λ p. σ p @(λ x: Sigma ·A ·B. B (fst x)) {sigma _ b ➔ b}.
+
+snd' : ∀ A: ★. ∀ B: ★. Pair ·A ·B ➔ B
+= Λ A. Λ B. snd ·A ·(λ _: A. B) .
+
+curry : ∀ A: ★. ∀ B: A ➔ ★. ∀ X: ★.
+  (Sigma ·A ·B ➔ X) ➔ Π a: A. Π b: B a. X
+= Λ A. Λ B. Λ X. λ f. λ a. λ b. f (sigma a b).
+
+uncurry : ∀ A: ★. ∀ B: A ➔ ★. ∀ X: ★.
+  (Π a: A. Π b: B a. X) ➔ Sigma ·A ·B ➔ X
+= Λ A. Λ B. Λ X. λ f. λ p. σ p {
+  | sigma a b ➔ f a b
+  }.
+
+pairMap
+: ∀ A: ★. ∀ B: ★. ∀ C: ★. ∀ D: ★.
+  (A ➔ C) ➔ (B ➔ D) ➔ Pair ·A ·B ➔ Pair ·C ·D
+= Λ A. Λ B. Λ C. Λ D. λ f. λ g. λ p.
+  σ p {sigma a b ➔ sigma (f a) (g b)}.
+
+import ../core/cast .
+
+castSigmaFst
+: ∀ A1: ★. ∀ A2: ★. ∀ B: A2 ➔ ★. ∀ c: Cast ·A1 ·A2.
+  Cast ·(Sigma ·A1 ·(λ x: A1. B (elimCast -c x))) ·(Sigma ·A2 ·B)
+= Λ A1. Λ A2. Λ B. Λ c.
+  intrCastI -λ x. σ x { sigma a b ➔ [ sigma (elimCast -c a) b , β{|sigma a b|} ] } .
+
+castSigmaSnd
+: ∀ A: ★. ∀ B1: A ➔ ★. ∀ B2: A ➔ ★. (Π x: A. Cast ·(B1 x) ·(B2 x)) ➾
+  Cast ·(Sigma ·A ·B1) ·(Sigma ·A ·B2)
+= Λ A. Λ B1. Λ B2. Λ c.
+  intrCastI -λ x. σ x { sigma a b ➔ [ sigma a (elimCast -(c a) b) , β{|sigma a b|} ] } .
+
+castSigma
+: ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ A2: ★. ∀ B2: A2 ➔ ★.
+  ∀ c: Cast ·A1 ·A2. (Π a1: A1. Cast ·(B1 a1) ·(B2 (elimCast -c a1))) ➾
+  Cast ·(Sigma ·A1 ·B1) ·(Sigma ·A2 ·B2)
+= Λ A1. Λ B1. Λ A2. Λ B2. Λ eqA. Λ eqB.
+  castTrans
+    ·(Sigma ·A1 ·B1)
+    ·(Sigma ·A1 ·(λ x: A1. B2 (elimCast -eqA x)))
+    ·(Sigma ·A2 ·B2)
+    -(castSigmaSnd ·A1 ·B1 ·(λ x: A1. B2 (elimCast -eqA x)) -eqB)
+    -(castSigmaFst -eqA)
+.
+
+import ../core/tpeq .
+
+sigmaRespTpEq
+: ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ A2: ★. ∀ B2: A2 ➔ ★.
+  TpEq ·A1 ·A2 ➾ (Π a1: A1. Π a2: A2. { a1 ≃ a2 } ➾ TpEq ·(B1 a1) ·(B2 a2)) ➾
+  TpEq ·(Sigma ·A1 ·B1) ·(Sigma ·A2 ·B2)
+= Λ A1. Λ B1. Λ A2. Λ B2. Λ eqA. Λ eqB.
+  intrTpEq
+    -(castSigma -eqA.1 -(λ a1. (eqB a1 (elimCast -eqA.1 a1) -β).1))
+    -(castSigma -eqA.2 -(λ a2. (eqB (elimCast -eqA.2 a2) a2 -β).2))
+.
+
+pairRespTpEq
+: ∀ A1: ★. ∀ B1: ★. ∀ A2: ★. ∀ B2: ★.
+  TpEq ·A1 ·A2 ➾ TpEq ·B1 ·B2 ➾ TpEq ·(Pair ·A1 ·B1) ·(Pair ·A2 ·B2)
+= Λ A1. Λ B1. Λ A2. Λ B2. Λ eqA. Λ eqB.
+  sigmaRespTpEq ·A1 ·(λ _: A1. B1) ·A2 ·(λ _: A2. B2)
+    -eqA -(λ _. λ _. Λ _. eqB)
+.

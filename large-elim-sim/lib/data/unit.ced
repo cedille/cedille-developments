@@ -1,0 +1,6 @@
+module unit.
+
+data Unit: ★ = unit: Unit.
+
+etaUnit : Π u: Unit. {u ≃ unit}
+= λ u. σ u { unit ➔ β }.

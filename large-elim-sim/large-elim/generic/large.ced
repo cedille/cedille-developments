@@ -1,0 +1,97 @@
+import core .
+
+import algty .
+import encoding as E .
+
+module large-elim/generic/large
+  (F: ★ ➔ ★) (mono: CastMap ·F)
+  (A: 𝒌AlgTy ·F ·(E.IndM ·F mono)) {cA: AlgTyCon ·F ·(E.IndM ·F mono) ·A} .
+
+import encoding ·F -mono .
+
+data FoldR : IndM ➔ ★ ➔ ★
+= foldRIn
+  : ∀ R: ★. ∀ c: Cast ·R ·IndM. ∀ xs: F ·R.
+    ∀ Ih: R ➔ ★. (Π x: R. FoldR (elimCast -c x) ·(Ih x)) ➔
+    ∀ X: ★. TpEq ·X ·(A ·R c ·Ih xs) ➾ FoldR (inM' -c xs) ·X .
+
+foldRUnique : ∀ x: IndM. ∀ I1: ★. FoldR x ·I1 ➔ ∀ I2: ★. FoldR x ·I2 ➔ TpEq ·I1 ·I2
+= Λ x. Λ I1. λ itr.
+  μ foldRUnique. itr {
+  | foldRIn ·R1 -c1 -xs1 ·X1 itrs1 ·I1' -tpeq1 ➔ Λ I2. λ itr2.
+    σ itr2 @(λ x: IndM. λ I2: ★. λ _: FoldR x ·I2. { x ≃ inM xs1 } ➾ TpEq ·I1' ·I2) {
+    | foldRIn ·R2 -c2 -xs2 ·X2 itrs2 ·I2' -tpeq2 ➔ Λ eq.
+      [eq' : { xs2 ≃ xs1 } = ρ eq @x.{ outM x ≃ outM (inM xs1 )} - β]
+    - [ih : Π r1: R1. Π r2: R2. { r1 ≃ r2 } ➔ TpEq ·(X1 r1) ·(X2 r2)
+       = λ r1. λ r2. λ eq.
+         foldRUnique -(elimCast -c1 r1) ·(X1 r1) (itrs1 r1) ·(X2 r2) (ρ eq - itrs2 r2)]
+    - [tpEq : TpEq ·(A ·R1 c1 ·X1 xs1) ·(A ·R2 c2 ·X2 xs2)
+       = cA ·R1 ·R2 -c1 -c2 ·X1 ·X2 ih xs1 xs2 (ς eq')]
+    - tpEqTrans ·I1' ·(A ·R1 c1 ·X1 xs1) ·I2'
+        -tpeq1
+        -(tpEqTrans ·(A ·R1 c1 ·X1 xs1) ·(A ·R2 c2 ·X2 xs2) ·I2'
+            -tpEq -(tpEqSym -tpeq2))
+    } -β
+  }
+.
+
+foldRResp : ∀ x: IndM. ∀ I1: ★. FoldR x ·I1 ➔ ∀ I2: ★. TpEq ·I1 ·I2 ➾ FoldR x ·I2
+= Λ x. Λ I1. λ itr1.
+  σ itr1 {
+  | foldRIn ·R -c -xs ·X itrs ·I -tpeq ➔ Λ I2. Λ tpeq'.
+    foldRIn ·R -c -xs ·X itrs ·I2
+      -(tpEqTrans ·I2 ·I ·(A ·R c ·X xs)
+          -(tpEqSym -tpeq') -tpeq)
+  }
+.
+
+Fold : IndM ➔ ★ = λ x: IndM. ∀ I: ★. FoldR x ·I ➾ I .
+
+foldRIn'
+: ∀ R: ★. ∀ c: Cast ·R ·IndM. ∀ X: R ➔ ★. (Π x: R. FoldR (elimCast -c x) ·(X x)) ➔
+  ∀ xs: F ·R. FoldR (inM' -c xs) ·(A ·R c ·X xs)
+= Λ R. Λ c. Λ X. λ itrs. Λ xs.
+  foldRIn ·R -c -xs ·X itrs ·(A ·R c ·X xs) -(tpEqRefl ·(A ·R c ·X xs)) .
+
+foldInEq
+: ∀ R: ★. ∀ c: Cast ·R ·IndM. (Π r: R. FoldR (elimCast -c r) ·(Fold (elimCast -c r))) ➔
+  ∀ xs: F ·R. TpEq ·(Fold (inM' -c xs)) ·(A ·R c ·(λ r: R. Fold (elimCast -c r)) xs)
+= Λ R. Λ c. λ ih. Λ xs.
+  intrTpEq
+    -(intrCast
+        -(λ i. i -(foldRIn' -c ·(λ r: R. Fold (elimCast -c r)) ih -xs))
+        -(λ i. β))
+    -(intrCast
+        -(λ x. Λ I. Λ itr.
+          elimCast
+            -(foldRUnique -(inM' -c xs)
+                (foldRIn' -c ·(λ r: R. Fold (elimCast -c r)) ih -xs)
+                itr).1
+            x)
+        -(λ x. β))
+.
+
+foldIn
+: ∀ R: ★. ∀ c: Cast ·R ·IndM. (Π r: R. FoldR (elimCast -c r) ·(Fold (elimCast -c r))) ➔
+  ∀ xs: F ·R. FoldR (inM' -c xs) ·(Fold (inM' -c xs))
+= Λ R. Λ c. λ ih. Λ xs.
+  foldRResp -(inM' -c xs) (foldRIn' -c ·(λ r: R. Fold (elimCast -c r)) ih -xs)
+    -(tpEqSym -(foldInEq -c ih -xs)) .
+
+foldREx : Π x: IndM. FoldR x ·(Fold x)
+= inductionM ·(λ x: IndM. FoldR x ·(Fold x))
+    Λ R. Λ c. λ ih. λ xs. foldIn ·R -c ih -xs
+.
+
+
+foldInBeta : ∀ xs: F ·IndM. TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
+= Λ xs.
+  {eq : TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
+   = foldInEq -(castRefl ·IndM) foldREx -xs}
+- intrTpEq -eq.1 -eq.2 .
+
+rollFold : ∀ xs: F ·IndM. A ·IndM (castRefl ·IndM) ·Fold xs ➔ Fold (inM xs)
+= Λ xs. (foldInBeta -xs).2.1 .
+
+unrollFold : ∀ xs: F ·IndM. Fold (inM xs) ➔ A ·IndM (castRefl ·IndM) ·Fold xs
+= Λ xs. (foldInBeta -xs).1.1 .

@@ -1,0 +1,16 @@
+import core .
+
+module large-elim/generic/algty (F: ★ ➔ ★) .
+
+-- Mendler-style "type algebras"
+𝒌AlgTy (D: ★) = Π R: ★. Π c: Cast ·R ·D. Π Ih: R ➔ ★. Π xs: F ·R. ★ .
+-- a sufficient condition for Mendler-style type algebras from which we can
+-- derive a simulated large elimination
+AlgTyCon : Π D: ★. 𝒌AlgTy ·D ➔ ★
+= λ D: ★. λ A: 𝒌AlgTy ·D.
+  ∀ R1: ★. ∀ R2: ★. ∀ c1: Cast ·R1 ·D. ∀ c2: Cast ·R2 ·D.
+  ∀ Ih1: R1 ➔ ★. ∀ Ih2: R2 ➔ ★.
+  (Π r1: R1. Π r2: R2. { r1 ≃ r2 } ➔ TpEq ·(Ih1 r1) ·(Ih2 r2)) ➔
+  Π xs1: F ·R1. Π xs2: F ·R2. { xs1 ≃ xs2 } ➔
+  TpEq ·(A ·R1 c1 ·Ih1 xs1) ·(A ·R2 c2 ·Ih2 xs2) .
+

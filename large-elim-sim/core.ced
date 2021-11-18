@@ -1,0 +1,10 @@
+module stdcore.
+
+import public lib/core/bot.
+import public lib/core/cast.
+import public lib/core/castDep.
+import public lib/core/irrel .
+import public lib/core/rec.
+import public lib/core/top.
+import public lib/core/tpeq.
+import public lib/core/view.

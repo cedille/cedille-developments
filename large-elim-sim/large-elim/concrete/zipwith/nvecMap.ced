@@ -1,0 +1,132 @@
+import lib .
+
+module large-elim/concrete/zipwith/nvecMap .
+
+import tyvec .
+import tyfoldr .
+import tyfold .
+
+ArrTy : Π n: Nat. 𝒌TyVec (succ n) ➔ ★
+= TyFold .
+
+MapVecTyVec : Π m: Nat. Π n: Nat. 𝒌TyVec n ➔ 𝒌TyVec n
+= λ m: Nat. λ n: Nat. λ L: 𝒌TyVec n.
+  MapTyVec ·(λ A: ★. Vec ·A m) n ·L .
+
+ArrTyVec : Π n: Nat. Nat ➔ 𝒌TyVec (succ n) ➔ ★
+= λ n: Nat. λ m: Nat. λ L: 𝒌TyVec (succ n).
+  ArrTy n ·(MapVecTyVec m (succ n) ·L) .
+
+arrTyVecZ
+: ∀ m: Nat. ∀ L: 𝒌TyVec num1.
+  TpEq ·(ArrTyVec zero m ·L) ·(Vec ·(HeadTyVec zero ·L) m)
+= Λ m. Λ L. tyFoldBetaZ ·(MapVecTyVec m num1 ·L) .
+
+arrTyVecZ'
+: ∀ m: Nat. ∀ X: ★. TpEq ·(ArrTyVec zero m ·(TyCons zero ·X ·TyNil)) ·(Vec ·X m)
+= Λ m. Λ X.
+  [L : 𝒌TyVec num1 = TyCons zero ·X ·TyNil]
+- tpEqTrans
+    ·(ArrTyVec zero m ·L) ·(HeadTyVec zero ·(MapVecTyVec m (num1) ·L)) ·(Vec ·X m)
+    -(arrTyVecZ -m ·L)
+    -(tpEqTrans
+        ·(HeadTyVec zero ·(MapVecTyVec m (num1) ·L)) ·(Vec ·(HeadTyVec zero ·L) m) ·(Vec ·X m)
+        -(mapTyVecHead ·(λ A: ★. Vec ·A m) -(vecRespTpEq -m) -zero ·L)
+        -(vecRespTpEq -m -(tyConsHead ·X -zero ·TyNil)))
+.
+
+arrTyVecS
+: ∀ m: Nat. ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n).
+  TpEq ·(ArrTyVec (succ n) m ·L) ·(Vec ·(HeadTyVec (succ n) ·L) m ➔ ArrTyVec n m ·(TailTyVec (succ n) ·L))
+= Λ m. Λ n. Λ L.
+  tpEqTrans
+    ·(ArrTyVec (succ n) m ·L)
+    ·(HeadTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·L) ➔
+      ArrTy n ·(TailTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·L)))
+    ·(Vec ·(HeadTyVec (succ n) ·L) m ➔ ArrTyVec n m ·(TailTyVec (succ n) ·L))
+    -(tyFoldBetaS -n ·(MapVecTyVec m (add num2 n) ·L))
+    -(arrowRespTpEq2
+       ·(HeadTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·L))
+       ·(Vec ·(HeadTyVec (succ n) ·L) m)
+       -(tpEqRefl ·(Vec ·(HeadTyVec (succ n) ·L) m))
+       ·(ArrTy n ·(TailTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·L)))
+       ·(ArrTyVec n m ·(TailTyVec (succ n) ·L))
+       -(tyFoldRespTyVecEq -n
+           ·(TailTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·L))
+           ·(MapVecTyVec m (succ n) ·(TailTyVec (succ n) ·L))
+           -(mapTyVecTail ·(λ A: ★. Vec ·A m) -(vecRespTpEq -m) -(succ n) ·L)))
+.
+
+arrTyVecS'
+: ∀ m: Nat. ∀ X: ★. ∀ n: Nat. ∀ L: 𝒌TyVec (succ n).
+  TpEq ·(ArrTyVec (succ n) m ·(TyCons (succ n) ·X ·L)) ·(Vec ·X m ➔ ArrTyVec n m ·L)
+= Λ m. Λ X. Λ n. Λ L.
+  [CL : 𝒌TyVec (add num2 n) = TyCons (succ n) ·X ·L]
+- tpEqTrans
+    ·(ArrTyVec (succ n) m ·CL)
+    ·(Vec ·(HeadTyVec (succ n) ·CL) m ➔ ArrTyVec n m ·(TailTyVec (succ n) ·CL))
+    ·(Vec ·X m ➔ ArrTyVec n m ·L)
+    -(arrTyVecS -m -n ·CL)
+    -(arrowRespTpEq2
+        ·(Vec ·(HeadTyVec (succ n) ·CL) m) ·(Vec ·X m)
+        -(vecRespTpEq -m -(tyConsHead ·X -(succ n) ·L))
+        ·(ArrTyVec n m ·(TailTyVec (succ n) ·CL)) ·(ArrTyVec n m ·L)
+        -(tyFoldRespTyVecEq -n
+            ·(TailTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·CL))
+            ·(MapVecTyVec m (succ n) ·L)
+            -(tyVecEqTrans
+                -(succ n) ·(TailTyVec (succ n) ·(MapVecTyVec m (add num2 n) ·CL))
+                -(succ n) ·(MapVecTyVec m (succ n) ·(TailTyVec (succ n) ·CL))
+                -(succ n) ·(MapVecTyVec m (succ n) ·L)
+                -(mapTyVecTail ·(λ A: ★. Vec ·A m) -(vecRespTpEq -m) -(succ n) ·CL)
+                -(mapTyVecRespTyVecEq ·(λ A: ★. Vec ·A m) -(vecRespTpEq -m) -(succ n)
+                    ·(TailTyVec (succ n) ·CL) ·L
+                    -(tyConsTail ·X -(succ n) ·L)))))
+.
+
+nvecMap
+: Π m: Nat. Π n: Nat. ∀ L: 𝒌TyVec (succ n).
+  ArrTy n ·L ➔ ArrTyVec n m ·L
+= λ m. λ n. Λ L. λ f.
+  μ nvecMap. n
+  @(λ x: Nat. ∀ L: 𝒌TyVec (succ x). Vec ·(ArrTy x ·L) m ➔ ArrTyVec x m ·L) {
+  | zero ➔ Λ L. λ fs.
+    (arrTyVecZ -m ·L).2.1
+      ((vecRespTpEq -m -(tyFoldBetaZ ·L)).1.1 fs)
+  | succ n' ➔ Λ L. λ fs.
+    [n'' = to/Nat -isType/nvecMap n']
+  - [fs' = (vecRespTpEq -m -(tyFoldBetaS -n'' ·L)).1.1 fs ]
+  - (arrTyVecS -m -n'' ·L).2.1
+      λ a. nvecMap n' (vapp -m fs' a)
+  } ·L (vrepeat m f).
+
+
+example : Vec ·Nat num2
+= [v : Vec ·Nat num2
+   = vcons -num1 num1 (vcons -zero num1 (vnil ·Nat))]
+- [Tl : 𝒌TyVec num1 = TyCons zero ·Nat ·TyNil]
+- [L : 𝒌TyVec num2 = TyCons num1 ·Nat ·Tl]
+-- sequence of type equalities
+-- - for `f = add num10`
+- [foldL : TpEq ·(ArrTy num1 ·L) ·(Nat ➔ Nat)
+   = tpEqTrans ·(ArrTy num1 ·L) ·(Nat ➔ ArrTy zero ·Tl) ·(Nat ➔ Nat)
+       -(tyFoldBetaS' ·Nat -zero ·Tl)
+       -(arrowRespTpEq2 -(tpEqRefl ·Nat) -(tyFoldBetaZ' ·Nat))]
+- [f : ArrTy num1 ·L = foldL.2.1 (add num10)]
+-- - for nvecMap ·L f
+- [unfoldMapVecL : TpEq ·(ArrTyVec num1 num2 ·L) ·(Vec ·Nat num2 ➔ Vec ·Nat num2)
+   = tpEqTrans
+       ·(ArrTyVec num1 num2 ·L)
+       ·(Vec ·Nat num2 ➔ ArrTyVec zero num2 ·Tl)
+       ·(Vec ·Nat num2 ➔ Vec ·Nat num2)
+       -(arrTyVecS' -num2 ·Nat -zero ·Tl)
+       -(arrowRespTpEq2 -(tpEqRefl ·(Vec ·Nat num2))
+           ·(ArrTyVec zero num2 ·Tl) ·(Vec ·Nat num2)
+           -(arrTyVecZ' -num2 ·Nat))]
+- [vf : Vec ·Nat num2 ➔ Vec ·Nat num2
+   = unfoldMapVecL.1.1 (nvecMap num2 num1 ·L f)]
+- vf v
+.
+
+_ : { example ≃ nvecMap num2 num1 (add num10) (vcons num1 (vcons num1 vnil)) }
+= β .

@@ -1,0 +1,12 @@
+module w-type.
+
+data W (A: ★) (B: A ➔ ★) : ★
+= sup : Π a: A. (B a ➔ W) ➔ W .
+
+elimW
+: ∀ A: ★. ∀ B: A ➔ ★. ∀ X: W ·A ·B ➔ ★.
+  (Π a: A. Π t: (B a ➔ W ·A ·B). X (sup a t)) ➔ Π w: W ·A ·B. X w
+= Λ A. Λ B. Λ X. λ e. λ w.
+  σ w {
+  | sup a t ➔ e a t
+  } .

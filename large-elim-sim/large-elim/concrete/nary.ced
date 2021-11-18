@@ -1,0 +1,120 @@
+import lib .
+
+module nary (T: ★) .
+
+data NaryR : Nat ➔ ★ ➔ ★
+= naryRZ : ∀ X: ★. TpEq ·X ·T ➾ NaryR zero ·X
+| naryRS : ∀ Ih: ★. ∀ n: Nat. NaryR n ·Ih ➔
+           ∀ X: ★. TpEq ·X ·(T ➔ Ih) ➾ NaryR (succ n) ·X .
+
+Nary : Nat ➔ ★
+= λ n: Nat. ∀ T: ★. NaryR n ·T ➾ T .
+
+{-
+-- naryRUnique : ∀ n: Nat. ∀ X1: ★. NaryR n ·X1 ➔ ∀ A2: ★. NaryR n ·X2 ➔ TpEq ·X1 ·X2
+-- naryRUnique -zero     ·X1 (naryRZ ·X1 -eqX1) ·X2 (naryRZ ·X2 -eqX2) =
+--   tpEqTrans -eqX2 -(tpEqSym -eqX1)
+-- naryRUnique -(succ n) ·X1 (naryRS ·Y1 -n fn1 ·X1 -eqX1) ·X2 (naryRS ·Y2 -.n fn2 ·X2 -eqX2) =
+--   tpEqTrans -eqX1 -(arrowTpEqCod -(naryRUnique -n fn1 fn2)) -(tpEqSym -eqX2)
+--
+-}
+naryRUnique : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. NaryR n ·A2 ➔ TpEq ·A1 ·A2
+= Λ n. Λ A1. λ fn1.
+  μ naryRUnique. fn1 {
+  | naryRZ ·X1 -eqX1 ➔ Λ A2. λ fn2.
+    σ fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ zero } ➾ TpEq ·X1 ·J) {
+    | naryRZ ·X2 -eqX2 ➔ Λ _.
+      trans -eqX1 -(sym -eqX2)
+    | naryRS ·_ -_ _ ·_ -_ ➔ Λ abs. δ - abs
+    } -β
+  | naryRS ·Y1 -n fn1 ·X1 -eqX1 ➔ Λ A2. λ fn2.
+    σ fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ succ n } ➾ TpEq ·X1 ·J) {
+    | naryRZ ·_ -_ ➔ Λ abs. δ - abs
+    | naryRS ·Y2 -n' fn2 ·X2 -eqX2 ➔ Λ eq.
+      [eq' = succInj n' n eq]
+    - [ih = naryRUnique -n ·Y1 fn1 ·Y2 (ρ ς eq' - fn2)]
+    - trans ·X1 ·(T ➔ Y1) ·X2
+        -eqX1
+        -(trans ·(T ➔ Y1) ·(T ➔ Y2) ·X2
+            -(arrowTpEqCod -ih)
+            -(sym -eqX2))
+    } -β
+  } .
+
+{-
+-- naryRResp : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. { A1 ≃ A2 } ➾ NaryR n ·A2
+-- naryRResp .-zero .·X (naryRZ ·X -eqX) ·A2 -eq =
+--   naryRZ ·X -(tpEqTrans -(tpEqSym -eq) -eqX)
+-- naryRResp .-(succ n) .·X (naryRS ·Y -n fn ·X -eqX) ·A2 -eq =
+--   naryRS ·Y -n fn ·X ·A2 -(tpEqTrans -(tpEqSym -eq) -eqX)
+-}
+naryRResp : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. TpEq ·A1 ·A2 ➾ NaryR n ·A2
+= Λ n. Λ A1. λ fn.
+  σ fn {
+  | naryRZ ·X -eqZ ➔ Λ A2. Λ tpEq.
+    naryRZ -(trans -(sym -tpEq) -eqZ)
+  | naryRS ·Y -j fn' ·X -eqS ➔ Λ A2. Λ tpEq.
+    naryRS -j fn' -(trans -(sym -tpEq) -eqS)
+  }
+.
+
+naryRZ' : NaryR zero ·T
+= naryRZ -(refl ·T) .
+
+naryZEq : TpEq ·(Nary zero) ·T
+= intrTpEq -(intrCast -(λ x. x -naryRZ') -(λ _. β))
+    -(intrCast
+        -(λ a. Λ X. Λ rz. tpEq1 -(naryRUnique -zero naryRZ' rz) a)
+        -(λ _. β)) .
+
+naryZ : NaryR zero ·(Nary zero)
+= naryRResp -zero naryRZ' -(sym -naryZEq) .
+
+naryRS' : ∀ Y: ★. ∀ n: Nat. NaryR n ·Y ➔ NaryR (succ n) ·(T ➔ Y)
+= Λ Y. Λ n. λ r. naryRS -n r -(refl ·(T ➔ Y)) .
+
+narySEq : ∀ n: Nat. NaryR n ·(Nary n) ➔ TpEq ·(Nary (succ n)) ·(T ➔ Nary n)
+= Λ n. λ rn.
+  intrTpEq
+    -(intrCast -(λ f. f ·(T ➔ Nary n) -(naryRS' -n rn)) -(λ _. β))
+    -(intrCast
+        -(λ f. Λ X. Λ rs.
+          tpEq1 -(naryRUnique -(succ n) (naryRS' -n rn) ·X rs) f)
+        -(λ _. β)) .
+
+naryS : ∀ n: Nat. NaryR n ·(Nary n) ➔ NaryR (succ n) ·(Nary (succ n))
+= Λ n. λ rn.
+  naryRResp -(succ n) ·(T ➔ Nary n)
+    (naryRS' -n rn) -(sym -(narySEq -n rn)) .
+
+{-
+-- naryREx : Π n: Nat. NaryR n ·(Nary n)
+-- naryREx zero = naryZ
+-- naryREx (succ n) = naryS n (naryREx n)
+-}
+naryREx : Π n: Nat. NaryR n ·(Nary n)
+= λ n.
+  μ naryREx. n {
+  | zero ➔ naryZ
+  | succ n' ➔ naryS -(to/Nat -isType/naryREx n') (naryREx n')
+  } .
+
+naryZC : TpEq ·(Nary zero) ·T
+= naryZEq .
+
+narySC : ∀ n: Nat. TpEq ·(Nary (succ n)) ·(T ➔ Nary n)
+= Λ n. tpEqIrrel -(narySEq -n (naryREx n)) .
+
+{-
+-- appN : ∀ n: Nat. Nary n ➔ Vec ·T n ➔ T
+-- appN -zero f vnil = tpEq1 -naryZC f
+-- appN -(succ n) f (vcons -n x xs) = app n (tpEq1 -(narySC -n) f x) xs
+--
+-}
+appN : ∀ n: Nat. Nary n ➔ Vec ·T n ➔ T
+= Λ n. λ f. λ xs.
+  μ app. xs @(λ n: Nat. λ xs: Vec ·T n. Nary n ➔ T) {
+  | vnil ➔ λ x. naryZC.1.1 x
+  | vcons -n' hd tl ➔ λ f.
+    app -n' tl ((narySC -n').1.1 f hd)
+  } f .

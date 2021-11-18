@@ -1,0 +1,75 @@
+import core .
+
+import lib/data/sigma .
+
+module large-elim/generic/encoding (F: ★ ➔ ★) {mono: CastMap ·F} .
+
+AlgM : ★ ➔ ★ = λ X: ★. ∀ R: ★. (R ➔ X) ➔ F ·R ➔ X.
+FixM : ★ = ∀ X: ★. AlgM ·X ➔ X.
+
+foldFixM : ∀ X: ★. AlgM ·X ➔ FixM ➔ X
+= Λ X. λ alg. λ d. d alg.
+
+inFixM : F ·FixM ➔ FixM = λ ds. Λ X. λ alg. alg (foldFixM alg) ds.
+
+PrfAlgM : Π X: ★. (X ➔ ★) ➔ (F ·X ➔ X) ➔ ★
+= λ X: ★. λ P: X ➔ ★. λ in: F ·X ➔ X.
+  ∀ R: ★. ∀ c: Cast ·R ·X. Π ih: (Π r: R. P (elimCast -c r)).
+  Π rs: F ·R. P (in (elimCast -(mono -c) rs)).
+
+InductiveM : FixM ➔ ★
+= λ x: FixM. ∀ P: FixM ➔ ★. PrfAlgM ·FixM ·P inFixM ➔ P x.
+
+IndM : ★ = ι x: FixM. InductiveM x.
+
+toFixM : Cast ·IndM ·FixM
+= intrCast -(λ x. x.1) -(λ _. β).
+
+inIndM1 : F ·IndM ➔ FixM
+= λ xs. inFixM (elimCast -(mono -toFixM) xs).
+
+_ : {inIndM1 ≃ inFixM} = β.
+
+inIndM2 : Π xs: F ·IndM. InductiveM (inIndM1 xs)
+= λ xs. Λ P. λ alg. alg -toFixM (λ d. d.2 alg) xs.
+
+_ : {inIndM2 ≃ inFixM} = β.
+
+inIndM : F ·IndM ➔ IndM
+= λ xs. [ inIndM1 xs , inIndM2 xs ].
+
+Lift : (IndM ➔ ★) ➔ FixM ➔ ★
+= λ P: IndM ➔ ★. λ x: FixM.
+  Sigma ·(View ·IndM β{| x |}) ·(λ v: View ·IndM β{| x |}. P (elimView β{| x |} -v)) .
+
+-- Definitions one should use
+
+inM : F ·IndM ➔ IndM
+= inIndM .
+
+inM' : ∀ R: ★. Cast ·R ·IndM ➾ F ·R ➔ IndM
+= Λ R. Λ c. λ xs. inM (elimCast -(mono -c) xs) .
+
+inductionM : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inM ➔ Π x: IndM. P x
+= Λ P. λ a. λ x.
+  snd
+    (x.2 ·(Lift ·P)
+       Λ R. Λ c. λ ih. λ xs.
+         [c' : Cast ·R ·IndM
+          = intrCast
+              -(λ x. elimView β{| x |} -(fst (ih x)))
+              -(λ x. β)]
+       - sigma
+           (intrView ·IndM β{| inFixM xs |} -(inM' -c' xs) -β)
+           (a ·R -c' (λ r. snd (ih r)) xs))
+.
+
+outM : IndM ➔ F ·IndM
+= inductionM ·(λ _: IndM. F ·IndM) Λ R. Λ c. λ _. elimCast -(mono -c) .
+
+
+-- some proofs
+lambek1 : Π xs: F ·IndM. { outM (inFixM xs) ≃ xs } = λ _. β .
+lambek2 : Π x: IndM. { inFixM (outM x) ≃ x}
+= inductionM ·(λ x: IndM. { inFixM (outM x) ≃ x })
+    Λ R. Λ c. λ ih. λ xs. β .

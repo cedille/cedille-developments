@@ -1,0 +1,118 @@
+import lib .
+import descr as descr .
+
+module large-elim/concrete/universe2/noconfusion
+  (C: ★) (I: C ➔ ★) (n: Nat) (cs: Fin n ➔ descr.Descr ·C ·I) .
+
+import descr  ·C ·I.
+import decode ·C ·I .
+import udata  ·C ·I (sigD n cs) .
+-- import noconfusionR ·C ·I n cs .
+
+inSig : Π i: Fin n. Decode ·D (cs i) ➔ D
+= λ i. λ d. in (rollSig ·D -n -cs (sigma i d)) .
+
+inSigInj
+: ∀ i1: Fin n. ∀ d1: Decode ·D (cs i1). ∀ i2: Fin n. ∀ d2: Decode ·D (cs i2).
+  { inSig i1 d1 ≃ inSig i2 d2 } ➾ Pair ·{ i1 ≃ i2 } ·{ d1 ≃ d2 }
+= Λ i1. Λ d1. Λ i2. Λ d2. Λ eq.
+  [lem : { sigma i1 d1 ≃ sigma i2 d2 }
+   = ρ eq @x.{ out x ≃ sigma i2 d2 }
+   - β]
+- sigma
+    (sigmaInj1 ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)) -i1 -d1 ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)) -i2 -d2 -lem)
+    (sigmaInj2 ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)) -i1 -d1 ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)) -i2 -d2 -lem)
+.
+
+-- A more direct simulatio of large eliminations for when there is no recursion
+NoConfusion : D ➔ D ➔ ★
+= λ d1: D. λ d2: D.
+  ∀ i1: Fin n. ∀ e1: Decode ·D (cs i1). { d1 ≃ inSig i1 e1 } ➾
+  ∀ i2: Fin n. ∀ e2: Decode ·D (cs i2). { d2 ≃ inSig i2 e2 } ➾
+  ι _: { i1 ≃ i2 }      ➾ { e1 ≃ e2 }
+     . Not ·{ i1 ≃ i2 } ➾ Bot
+.
+
+noConfusionC1
+: ∀ i1: Fin n. ∀ e1: Decode ·D (cs i1).
+  ∀ i2: Fin n. ∀ e2: Decode ·D (cs i2).
+  { i1 ≃ i2 } ➾ TpEq ·(NoConfusion (inSig i1 e1) (inSig i2 e2)) ·{ e1 ≃ e2 }
+= Λ i1. Λ e1. Λ i2. Λ e2. Λ eqi12.
+  intrTpEq
+    -(intrCast -(λ nc. (nc -i1 -e1 -β -i2 -e2 -β).1 -eqi12) -(λ _. β))
+    -(intrCast
+        -(λ eqe12. Λ i1'. Λ e1'. Λ eq1'. Λ i2'. Λ e2'. Λ eq2'.
+          [ Λ eqi12'.
+            ρ ς (snd' (inSigInj -i1 -e1 -i1' -e1' -eq1'))
+          - ρ ς (snd' (inSigInj -i2 -e2 -i2' -e2' -eq2'))
+          - eqe12
+          , Λ neqi12'.
+            botCast -(neqi12'
+              ( ρ ς (fst' (inSigInj -i1 -e1 -i1' -e1' -eq1'))
+              - ρ eqi12
+              - fst' (inSigInj -i2 -e2 -i2' -e2' -eq2')))
+              ·Top β{| eqe12 |}
+          ])
+        -(λ _. β))
+.
+
+noConfusionC2
+: ∀ i1: Fin n. ∀ e1: Decode ·D (cs i1).
+  ∀ i2: Fin n. ∀ e2: Decode ·D (cs i2).
+  Not ·{ i1 ≃ i2 } ➾ TpEq ·(NoConfusion (inSig i1 e1) (inSig i2 e2)) ·Bot
+= Λ i1. Λ e1. Λ i2. Λ e2. Λ neqi12.
+  intrTpEq
+    -(intrCast -(λ nc. (nc -i1 -e1 -β -i2 -e2 -β).2 -neqi12) -(λ _. β))
+    -(intrCast
+       -(λ b. elimBot b)
+       -(λ _. β))
+.
+
+noConfusion : Π d1: D. Π d2: D. { d1 ≃ d2 } ➾ NoConfusion d1 d2
+= caseD ·(λ x: D. Π d2: D. { x ≃ d2 } ➾ NoConfusion x d2)
+    λ xs.
+      σ (unrollSig ·D -n -cs xs)
+      @(λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)).
+          [d1 = in (rollSig -n -cs x)]
+        - Π d2: D. { d1 ≃ d2 } ➾ NoConfusion d1 d2) {
+      | sigma i1 e1 ➔
+        [d1 = in (rollSig -n -cs (sigma ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)) i1 e1))]
+      - caseD ·(λ x: D. { d1 ≃ x } ➾ NoConfusion d1 x)
+          λ xs2.
+          σ (unrollSig ·D -n -cs xs2)
+          @(λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode ·D (cs i)).
+              [d2 = in (rollSig -n -cs x)]
+            - { d1 ≃ d2 } ➾ NoConfusion d1 d2) {
+          | sigma i2 e2 ➔ Λ eq12.
+            Λ i1'. Λ e1'. Λ eq1'. Λ i2'. Λ e2'. Λ eq2'.
+            σ (eqFin -n i1 i2) {
+            | decYes eqi12 ➔
+              [ Λ eq12'.
+                  ρ ς (snd' (inSigInj -i1 -e1 -i1' -e1' -eq1'))
+                  - ρ (snd' (inSigInj -i1 -e1 -i2 -e2 -eq12))
+                  - ρ (snd' (inSigInj -i2 -e2 -i2' -e2' -eq2'))
+                  - β
+              , Λ neq12'.
+                botCast -(neq12'
+                  (  ρ ς (fst' (inSigInj -i1 -e1 -i1' -e1' -eq1'))
+                   - ρ (fst' (inSigInj -i1 -e1 -i2 -e2 -eq12))
+                   - ρ (fst' (inSigInj -i2 -e2 -i2' -e2' -eq2'))
+                   - β))
+                  ·Top β ]
+            | decNo neq12 ➔
+              [ Λ eq12'.
+                elimBot (neq12
+                  ( ρ (fst' (inSigInj -i1 -e1 -i1' -e1' -eq1'))
+                  - ρ eq12'
+                  - ρ ς (fst' (inSigInj -i2 -e2 -i2' -e2' -eq2'))
+                  - β))
+              , Λ neq12'.
+                botCast -(neq12
+                  ( ρ (fst' (inSigInj -i1 -e1 -i2 -e2 -eq12))
+                  - β{| λ pf. neq12 λ x. x |}))
+                  ·Top β{| neq12 λ x. x |}
+              ]
+            }
+          }
+      }
+.

@@ -1,0 +1,68 @@
+module large-elim/concrete/universe/nat .
+
+import lib .
+
+import descr ·Unit .
+import decode ·Unit ·(λ _: Unit. Unit) .
+
+descrNatArgs : Fin num2 ➔ Descr
+= fvcons -num1 (constD unit)
+  (fvcons -zero (indD (constD unit))
+  (fvnil ·Descr)) .
+
+descrNat : Descr
+= sigD num2 descrNatArgs .
+
+import udata ·Unit ·(λ _: Unit. Unit) descrNat .
+
+UNat : ★ = D .
+
+uzeroSig : Sig ·UNat
+= encSig ·UNat -num2 -descrNatArgs (zeroFin -num1)
+    (encConst ·UNat -unit unit) .
+
+usuccSig : UNat ➔ Sig ·UNat
+= λ n. encSig ·UNat -num2 -descrNatArgs (fin1 -zero)
+         (encInd ·UNat -(constD unit) n
+           (encConst ·UNat -unit unit)) .
+
+uzero : UNat = in uzeroSig .
+usucc : UNat ➔ UNat
+= λ n. in (usuccSig n) .
+
+indUNat
+: ∀ P: UNat ➔ ★. P uzero ➔ (Π n: UNat. P n ➔ P (usucc n)) ➔ Π x: UNat. P x
+= Λ P. λ z. λ s.
+  induction ·P
+    Λ R. Λ c. λ ih. λ xs.
+      [xs' = (decBetaSigD ·R -num2 -descrNatArgs).1.1 xs]
+    - [c1 = (decBetaSigD ·R -num2 -descrNatArgs).2.1]
+    - σ xs'
+      @(λ x: Sigma ·(Fin num2) ·(λ i: Fin num2. Decode ·R (descrNatArgs i)).
+        P (in' -c (c1 x))){
+      | sigma b a ➔
+        σ b
+        @(λ n: Nat. λ i: Fin n. ∀ e1: { num2 ≃ n}. ∀ e2: { b ≃ i }.
+          [s = c1 (sigma (φ e2 - b {|i|}) (ρ ς e2 - a))]
+          - P (in' -c s)) {
+        | zeroFin -n' ➔ Λ e1. Λ e2.
+          [a' = (decBetaConstD ·R -unit).1.1 (χ - ρ ς e2 - a)]
+        - ρ (etaUnit a') - z
+        | succFin -n' i' ➔ Λ e1. Λ e2.
+          [e1' = succInj num1 n' e1]
+        - [i'' = convFin -n' -num1 -(ς e1') i']
+        - [a' = (decBetaIndD ·R -(constD unit)).1.1
+                  (χ - ρ ς (uniqueFin1 i'') - ρ ς e2 - a)]
+        - [c2 : Pair ·R ·(Decode ·R (constD unit)) ➔ Decode ·R (sigD num2 descrNatArgs)
+           = λ a. c1 (sigma (fin1 -zero) ((decBetaIndD ·R -(constD unit)).2.1 a))]
+        - ρ (uniqueFin1 i'')
+        - σ a'
+          @(λ x: Pair ·R ·(Decode ·R (constD unit)).
+            P (in' -c (c2 x))) {
+          | sigma d u ➔
+            ρ (etaUnit ((decBetaConstD ·R -unit).1.1 u))
+          - s (elimCast -c d) (ih d)
+          }
+        } -β -β
+      }
+.

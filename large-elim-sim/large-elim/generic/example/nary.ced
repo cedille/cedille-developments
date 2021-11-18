@@ -1,0 +1,97 @@
+import core .
+import nat .
+
+import ../algty ·NatF .
+
+module large-elim/generic/example/nary (T: ★) .
+
+NaryAlgTy : 𝒌AlgTy ·Nat
+= λ R: ★. λ c: Cast ·R ·Nat. λ Ih: R ➔ ★. λ xs: NatF ·R.
+  ι _: { xs ≃ zeroF } ➾ T
+     . ∀ n: R. { xs ≃ succF n } ➾ T ➔ Ih n
+.
+
+naryAlgTyZ
+: ∀ R: ★. ∀ c: Cast ·R ·Nat. ∀ Ih: R ➔ ★.
+  TpEq ·(NaryAlgTy ·R c ·Ih (zeroF ·R)) ·T
+= Λ R. Λ c. Λ Ih.
+  intrTpEq
+    -(intrCast -(λ f. f.1 -β) -(λ f. β))
+    -(intrCast
+        -(λ f.
+          [ Λ _. f , Λ n. Λ abs. botCast -(δ - abs) f ])
+        -(λ f. β))
+.
+
+naryAlgTyS
+: ∀ R: ★. ∀ c: Cast ·R ·Nat. ∀ Ih: R ➔ ★.
+  ∀ n: R. TpEq ·(NaryAlgTy ·R c ·Ih (succF n)) ·(T ➔ Ih n)
+= Λ R. Λ c. Λ Ih. Λ n.
+  intrTpEq
+    -(intrCast -(λ f. f.2 -n -β) -(λ f. β))
+    -(intrCast
+        -(λ f.
+          [ Λ abs. botCast -(δ - abs) f
+          , Λ n'. Λ eq. ρ ς (succFInj -n -n' -eq) - f ])
+        -(λ f. β))
+.
+
+naryCon : AlgTyCon ·Nat ·NaryAlgTy
+= Λ R1. Λ R2. Λ c1. Λ c2. Λ Ih1. Λ Ih2. λ ihEq. λ xs1. λ xs2. λ xsEq.
+  intrTpEq
+    -(intrCastI
+        -λ f.
+         σ xs1
+         @(λ x: NatF ·R1.
+           { x ≃ xs2 } ➾ Π f: NaryAlgTy ·R1 c1 ·Ih1 x.
+           ι b: NaryAlgTy ·R2 c2 ·Ih2 xs2. { f ≃ b }) {
+         | zeroF ➔ Λ xsZEq. λ f.
+           ρ ς xsZEq
+         - [ (naryAlgTyZ ·R2 -c2 ·Ih2).2.1
+               ((naryAlgTyZ ·R1 -c1 ·Ih1).1.1 f)
+           , β{| f |} ]
+         | succF n ➔ Λ xsSEq. λ f.
+           ρ ς xsSEq
+         - [ [ Λ abs. botCast -(δ - abs) f
+             , Λ n'. Λ eq.
+               [eq' = succFInj -n -n' -eq]
+             - λ t. (elimCast -(ihEq n n' eq').1) (f.2 -n -β t)]
+           , β{| f |} ]
+         } -xsEq f)
+    -(intrCastI
+        -λ f.
+         σ xs2
+         @(λ x: NatF ·R2.
+           { x ≃ xs1 } ➾ Π f: NaryAlgTy ·R2 c2 ·Ih2 x.
+           ι b: NaryAlgTy ·R1 c1 ·Ih1 xs1. { f ≃ b }) {
+         | zeroF ➔ Λ xsZEq. λ f.
+           ρ ς xsZEq
+         - [ (naryAlgTyZ ·R1 -c1 ·Ih1).2.1
+               ((naryAlgTyZ ·R2 -c2 ·Ih2).1.1 f)
+           , β{| f |} ]
+         | succF n ➔ Λ xsSEq. λ f.
+           ρ ς xsSEq
+         - [ [ Λ abs. botCast -(δ - abs) f
+             , Λ n'. Λ eq.
+               [eq' = ς (succFInj -n -n' -eq)]
+             - λ t. (elimCast -(ihEq n' n eq').2) (f.2 -n -β t)]
+           , β{| f |} ]
+         } -(ς xsEq) f)
+.
+
+import ../large ·NatF monoNatF ·NaryAlgTy -naryCon .
+
+Nary : Nat ➔ ★ = Large .
+
+naryZC : TpEq ·(Nary zero) ·T
+= tpEqTrans ·(Nary zero) ·(NaryAlgTy ·Nat (castRefl ·Nat) ·Nary (zeroF ·Nat)) ·T
+    -(largeInBeta -(zeroF ·Nat))
+    -(naryAlgTyZ ·Nat -(castRefl ·Nat) ·Nary)
+.
+
+narySC : ∀ n: Nat. TpEq ·(Nary (succ n)) ·(T ➔ Nary n)
+= Λ n.
+  tpEqTrans ·(Nary (succ n)) ·(NaryAlgTy ·Nat (castRefl ·Nat) ·Nary (succF n)) ·(T ➔ Nary n)
+    -(largeInBeta -(succF n))
+    -(naryAlgTyS ·Nat -(castRefl ·Nat) ·Nary -n)
+.

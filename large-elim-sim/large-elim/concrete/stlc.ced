@@ -1,0 +1,164 @@
+-- -*- case-fold-search: nil; -*-
+import lib .
+
+module large-elim/concrete/stlc (Ctx:Nat ➔ ★).
+
+data StlcTy : ★ =
+| baseTy : Nat ➔ StlcTy
+| arrowTy : StlcTy ➔ StlcTy ➔ StlcTy.
+
+baseTyProj : StlcTy ➔ Nat
+= λ c. σ c {
+  | baseTy n ➔ n
+  | arrowTy _ _ ➔ zero
+  }.
+
+arrowTyProj1 : StlcTy ➔ StlcTy
+= λ c. σ c {
+  | baseTy n ➔ baseTy n
+  | arrowTy u _ ➔ u
+  }.
+
+arrowTyProj2 : StlcTy ➔ StlcTy
+= λ c. σ c {
+  | baseTy n ➔ baseTy n
+  | arrowTy _ v ➔ v
+  }.
+
+baseTyInj : Π n1:Nat. Π n2:Nat. {baseTy n1 ≃ baseTy n2} ➔ {n1 ≃ n2}
+= λ n1. λ n2. λ e. ρ e @ x. {baseTyProj x ≃ baseTyProj (baseTy n2)} - β.
+
+arrowTyInj1 : Π c1:StlcTy. Π c2:StlcTy. Π k1:StlcTy. Π k2:StlcTy. {arrowTy c1 c2 ≃ arrowTy k1 k2} ➔ {c1 ≃ k1}
+= λ c1. λ c2. λ k1. λ k2. λ e. ρ e @ x. {arrowTyProj1 x ≃ arrowTyProj1 (arrowTy k1 k2)} - β.
+
+arrowTyInj2 : Π c1:StlcTy. Π c2:StlcTy. Π k1:StlcTy. Π k2:StlcTy. {arrowTy c1 c2 ≃ arrowTy k1 k2} ➔ {c2 ≃ k2}
+= λ c1. λ c2. λ k1. λ k2. λ e. ρ e @ x. {arrowTyProj2 x ≃ arrowTyProj2 (arrowTy k1 k2)} - β.
+
+data StlcR : StlcTy ➔ ★ ➔ ★ =
+| baseR : ∀ n:Nat. ∀ X:★. TpEq ·X ·(Ctx n) ➾ StlcR (baseTy n) ·X
+| arrowR : ∀ A1:★. ∀ c1:StlcTy. ∀ A2:★. ∀ c2:StlcTy. StlcR c1 ·A1 ➔ StlcR c2 ·A2 ➔
+  ∀ X:★. TpEq ·X ·(A1 ➔ A2) ➾ StlcR (arrowTy c1 c2) ·X.
+
+Stlc : StlcTy ➔ ★
+= λ c:StlcTy. ∀ X:★. StlcR c ·X ➾ X.
+
+stlcRFun : ∀ c:StlcTy. ∀ A1:★. StlcR c ·A1 ➔ ∀ A2:★. StlcR c ·A2 ➔ TpEq ·A1 ·A2
+= Λ c. Λ A1. λ s1. μ rec. s1 {
+  | baseR -n ·X -teq ➔ Λ A2. λ s2. σ s2
+    @ λ j:StlcTy. λ J:★. λ _:StlcR j·J. {j ≃ baseTy n} ➾ TpEq·X·J {
+    | baseR -n' ·Y -teq' ➔ Λ d. [e:{n ≃ n'} = baseTyInj n n' (ς d)]
+    - tpEqTrans ·X ·(Ctx n) ·Y -teq -(tpEqSym -(ρ e - teq'))
+    | arrowR ·_ -_ ·_ -_ _ _ ·_ -_ ➔ Λ d. δ - d
+    } -β
+  | arrowR ·B1 -k1 ·B2 -k2 u v ·X -teq ➔ Λ A2. λ s2. σ s2
+    @ λ j:StlcTy. λ J:★. λ _:StlcR j·J. {j ≃ arrowTy k1 k2} ➾ TpEq·X·J {
+    | baseR -_ ·_ -_ ➔ Λ d. δ - d
+    | arrowR ·C1 -c1 ·C2 -c2 u' v' ·Y -teq' ➔ Λ d.
+      [e1:{c1 ≃ k1} = arrowTyInj1 c1 c2 k1 k2 d]
+      - [e2:{c2 ≃ k2} = arrowTyInj2 c1 c2 k1 k2 d]
+      - [ih1 = rec -c1 ·B1 (ρ e1 - u) ·C1 u']
+      - [ih2 = rec -c2 ·B2 (ρ e2 - v) ·C2 v']
+      - [lemma : TpEq·(B1 ➔ B2)·(C1 ➔ C2)
+        = intrTpEq
+            -(intrCast
+              -(λ b. λ c. cast -ih2.1 (b (cast -ih1.2 c))) 
+              -(λ _. β))
+            -(intrCast
+              -(λ c. λ b. cast -ih2.2 (c (cast -ih1.1 b)))
+              -(λ _. β))]
+      - tpEqTrans ·X ·(B1 ➔ B2) ·Y
+        -teq
+        -(tpEqTrans ·(B1 ➔ B2) ·(C1 ➔ C2) ·Y
+          -lemma
+          -(tpEqSym -teq'))
+    } -β
+  }.
+
+baseEq : ∀ n:Nat. TpEq ·(Stlc (baseTy n)) ·(Ctx n)
+= Λ n. intrTpEq
+  -(intrCast
+    -(λ x. x·(Ctx n) -(baseR -n ·(Ctx n) -(tpEqRefl ·(Ctx n))))
+    -(λ _. β))
+  -(intrCast
+    -(λ x. Λ X. Λ c. [teq = stlcRFun -(baseTy n) (baseR -n -(tpEqRefl ·(Ctx n))) c] - cast -teq.1 x)
+    -(λ _. β)).
+
+base : ∀ n:Nat. StlcR (baseTy n) ·(Stlc (baseTy n))
+= Λ n. baseR -n ·(Stlc (baseTy n)) -(baseEq -n).
+
+arrowEq : ∀ c1:StlcTy. ∀ c2:StlcTy.
+  StlcR c1 ·(Stlc c1) ➔ StlcR c2 ·(Stlc c2)
+  ➔ TpEq ·(Stlc (arrowTy c1 c2)) ·(Stlc c1 ➔ Stlc c2)
+= Λ c1. Λ c2. λ r1. λ r2. [eq = arrowR -c1 -c2 r1 r2 -(tpEqRefl ·(Stlc c1 ➔ Stlc c2))] - intrTpEq
+  -(intrCast
+    -(λ f. f ·(Stlc c1 ➔ Stlc c2) -eq)
+    -(λ _. β))
+  -(intrCast
+    -(λ f. Λ X. Λ k. [teq = stlcRFun -(arrowTy c1 c2) eq k] - cast ·(Stlc c1 ➔ Stlc c2) ·X -teq.1 f)
+    -(λ _. β)).
+
+arrow : ∀ c1:StlcTy. ∀ c2:StlcTy.
+  StlcR c1 ·(Stlc c1) ➔ StlcR c2 ·(Stlc c2)
+  ➔ StlcR (arrowTy c1 c2) ·(Stlc (arrowTy c1 c2))
+= Λ c1. Λ c2. λ r1. λ r2. arrowR -c1 -c2 r1 r2
+  ·(Stlc (arrowTy c1 c2))
+  -(arrowEq -c1 -c2 r1 r2).
+
+stlcMk : Π c:StlcTy. StlcR c ·(Stlc c)
+= λ c. μ rec. c {
+  | baseTy n ➔ base -n
+  | arrowTy c1 c2 ➔ [k1 = to/StlcTy -isType/rec c1]
+  - [k2 = to/StlcTy -isType/rec c2]
+  - arrow -k1 -k2 (rec c1) (rec c2)
+  }.
+
+baseBeta : ∀ n:Nat. TpEq ·(Stlc (baseTy n)) ·(Ctx n)
+= baseEq.
+
+rollBase : ∀ n: Nat. Ctx n ➔ Stlc (baseTy n)
+= Λ n. (baseBeta -n).2.1 .
+
+unrollBase : ∀ n: Nat. Stlc (baseTy n) ➔ Ctx n
+= Λ n. (baseBeta -n).1.1 .
+
+arrowBeta : ∀ c1:StlcTy. ∀ c2:StlcTy.
+  TpEq ·(Stlc (arrowTy c1 c2)) ·(Stlc c1 ➔ Stlc c2)
+= Λ c1. Λ c2.
+  [z = arrowR -c1 -c2 (stlcMk c1) (stlcMk c2) -(tpEqRefl ·(Stlc c1 ➔ Stlc c2))]
+  - intrTpEq
+    -(intrCast
+      -(λ f. f·(Stlc c1 ➔ Stlc c2) -z)
+      -(λ _. β))
+    -(intrCast
+      -(λ f. Λ X. Λ k. [lemma = stlcRFun -(arrowTy c1 c2) ·(Stlc c1 ➔ Stlc c2) z ·X k]
+        - cast -lemma.1 f)
+      -(λ _. β)).
+
+rollArrow : ∀ c1: StlcTy. ∀ c2: StlcTy. (Stlc c1 ➔ Stlc c2) ➔ Stlc (arrowTy c1 c2)
+= Λ c1. Λ c2. (arrowBeta -c1 -c2).2.1 .
+
+unrollArrow : ∀ c1: StlcTy. ∀ c2: StlcTy. Stlc (arrowTy c1 c2) ➔ (Stlc c1 ➔ Stlc c2)
+= Λ c1. Λ c2. (arrowBeta -c1 -c2).1.1 .
+
+decide : Π c:StlcTy. (∀ n:Nat. Sum ·(Ctx n) ·(Not·(Ctx n))) ➔ Sum ·(Stlc c) ·(Not·(Stlc c))
+= λ c. λ dctx. μ rec. c {
+  | baseTy n ➔ σ (dctx -n) {
+    | in1 x ➔ in1 (rollBase -n x)
+    | in2 x ➔ in2 (λ d. (x (unrollBase -n d)))
+    }
+  | arrowTy a b ➔ [aβ = to/StlcTy -isType/rec a]
+  - [bβ = to/StlcTy -isType/rec b]
+  - [a' = rec a] - [b' = rec b]
+  - σ a' {
+    | in1 x ➔ σ b' {
+      | in1 y ➔ in1 (rollArrow -aβ -bβ (λ z. y))
+      | in2 y ➔ in2 (λ d. [boom = (unrollArrow -aβ -bβ d) x] - explode (y boom))
+      }
+    | in2 x ➔ σ b' {
+      | in1 y ➔ in1 (rollArrow -aβ -bβ (λ z. y))
+      | in2 y ➔ in1 (rollArrow -aβ -bβ (λ z. explode (x z)))
+      }
+    }
+  }.
+
+

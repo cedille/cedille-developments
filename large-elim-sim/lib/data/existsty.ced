@@ -1,0 +1,22 @@
+import ../stdcore.
+
+module data/existsty.
+
+data ExistsTyI (I: ★) (P: (I ➔ ★) ➔ ★): ★
+= packTyI : ∀ E: I ➔ ★. P ·E ➔ ExistsTyI .
+
+data ExistsTy (P: ★ ➔ ★): ★
+= packTy : ∀ E: ★. P ·E ➔ ExistsTy .
+
+unpackTyI : ∀ I: ★. ∀ P: (I ➔ ★) ➔ ★. ExistsTyI ·I ·P ➔ ∀ X: ★. (∀ E: I ➔ ★. P ·E ➔ X) ➔ X
+= Λ I. Λ P. λ e. Λ X. λ f.
+  μ' e {
+  | packTyI ·E pf ➔ f pf
+  }.
+
+unpackTy : ∀ P: ★ ➔ ★. ExistsTy ·P ➔ ∀ X: ★. (∀ E: ★. P ·E ➔ X) ➔ X
+= Λ P. λ e. Λ X. λ f.
+  μ' e {
+  | packTy ·E pf ➔ f pf
+  } .
+

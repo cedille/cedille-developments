@@ -1,0 +1,46 @@
+module large-elim/concrete/universe/descr (C: ★) .
+
+import lib .
+
+data Descr : ★
+= constD : C ➔ Descr
+| sigD   : Π n: Nat. (Fin n ➔ Descr) ➔ Descr
+| indD   : Descr ➔ Descr .
+
+constDInj
+: ∀ c1: C. ∀ c2: C. { constD c1 ≃ constD c2 } ➾ { c1 ≃ c2 }
+= Λ c1. Λ c2. Λ eq.
+  [unConst : Top
+   = β{| λ x. σ x { constD c ➔ c | sigD _ _ ➔ β | indD _ ➔ β }|}]
+- ρ eq @x.{ unConst x ≃ unConst (constD c2) }
+- β .
+
+sigDInj1
+: ∀ n1: Nat. ∀ f1: Fin n1 ➔ Descr.
+  ∀ n2: Nat. ∀ f2: Fin n2 ➔ Descr.
+  { sigD n1 f1 ≃ sigD n2 f2 } ➾ { n1 ≃ n2 }
+= Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
+  [unSig : Top
+   = β{| λ x. σ x { constD _ ➔ β | sigD n f ➔ n | indD _ ➔ β }|}]
+- ρ eq @x.{ unSig x ≃ unSig (sigD n2 f2) }
+- β .
+
+sigDInj2
+: ∀ n1: Nat. ∀ f1: Fin n1 ➔ Descr.
+  ∀ n2: Nat. ∀ f2: Fin n2 ➔ Descr.
+  { sigD n1 f1 ≃ sigD n2 f2 } ➾ { f1 ≃ f2 }
+= Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
+  [unSig : Top
+   = β{| λ x. σ x { constD _ ➔ β | sigD n f ➔ f | indD d ➔ β }|}]
+- ρ eq @x.{ unSig x ≃ unSig (sigD n2 f2) }
+- β
+.
+
+indDInj
+: ∀ d1: Descr. ∀ d2: Descr.
+  { indD d1 ≃ indD d2 } ➾ { d1 ≃ d2 }
+= Λ d1. Λ d2. Λ eq.
+  [unInd : Top
+   = β{| λ x. σ x { constD _ ➔ β | sigD _ _ ➔ β | indD d ➔ d } |}]
+- ρ eq @x.{ unInd x ≃ unInd (indD d2) } - β
+.

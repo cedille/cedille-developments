@@ -1,0 +1,143 @@
+module large-elim/concrete/universe/decode (C: ★) (I: C ➔ ★) (A: ★) .
+
+import lib .
+import descr ·C .
+import decodeR ·C ·I ·A .
+
+Decode : Descr ➔ ★
+= λ e: Descr. ∀ X: ★. DecodeR e ·X ➾ X .
+
+decConstEq : ∀ c: C. TpEq ·(I c) ·(Decode (constD c))
+= Λ c.
+  intrTpEq
+    -(intrCast
+       -(λ x. Λ X. Λ d.
+         elimCast -(decodeFn -(constD c) (decConstR' -c) d).1 x)
+       -(λ x. β))
+    -(intrCast
+       -(λ x. x -(decConstR' -c))
+       -(λ x. β))
+.
+
+decConst : ∀ c: C. DecodeR (constD c) ·(Decode (constD c))
+= Λ c. decodeWd -(constD c) (decConstR' -c) -(decConstEq -c) .
+
+decSigEq
+: ∀ n: Nat. ∀ f: Fin n ➔ Descr.
+  (Π i: Fin n. DecodeR (f i) ·(Decode (f i))) ➔
+  TpEq ·(Sigma ·(Fin n) ·(λ i: Fin n. Decode (f i)))
+    ·(Decode (sigD n f))
+= Λ n. Λ f. λ ds.
+  intrTpEq
+    -(intrCast
+       -(λ x. Λ X. Λ d.
+         elimCast ·(Sigma ·(Fin n) ·(λ i: Fin n. Decode (f i))) ·X
+           -(decodeFn -(sigD n f)
+              (decSigR' -n -f ·(λ i: Fin n. Decode (f i)) ds) d).1
+           x)
+       -(λ x. β))
+    -(intrCast
+       -(λ x. x -(decSigR' -n -f ·(λ i: Fin n. Decode (f i)) ds))
+       -(λ x. β)) .
+
+decSig
+: ∀ n: Nat. ∀ f: Fin n ➔ Descr.
+  (Π i: Fin n. DecodeR (f i) ·(Decode (f i))) ➔
+  DecodeR (sigD n f) ·(Decode (sigD n f))
+= Λ n. Λ f. λ ds.
+  decodeWd -(sigD n f)
+    (decSigR' -n -f ·(λ i: Fin n. Decode (f i)) ds)
+    -(decSigEq -n -f ds) .
+
+decIndEq
+: ∀ e: Descr. DecodeR e ·(Decode e) ➔
+  TpEq ·(Pair ·A ·(Decode e)) ·(Decode (indD e))
+= Λ e. λ d.
+  intrTpEq
+    -(intrCast
+       -(λ x. Λ X. Λ d'.
+         elimCast ·(Pair ·A ·(Decode e)) ·X
+           -(decodeFn -(indD e) (decIndR' -e d) d').1
+           x)
+       -(λ x. β))
+    -(intrCast
+       -(λ x. x -(decIndR' -e d))
+       -(λ x. β))
+.
+
+decInd
+: ∀ e: Descr. DecodeR e ·(Decode e) ➔ DecodeR (indD e) ·(Decode (indD e))
+= Λ e. λ d.
+  decodeWd -(indD e) (decIndR' -e d) -(decIndEq -e d) .
+
+decodeTot : Π e: Descr. DecodeR e ·(Decode e)
+= λ e.
+  μ decode. e {
+  | constD c ➔ decConst -c
+  | sigD n f ➔
+    [f' : Fin n ➔ Descr = λ i. to/Descr -isType/decode (f i)]
+  - decSig -n -f' (λ i. decode (f i))
+  | indD e ➔
+    decInd -(to/Descr -isType/decode e) (decode e)
+  } .
+
+decBetaConstD : ∀ c: C. TpEq ·(Decode (constD c)) ·(I c)
+= Λ c. tpEqSym -(decConstEq -c) .
+
+decBetaSigD
+: ∀ n: Nat. ∀ f: Fin n ➔ Descr.
+  TpEq ·(Decode (sigD n f)) ·(Sigma ·(Fin n) ·(λ i: Fin n. Decode (f i)))
+= Λ n. Λ f.
+  tpEqSym -(decSigEq -n -f (λ i. decodeTot (f i))) .
+
+decBetaIndD : ∀ e: Descr. TpEq ·(Decode (indD e)) ·(Pair ·A ·(Decode e))
+= Λ e. tpEqSym -(decIndEq -e (decodeTot e)) .
+
+encConst : ∀ c: C. I c ➔ Decode (constD c)
+= Λ c. λ x. (decBetaConstD -c).2.1 x .
+
+encSig
+: ∀ n: Nat. ∀ f: Fin n ➔ Descr.
+  Sigma ·(Fin n) ·(λ i: Fin n. Decode (f i)) ➔
+  Decode (sigD n f)
+= Λ n. Λ f. λ p. (decBetaSigD -n -f).2.1 p .
+
+encInd : ∀ e: Descr. A ➔ Decode e ➔ Decode (indD e)
+= Λ e. λ a. λ x. (decBetaIndD -e).2.1 (sigma a x) .
+
+indDecode
+: ∀ P: Π e: Descr. Decode e ➔ ★.
+  (Π c: C. Π x: I c. P (constD c) (encConst -c x)) ➔
+  (∀ n: Nat. Π f: Fin n ➔ Descr.
+   Π i: Fin n. Π d: Decode (f i).
+   P (f i) d ➔ P (sigD n f) (encSig -n -f (sigma i d))) ➔
+  (Π e: Descr. Π a: A. Π d: Decode e.
+   P e d ➔ P (indD e) (encInd -e a d)) ➔
+  Π e: Descr. Π d: Decode e. P e d
+= Λ P. λ u. λ s. λ n. λ e.
+  μ ind. e {
+  | constD c ➔ λ d.
+    u c ((decBetaConstD -c).1.1 d)
+  | sigD n f ➔ λ p.
+    [f' : Fin n ➔ Descr = λ i. to/Descr -isType/ind (f i)]
+  - [p' = (decBetaSigD -n -f').1.1 p]
+  - σ p'
+    @(λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode (f' i)).
+      P (sigD n f') ((decBetaSigD -n -f').2.1 x)) {
+    | sigma i d' ➔
+      [ih = ind (f i) d']
+    - s -n f' i d' ih
+    }
+  | indD e ➔ λ p.
+    [e' = to/Descr -isType/ind e]
+  - [p' = (decBetaIndD -e').1.1 p]
+  - σ p'
+    @(λ x: Pair ·A ·(Decode e'). P (indD e') ((decBetaIndD -e').2.1 x)) {
+    | sigma a d' ➔
+      [ih = ind e d']
+    - n e' a d' ih
+    }
+  }
+.
+
+

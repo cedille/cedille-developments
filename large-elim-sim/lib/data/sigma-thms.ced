@@ -1,0 +1,35 @@
+module data.sigma-thms.
+
+import sigma.
+
+sigmaInj1
+: ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ a1: A1. ∀ b1: B1 a1.
+  ∀ A2: ★. ∀ B2: A2 ➔ ★. ∀ a2: A2. ∀ b2: B2 a2.
+  { sigma a1 b1 ≃ sigma a2 b2 } ➾ { a1 ≃ a2 }
+= Λ A1. Λ B1. Λ a1. Λ b1. Λ A2. Λ B2. Λ a2. Λ b2. Λ eq.
+  ρ eq @x.{ fst x ≃ fst (sigma a2 b2) } - β
+.
+
+sigmaInj2
+: ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ a1: A1. ∀ b1: B1 a1.
+  ∀ A2: ★. ∀ B2: A2 ➔ ★. ∀ a2: A2. ∀ b2: B2 a2.
+  { sigma a1 b1 ≃ sigma a2 b2 } ➾ { b1 ≃ b2 }
+= Λ A1. Λ B1. Λ a1. Λ b1. Λ A2. Λ B2. Λ a2. Λ b2. Λ eq.
+  ρ eq @x.{ snd x ≃ snd (sigma a2 b2) } - β
+.
+
+fstCong : ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ A2: ★. ∀ B2: A2 ➔ ★.
+    Π s1: Sigma ·A1 ·B1. Π s2: Sigma ·A2 ·B2.
+    {s1 ≃ s2} ➾ {fst s1 ≃ fst s2}
+  = Λ _. Λ _. Λ _. Λ _. λ s1. λ s2. Λ eq. ρ eq @ x . { fst x ≃ fst s2 } - β.
+
+sndCong : ∀ A1: ★. ∀ B1: A1 ➔ ★. ∀ A2: ★. ∀ B2: A2 ➔ ★.
+    Π s1: Sigma ·A1 ·B1. Π s2: Sigma ·A2 ·B2.
+    {s1 ≃ s2} ➾ {snd s1 ≃ snd s2}
+  = Λ _. Λ _. Λ _. Λ _. λ s1. λ s2. Λ eq. ρ eq @ x . { snd x ≃ snd s2 } - β.
+
+_ : ∀ A: ★. ∀ B: A ➔ ★. Π p1: Sigma ·A ·B. Π p2: Sigma ·A ·B. {p1 ≃ p2} ➔ {snd p1 ≃ snd p2}
+= Λ A. Λ B. λ p1. λ p2. σ p1 {
+  | sigma a1 b1 ➔ σ p2 {
+  | sigma a2 b2 ➔ λ eq. ρ eq - β
+  }}.

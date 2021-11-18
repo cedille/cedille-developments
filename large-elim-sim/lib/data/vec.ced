@@ -1,0 +1,112 @@
+module vec.
+
+import nat.
+import nat-thms.
+import bool.
+import ../core/cast.
+import ../core/tpeq .
+import ../core/bot.
+
+data Vec (A: ★): Nat ➔ ★ =
+  | vnil: Vec zero
+  | vcons: ∀ n: Nat. A ➔ Vec n ➔ Vec (succ n).
+
+vhead : ∀ A: ★. ∀ m: Nat. Vec ·A (succ m) ➔ A
+= Λ A. Λ m. λ xs. σ xs @λ i: Nat. λ x: Vec ·A i. {i ≃ succ m} ➾ A {
+  | vnil ➔ Λ eq. δ - eq
+  | vcons -i x xs ➔ Λ _. x
+  } -β.
+
+vtail : ∀ A: ★. ∀ m: Nat. Vec ·A (succ m) ➔ Vec ·A m
+= Λ A. Λ m. λ xs. σ xs @(λ i: Nat. λ x: Vec ·A i. {i ≃ succ m} ➾ Vec ·A (pred i)) {
+  | vnil ➔ Λ eq. δ - eq
+  | vcons -m x xs ➔ Λ _. xs
+  } -β.
+
+vappend : ∀ A: ★. ∀ m: Nat. ∀ n: Nat. Vec ·A m ➔ Vec ·A n ➔ Vec ·A (add m n)
+= Λ A. Λ m. Λ n. λ xs. λ ys. μ vappendYs. xs @(λ i: Nat. λ x: Vec ·A i. Vec ·A (add i n)) {
+| vnil ➔ ys
+| vcons -m x xs ➔ vcons -(add m n) x (vappendYs -m xs)
+}.
+
+vmap : ∀ A: ★. ∀ B: ★. (A ➔ B) ➔ ∀ n: Nat. Vec ·A n ➔ Vec ·B n
+= Λ A. Λ B. λ f. Λ n. λ xs. μ vmap. xs @(λ i: Nat. λ _: Vec ·A i. Vec ·B i) {
+  | vnil ➔ vnil ·B
+  | vcons -n x xs ➔ vcons -n (f x) (vmap -n xs)
+  }.
+
+vlookup : ∀ A: ★. ∀ n: Nat. Vec ·A n ➔ Π m: Nat. Lt m n ➾ A
+= Λ A. Λ n. λ xs. μ look. xs @(λ i: Nat. λ _: Vec ·A i. Π m: Nat. Lt m i ➾ A) {
+  | vnil ➔ λ m. Λ eq. δ - eq
+  | vcons -n x xs ➔ λ m. σ m @(λ x: Nat. Lt x (succ n) ➾ A) {
+    | zero ➔ Λ _. x
+    | succ m ➔ Λ eq. look -n xs m -eq
+    }
+  }.
+
+vconcat : ∀ A: ★. ∀ m: Nat. ∀ n: Nat. Vec ·(Vec ·A n) m ➔ Vec ·A (mult n m)
+= Λ A. Λ m. Λ n. λ xss. μ vconcat. xss {
+  | vnil ➔ vnil ·A
+  | vcons -m xs xss ➔ vappend -n -(mult n m) xs (vconcat -m xss)
+  }.
+
+vcount : ∀ A: ★. ∀ n: Nat. (A ➔ Bool) ➔ Vec ·A n ➔ Nat
+= Λ A. Λ n. λ pred. λ xs. μ vcount. xs {
+  | vnil ➔ zero
+  | vcons -n x xs ➔ ite (pred x) (succ (vcount -n xs)) (vcount -n xs)
+  }.
+
+vfilter : ∀ A: ★. ∀ n: Nat. Π p: (A ➔ Bool). Π xs: Vec ·A n. Vec ·A (vcount -n p xs)
+= Λ A. Λ n. λ pred. λ xs. μ vfilter.
+xs @(λ m: Nat. λ xs': Vec ·A m. Vec ·A (vcount -m pred xs')){
+  | vnil ➔ vnil ·A
+  | vcons -n x xs ➔
+    [xs' = to/Vec -isType/vfilter -n xs]
+    - σ (pred x) @(λ x: Bool. Vec ·A (ite x (succ (vcount -n pred xs')) (vcount -n pred xs'))) {
+    | tt ➔ vcons -(vcount -n pred xs') x (vfilter -n xs)
+    | ff ➔ vfilter -n xs
+    }
+  }.
+
+vrepeat : ∀ A: ★. Π n: Nat. A ➔ Vec ·A n
+= Λ A. λ n.
+  μ vrepeat. n {
+  | zero ➔ λ a. vnil ·A
+  | succ n' ➔ λ a. vcons -(to/Nat -isType/vrepeat n') a (vrepeat n' a)
+  }.
+
+vapp : ∀ A: ★. ∀ B: ★. ∀ n: Nat. Vec ·(A ➔ B) n ➔ Vec ·A n ➔ Vec ·B n
+= Λ A. Λ B. Λ n. λ fs.
+  μ vapp. fs {
+  | vnil ➔ λ _. vnil ·B
+  | vcons -n' f fs' ➔ λ xs.
+    σ xs @(λ i: Nat. λ x: Vec ·A i. { i ≃ succ n' } ➾ Vec ·B i) {
+    | vnil ➔ Λ abs. δ - abs
+    | vcons -m' a as' ➔ Λ eq.
+      [eq' : { m' ≃ n' } = succInj m' n' eq]
+    - vcons -m' (f a) (vapp -m' (ρ eq' - fs') as')
+    } -β
+  } .
+
+-- Vec and Id
+vCastMap : ∀ n: Nat. CastMap ·(λ X: ★. Vec ·X n)
+= Λ n. Λ A. Λ B. Λ c.
+  [f : Vec ·A n ➔ Vec ·B n
+    = λ xs. μ f. xs {
+      | vnil ➔ vnil ·B
+      | vcons -n x xs ➔ vcons -n (elimCast -c x) (f -n xs)
+      }]
+- [pf : Π xs: Vec ·A n. {f xs ≃ xs}
+    = λ xs. μ pf. xs {
+      | vnil ➔ β
+      | vcons -n x xs ➔ ρ (pf -n xs) @ z . {vcons x z ≃ vcons x xs} - β
+      }]
+- intrCast -f -pf.
+
+vcastMap : ∀ n: Nat. ∀ A: ★. ∀ B: ★. Cast ·A ·B ➾ Vec ·A n ➔ Vec ·B n
+= Λ n. Λ A. Λ B. Λ c. castMap -(vCastMap -n) -c.
+
+_ : {vcastMap ≃ λ x. x} = β.
+
+vecRespTpEq : ∀ n: Nat. RespTpEq ·(λ A: ★. Vec ·A n)
+= Λ n. monoRespTpEq -(vCastMap -n) .

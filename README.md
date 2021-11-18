@@ -34,6 +34,10 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Author: Christopher Jenkins, Aaron Stump, Larry Diehl
 
 ## [Zero-Cost Constructor Subtyping](constructor-subtyping)
-* Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
-* Venue: [IFL'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
-* Paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
+* author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
+* venue: [ifl'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
+* paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
+
+## [Simulating Large Eliminations in Cedille](large-elim-sim)
+* author: Christopher Jenkins, Andrew Marmaduke, Aaron Stump
+

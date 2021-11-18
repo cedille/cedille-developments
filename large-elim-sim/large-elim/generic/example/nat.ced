@@ -1,0 +1,30 @@
+import core .
+
+module large-elim/generic/example/nat .
+
+data NatF (R: ★): ★
+= zeroF : NatF
+| succF : R ➔ NatF .
+
+succFInj : ∀ R1: ★. ∀ r1: R1. ∀ R2: ★. ∀ r2: R2. { succF r1 ≃ succF r2 } ➾ { r1 ≃ r2 }
+= Λ R1. Λ r1. Λ R2. Λ r2. Λ eq.
+  [pred : Top = β{| λ n. σ n { zeroF ➔ β | succF n' ➔ n' }|}]
+- ρ eq @x.{ pred x ≃ pred (succF r2) } - β
+.
+
+monoNatF : Mono ·NatF
+= Λ R1. Λ R2. Λ c.
+  intrCastI
+    -(λ n. σ n {
+      | zeroF ➔
+        [ zeroF ·R2 , β{| zeroF |}]
+      | succF r ➔
+        [ succF (elimCast -c r) , β{| succF r|} ]
+      })
+.
+
+import ../encoding ·NatF -monoNatF .
+
+Nat : ★ = IndM .
+zero : Nat = inM (zeroF ·Nat) .
+succ : Nat ➔ Nat = λ n. inM (succF n) .

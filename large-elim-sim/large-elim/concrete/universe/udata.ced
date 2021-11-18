@@ -1,0 +1,47 @@
+import descr as descr .
+
+module large-elim/concrete/universe/udata (C: ★) (I: C ➔ ★) (e: descr.Descr ·C) .
+
+import lib .
+import descr ·C .
+import decodeR ·C ·I .
+import decode ·C ·I .
+
+Sig : ★ ➔ ★
+= λ X: ★. Decode ·X e .
+
+monoSig : Mono ·Sig
+= Λ X1. Λ X2. Λ c.
+  intrCastI
+    -(indDecode ·X1 ·(λ e: Descr. λ x: Decode ·X1 e. ι b: Decode ·X2 e. { x ≃ b })
+        (λ c. λ x.
+         [ encConst ·X2 -c x , β{| encConst x |} ])
+        (Λ n. λ f. λ i. λ x. λ ih.
+         [ encSig ·X2 -n -f (sigma i (φ ς ih.2 - ih.1 {| x |}))
+         , β{| encSig (sigma i x) |} ])
+        (λ e. λ x1. λ x. λ ih.
+         [ encInd ·X2 -e (elimCast -c x1) (φ ς ih.2 - ih.1 {| x |})
+         , β{| encInd x1 x |} ])
+        e).
+
+import encoding as encoding ·Sig -monoSig .
+
+D : ★ = encoding.D .
+
+in : Sig ·D ➔ D = encoding.inM .
+in' : ∀ R: ★. Cast ·R ·D ➾ Sig ·R ➔ D
+= encoding.inM' .
+out : D ➔ Sig ·D = encoding.outM .
+
+induction
+: ∀ P: D ➔ ★.
+  (∀ R: ★. ∀ c: Cast ·R ·D. Π ih: Π x: R. P (elimCast -c x).
+   Π xs: Sig ·R. P (in' -c xs)) ➔
+  Π x: D. P x
+= encoding.inductionM .
+
+lamebk1 : Π xs : Sig ·D. { out (in xs) ≃ xs }
+= encoding.lambek1 .
+
+lambek2 : Π x: D. { in (out x) ≃ x }
+= encoding.lambek2 .

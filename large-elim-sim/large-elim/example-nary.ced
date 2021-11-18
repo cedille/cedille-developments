@@ -1,0 +1,21 @@
+module large-elim/example-nary (T: ★) .
+
+import lib .
+
+data NaryR : Nat ➔ ★ ➔ ★
+= naryRZ : NaryR zero ·T
+| naryRS : ∀ n: Nat. ∀ Y: ★. NaryR n ·Y ➔ NaryR (succ n) ·(T ➔ Y) .
+
+extr0' : ∀ x: Nat. { x ≃ zero } ➾ ∀ N: ★. NaryR x ·N ➔ N ➔ T
+{-
+-- extr0' : ∀ x: Nat. { x ≃ zero } ➾ ∀ N: ★. NaryR x ·N ➔ N ➔ T
+-- extr0' -.zero -eqX ·N naryRZ x = x
+-- extr0' -.(succ n) -eqX ·N (naryRS n ·X r) x = δ - eqX
+-}
+= Λ x. Λ eqx. Λ N. λ r.
+  σ r @λ x: Nat. λ X: ★. λ _: NaryR x ·X. { x ≃ zero } ➾ X ➔ T {
+  | naryRZ ➔ Λ _. λ x. x
+  | naryRS -n ·Y r' ➔ Λ abs. δ - abs
+  } -eqx .
+
+extr0 = extr0' -zero -β .
