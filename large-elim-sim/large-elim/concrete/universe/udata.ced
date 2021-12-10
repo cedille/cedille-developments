@@ -1,9 +1,9 @@
 import descr as descr .
 
-module large-elim/concrete/universe/udata (C: ★) (I: C ➔ ★) (e: descr.Descr ·C) .
+module large-elim/concrete/universe/udata (C: ★) (I: C ➔ ★) (e: descr.Descr ·C ·I) .
 
 import lib .
-import descr ·C .
+import descr ·C ·I.
 import decodeR ·C ·I .
 import decode ·C ·I .
 
@@ -13,16 +13,19 @@ Sig : ★ ➔ ★
 monoSig : Mono ·Sig
 = Λ X1. Λ X2. Λ c.
   intrCastI
-    -(indDecode ·X1 ·(λ e: Descr. λ x: Decode ·X1 e. ι b: Decode ·X2 e. { x ≃ b })
-        (λ c. λ x.
-         [ encConst ·X2 -c x , β{| encConst x |} ])
-        (Λ n. λ f. λ i. λ x. λ ih.
-         [ encSig ·X2 -n -f (sigma i (φ ς ih.2 - ih.1 {| x |}))
-         , β{| encSig (sigma i x) |} ])
-        (λ e. λ x1. λ x. λ ih.
-         [ encInd ·X2 -e (elimCast -c x1) (φ ς ih.2 - ih.1 {| x |})
-         , β{| encInd x1 x |} ])
-        e).
+   -(indDecode ·X1 ·(λ d: Descr. λ e: Decode ·X1 d. ι b: Decode ·X2 d. { e ≃ b })
+       (λ r. [ rollId (cast -c r) , β{|r|} ])
+       ([ rollConst unit , β{|unit|} ])
+       (λ d1. λ e1. λ ih1. λ d2. λ e2. λ ih2.
+        [ rollPair ·X2 -d1 -d2
+            (sigma (φ ς ih1.2 - ih1.1 {|e1|}) (φ ς ih2.2 - ih2.1 {|e2|}))
+        , β{|sigma e1 e2|} ])
+       (λ c. λ f. λ i. λ e. λ ih.
+        [ rollSum ·X2 -c -f (sigma i (φ ς ih.2 - ih.1 {|e|})) , β{|sigma i e|} ])
+       (λ c. λ f. λ i. λ e. λ ih.
+        [ rollSig ·X2 -c -f (sigma i (φ ς ih.2 - ih.1 {|e|})) , β{|sigma i e|} ])
+       e)
+.
 
 import encoding as encoding ·Sig -monoSig .
 
@@ -45,3 +48,9 @@ lamebk1 : Π xs : Sig ·D. { out (in xs) ≃ xs }
 
 lambek2 : Π x: D. { in (out x) ≃ x }
 = encoding.lambek2 .
+
+caseD
+: ∀ P: D ➔ ★. (Π xs: Sig ·D. P (in xs)) ➔ Π x: D. P x
+= Λ P. λ c. λ x.
+  ρ ς (lambek2 x) - c (out x)
+.

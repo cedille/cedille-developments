@@ -1,0 +1,128 @@
+import lib .
+
+module large-elim/concrete/zipwith/tvfold (F: ★ ➔ ★ ➔ ★) {rF: RespTpEq2 ·F} .
+
+import tyvec .
+import foldr ·F -rF.
+
+TVFold : Π n: Nat. 𝒌TyVec (succ n) ➔ ★
+= λ n: Nat. λ L: 𝒌TyVec (succ n). ∀ X: ★. TVFoldR n ·L ·X ➾ X .
+
+tvFoldSubst
+: ∀ n: Nat. ∀ L1: 𝒌TyVec (succ n). ∀ L2: 𝒌TyVec (succ n).
+  TVEq (succ n) ·L1 ·L2 ➾ TpEq ·(TVFold n ·L1) ·(TVFold n ·L2)
+= Λ n. Λ L1. Λ L2. Λ eqL12.
+  intrTpEq
+    -(intrCast
+        -(λ x. Λ X. Λ fr.
+          x -((tvFoldRSubst -n ·L2 ·X -n -(tvSym -(succ n) -eqL12)).1 fr))
+        -(λ x. β))
+    -(intrCast
+        -(λ x. Λ X. Λ fr.
+          x -((tvFoldRSubst -n ·L1 ·X -n -eqL12).1 fr))
+        -(λ x. β))
+.
+
+tvFoldZEq : ∀ L: 𝒌TyVec num1. TpEq ·(TVHead zero ·L) ·(TVFold zero ·L)
+= Λ L.
+  intrTpEq
+    -(intrCast
+        -(λ x. Λ X. Λ fr. tpEq2 -(tvFoldRUnique -zero fr (tvFoldRZ' ·L)) x)
+        -(λ x. β))
+    -(intrCast
+        -(λ x. x -(tvFoldRZ' ·L))
+        -(λ x. β))
+.
+
+tvFoldZ : ∀ L: 𝒌TyVec num1. TVFoldR zero ·L ·(TVFold zero ·L)
+= Λ L. tvFoldRResp -zero (tvFoldRZ' ·L) -(tvFoldZEq ·L) .
+
+tvFoldSEq
+: ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n).
+  TVFoldR n ·(TVTail (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L)) ➔
+  TpEq ·(F ·(TVHead (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L))) ·(TVFold (succ n) ·L)
+= Λ n. Λ L. λ fr.
+  [fr' = tvFoldRS' -n ·L fr]
+- intrTpEq
+    -(intrCast
+        -(λ x. Λ X. Λ fr''.
+          tpEq1 -(tvFoldRUnique -(succ n) ·L fr' fr'') x)
+        -(λ x. β))
+    -(intrCast
+        -(λ x. x -(tvFoldRS' -n fr))
+        -(λ x. β)).
+
+tvFoldS
+: ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n). TVFoldR n ·(TVTail (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L)) ➔
+  TVFoldR (succ n) ·L ·(TVFold (succ n) ·L)
+= Λ n. Λ L. λ fr.
+  tvFoldRResp -(succ n) ·L
+    (tvFoldRS' -n fr) ·(TVFold (succ n) ·L) -(tvFoldSEq -n ·L fr) .
+
+tvFoldREx : Π n: Nat. ∀ L: 𝒌TyVec (succ n). TVFoldR n ·L ·(TVFold n ·L)
+= λ n.
+  μ mk. n {
+  | zero ➔ tvFoldZ
+  | succ n' ➔ Λ L.
+    [n'' = to/Nat -isType/mk n']
+  - tvFoldS -n'' ·L (mk n' ·(TVTail (succ n'') ·L))
+  } .
+
+tvFoldZC
+: ∀ L: 𝒌TyVec num1. TpEq ·(TVFold zero ·L) ·(TVHead zero ·L)
+= Λ L. tpEqSym -(tvFoldZEq ·L) .
+
+unrollTVFoldZ : ∀ L: 𝒌TyVec num1. TVFold zero ·L ➔ TVHead zero ·L
+= Λ L. tpEq1 -(tvFoldZC ·L) .
+
+rollTVFoldZC : ∀ L: 𝒌TyVec num1. TVHead zero ·L ➔ TVFold zero ·L
+= Λ L. tpEq2 -(tvFoldZC ·L) .
+
+tvFoldSC
+: ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n).
+  TpEq ·(TVFold (succ n) ·L) ·(F ·(TVHead (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L)))
+= Λ n. Λ L. sym -(tvFoldSEq -n (tvFoldREx n ·(TVTail (succ n) ·L))) .
+
+unrollTVFoldS
+: ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n).
+  TVFold (succ n) ·L ➔ F ·(TVHead (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L))
+= Λ n. Λ L. tpEq1 -(tvFoldSC -n ·L) .
+
+rollTVFoldS
+: ∀ n: Nat. ∀ L: 𝒌TyVec (add num2 n).
+  F ·(TVHead (succ n) ·L) ·(TVFold n ·(TVTail (succ n) ·L)) ➔ TVFold (succ n) ·L
+= Λ n. Λ L. tpEq2 -(tvFoldSC -n ·L) .
+
+tvFoldZC'
+: ∀ X: ★. TpEq ·(TVFold zero ·(TVCons zero ·X ·TVNil)) ·X
+= Λ X. trans -(tvFoldZC ·(TVCons zero ·X ·TVNil)) -(tvConsZC -zero ·X ·TVNil)
+.
+
+unrollTVFoldZ'
+: ∀ X: ★. TVFold zero ·(TVCons zero ·X ·TVNil) ➔ X
+= Λ X. tpEq1 -(tvFoldZC' ·X) .
+
+rollTVFoldZ'
+: ∀ X: ★. X ➔ TVFold zero ·(TVCons zero ·X ·TVNil)
+= Λ X. tpEq2 -(tvFoldZC' ·X) .
+
+tvFoldSC'
+: ∀ n: Nat. ∀ X: ★. ∀ L: 𝒌TyVec (succ n).
+  TpEq ·(TVFold (succ n) ·(TVCons (succ n) ·X ·L)) ·(F ·X ·(TVFold n ·L))
+= Λ n. Λ X. Λ L.
+  trans
+   -(tvFoldSC -n ·(TVCons (succ n) ·X ·L))
+   -(rF -(tvConsZC -(succ n) ·X ·L)
+      -(tvFoldSubst -n ·(TVTail (succ n) ·(TVCons (succ n) ·X ·L)) ·L
+         -(tvTailConsC -(succ n) ·X ·L)))
+.
+
+unrollTVFoldS'
+: ∀ n: Nat. ∀ X: ★. ∀ L: 𝒌TyVec (succ n).
+  TVFold (succ n) ·(TVCons (succ n) ·X ·L) ➔ F ·X ·(TVFold n ·L)
+= Λ n. Λ X. Λ L. tpEq1 -(tvFoldSC' -n ·X ·L) .
+
+rollTVFoldS'
+: ∀ n: Nat. ∀ X: ★. ∀ L: 𝒌TyVec (succ n).
+  F ·X ·(TVFold n ·L) ➔ TVFold (succ n) ·(TVCons (succ n) ·X ·L)
+= Λ n. Λ X. Λ L. tpEq2 -(tvFoldSC' -n ·X ·L) .

@@ -1,46 +1,50 @@
-module large-elim/concrete/universe/descr (C: ★) .
+module large-elim/concrete/universe/descr (C: ★) (I : C ➔ ★) .
 
 import lib .
 
 data Descr : ★
-= constD : C ➔ Descr
+= idD    : Descr
+| constD : Descr
+| pairD  : Descr ➔ Descr ➔ Descr
+| sumD   : Π c: C. (I c ➔ Descr) ➔ Descr
 | sigD   : Π n: Nat. (Fin n ➔ Descr) ➔ Descr
-| indD   : Descr ➔ Descr .
-
-constDInj
-: ∀ c1: C. ∀ c2: C. { constD c1 ≃ constD c2 } ➾ { c1 ≃ c2 }
-= Λ c1. Λ c2. Λ eq.
-  [unConst : Top
-   = β{| λ x. σ x { constD c ➔ c | sigD _ _ ➔ β | indD _ ➔ β }|}]
-- ρ eq @x.{ unConst x ≃ unConst (constD c2) }
-- β .
-
-sigDInj1
-: ∀ n1: Nat. ∀ f1: Fin n1 ➔ Descr.
-  ∀ n2: Nat. ∀ f2: Fin n2 ➔ Descr.
-  { sigD n1 f1 ≃ sigD n2 f2 } ➾ { n1 ≃ n2 }
-= Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
-  [unSig : Top
-   = β{| λ x. σ x { constD _ ➔ β | sigD n f ➔ n | indD _ ➔ β }|}]
-- ρ eq @x.{ unSig x ≃ unSig (sigD n2 f2) }
-- β .
-
-sigDInj2
-: ∀ n1: Nat. ∀ f1: Fin n1 ➔ Descr.
-  ∀ n2: Nat. ∀ f2: Fin n2 ➔ Descr.
-  { sigD n1 f1 ≃ sigD n2 f2 } ➾ { f1 ≃ f2 }
-= Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
-  [unSig : Top
-   = β{| λ x. σ x { constD _ ➔ β | sigD n f ➔ f | indD d ➔ β }|}]
-- ρ eq @x.{ unSig x ≃ unSig (sigD n2 f2) }
-- β
 .
 
-indDInj
-: ∀ d1: Descr. ∀ d2: Descr.
-  { indD d1 ≃ indD d2 } ➾ { d1 ≃ d2 }
-= Λ d1. Λ d2. Λ eq.
-  [unInd : Top
-   = β{| λ x. σ x { constD _ ➔ β | sigD _ _ ➔ β | indD d ➔ d } |}]
-- ρ eq @x.{ unInd x ≃ unInd (indD d2) } - β
+pairDInj
+: ∀ d11: Descr. ∀ d12: Descr. ∀ d21: Descr. ∀ d22: Descr.
+  { pairD d11 d12 ≃ pairD d21 d22 } ➾ Pair ·{ d11 ≃ d21 } ·{ d12 ≃ d22 }
+= Λ d11. Λ d12. Λ d21. Λ d22. Λ eq.
+  [unpairD : Top
+   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD d1 d2 ➔ sigma d1 d2 | sumD _ _ ➔ β | sigD _ _ ➔ β}|}]
+- sigma
+    ( ρ eq @ x.{ fst (unpairD x) ≃ fst (unpairD (pairD d21 d22))}
+    - β)
+    ( ρ eq @ x.{ snd (unpairD x) ≃ snd (unpairD (pairD d21 d22))}
+    - β)
+.
+
+sumDInj
+: ∀ c1: C. ∀ f1: I c1 ➔ Descr. ∀ c2: C. ∀ f2: I c2 ➔ Descr.
+  { sumD c1 f1 ≃ sumD c2 f2 } ➾ Pair ·{ c1 ≃ c2 } ·{ f1 ≃ f2 }
+= Λ c1. Λ f1. Λ c2. Λ f2. Λ eq.
+  [unsumD : Top
+   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD c f ➔ sigma c f | sigD _ _ ➔ β}|}]
+- sigma
+    ( ρ eq @ x.{ fst (unsumD x) ≃ fst (unsumD (sumD c2 f2))}
+    - β)
+    ( ρ eq @ x.{ snd (unsumD x) ≃ snd (unsumD (sumD c2 f2))}
+    - β)
+.
+
+sigDInj
+: ∀ n1: Nat. ∀ f1: Fin n1 ➔ Descr. ∀ n2: Nat. ∀ f2: Fin n2 ➔ Descr.
+  { sigD n1 f1 ≃ sigD n2 f2 } ➾ Pair ·{ n1 ≃ n2 } ·{ f1 ≃ f2 }
+= Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
+  [unsigD : Top
+   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD _ _ ➔ β | sigD n f ➔ sigma n f}|}]
+- sigma
+    ( ρ eq @ x.{ fst (unsigD x) ≃ fst (unsigD (sigD n2 f2))}
+    - β)
+    ( ρ eq @ x.{ snd (unsigD x) ≃ snd (unsigD (sigD n2 f2))}
+    - β)
 .
