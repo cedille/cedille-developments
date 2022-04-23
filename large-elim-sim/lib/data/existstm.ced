@@ -1,4 +1,4 @@
-import ../stdcore.
+import ../../core.
 
 module data/existstm.
 

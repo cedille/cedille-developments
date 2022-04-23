@@ -209,26 +209,26 @@ indDecode
   μ indDecode. d {
   | idD ➔ λ e. id (unrollId e)
   | constD ➔ λ e.
-    σ (unrollConst e) @λ x: Unit. P constD (rollConst x) {
+    μ' (unrollConst e) @λ x: Unit. P constD (rollConst x) {
     | unit ➔ co
     }
   | pairD d1 d2 ➔ λ e.
     [d1' = to/Descr -isType/indDecode d1]
   - [d2' = to/Descr -isType/indDecode d2]
-  - σ (unrollPair -d1' -d2' e)
+  - μ' (unrollPair -d1' -d2' e)
     @λ x: Pair ·(Decode d1') ·(Decode d2'). P (pairD d1' d2') (rollPair -d1' -d2' x) {
     | sigma e1 e2 ➔
       pa d1' e1 (indDecode d1 e1) d2' e2 (indDecode d2 e2)
     }
   | sumD c f ➔ λ e.
     [f' : I c ➔ Descr = λ i. to/Descr -isType/indDecode (f i)]
-  - σ (unrollSum -c -f' e) @λ x: Sigma ·(I c) ·(λ i: I c. Decode (f' i)). P (sumD c f') (rollSum -c -f' x) {
+  - μ' (unrollSum -c -f' e) @λ x: Sigma ·(I c) ·(λ i: I c. Decode (f' i)). P (sumD c f') (rollSum -c -f' x) {
     | sigma i e ➔
       su c f' i e (indDecode (f i) e)
     }
   | sigD n f ➔ λ e.
     [f' : Fin n ➔ Descr = λ i. to/Descr -isType/indDecode (f i)]
-  - σ (unrollSig -n -f' e) @λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode (f' i)). P (sigD n f') (rollSig -n -f' x) {
+  - μ' (unrollSig -n -f' e) @λ x: Sigma ·(Fin n) ·(λ i: Fin n. Decode (f' i)). P (sigD n f') (rollSig -n -f' x) {
     | sigma i e ➔
       si n f' i e (indDecode (f i) e)
     }

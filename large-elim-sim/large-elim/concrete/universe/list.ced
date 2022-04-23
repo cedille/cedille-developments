@@ -34,25 +34,25 @@ caseUList
 : ∀ P: UList ➔ ★. P unil ➔ (Π hd: A. Π tl: UList. P tl ➔ P (ucons hd tl)) ➔ Π xs: UList. P xs
 = Λ P. λ ni. λ co.
   induction ·P
-    Λ R. Λ c. λ ih. λ xs.
-    σ (unrollUList xs)
+    (Λ R. Λ c. λ ih. λ xs.
+    μ' (unrollUList xs)
     @(λ x: Sigma ·(Fin num2) ·(λ i: Fin num2. Decode ·R (descrListArgs i)). P (in' -c (rollUList x))) {
     | sigma i e ➔
-      σ i
+      μ' i
       @(λ n: Nat. λ x: Fin n. ∀ eq: { n ≃ num2 }.
           [x' : Fin num2 = ρ ς eq - x]
         - Π e: Decode ·R (descrListArgs x'). P (in' -c (rollUList (sigma x' e)))) {
       | zeroFin -n' ➔ Λ _. λ e.
-        σ (unrollConst e) @λ x: Unit. P (in' -c (rollUList (sigma (zeroFin -num1) (rollConst x)))) {
+        μ' (unrollConst e) @λ x: Unit. P (in' -c (rollUList (sigma (zeroFin -num1) (rollConst x)))) {
         | unit ➔ ni
         }
       | succFin -n' i' ➔ Λ eqSN. λ e.
-        σ i'
+        μ' i'
         @λ n: Nat. λ x: Fin n. ∀ eq: { n ≃ num1 }.
            [x' : Fin num2 = succFin -num1 (ρ ς eq - x)]
          - Π e: Decode ·R (descrListArgs x'). P (in' -c (rollUList (sigma x' e))) {
         | zeroFin -n'' ➔ Λ _. λ e.
-          σ (unrollSum -unit -(λ _. idD) e)
+          μ' (unrollSum -unit -(λ _. idD) e)
           @λ x: Sigma ·A ·(λ _: A. Decode ·R idD). P (in' -c (rollUList (sigma (fin1 -zero) (rollSum -unit -(λ _. idD) x)))) {
           | sigma hd tl ➔
             [tl' : R = unrollId tl]
@@ -62,5 +62,5 @@ caseUList
           explode (emptyFin (ρ (succInj zero n'' (ς eqSSN)) - i''))
         } -(succInj n' num1 eqSN) e
       } -β e
-    }
+    })
 .

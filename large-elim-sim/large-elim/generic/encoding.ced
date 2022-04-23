@@ -40,7 +40,7 @@ inIndM : F ·IndM ➔ IndM
 
 Lift : (IndM ➔ ★) ➔ FixM ➔ ★
 = λ P: IndM ➔ ★. λ x: FixM.
-  Sigma ·(View ·IndM β{| x |}) ·(λ v: View ·IndM β{| x |}. P (elimView β{| x |} -v)) .
+  Sigma ·(View ·IndM β{ x }) ·(λ v: View ·IndM β{ x }. P (elimView β{ x } -v)) .
 
 -- Definitions one should use
 
@@ -54,22 +54,24 @@ inductionM : ∀ P: IndM ➔ ★. PrfAlgM ·IndM ·P inM ➔ Π x: IndM. P x
 = Λ P. λ a. λ x.
   snd
     (x.2 ·(Lift ·P)
-       Λ R. Λ c. λ ih. λ xs.
+       (Λ R. Λ c. λ ih. λ xs.
          [c' : Cast ·R ·IndM
           = intrCast
-              -(λ x. elimView β{| x |} -(fst (ih x)))
+              -(λ x. elimView β{ x } -(fst (ih x)))
               -(λ x. β)]
        - sigma
-           (intrView ·IndM β{| inFixM xs |} -(inM' -c' xs) -β)
-           (a ·R -c' (λ r. snd (ih r)) xs))
+           (intrView ·IndM β{ inFixM xs } -(inM' -c' xs) -β)
+           (a ·R -c' (λ r. snd (ih r)) xs)))
 .
 
+indM = inductionM .
+
 outM : IndM ➔ F ·IndM
-= inductionM ·(λ _: IndM. F ·IndM) Λ R. Λ c. λ _. elimCast -(mono -c) .
+= inductionM ·(λ _: IndM. F ·IndM) (Λ R. Λ c. λ _. elimCast -(mono -c)) .
 
 
 -- some proofs
 lambek1 : Π xs: F ·IndM. { outM (inFixM xs) ≃ xs } = λ _. β .
 lambek2 : Π x: IndM. { inFixM (outM x) ≃ x}
 = inductionM ·(λ x: IndM. { inFixM (outM x) ≃ x })
-    Λ R. Λ c. λ ih. λ xs. β .
+    (Λ R. Λ c. λ ih. λ xs. β) .

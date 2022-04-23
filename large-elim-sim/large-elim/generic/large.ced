@@ -19,7 +19,7 @@ foldRUnique : ∀ x: IndM. ∀ I1: ★. FoldR x ·I1 ➔ ∀ I2: ★. FoldR x ·
 = Λ x. Λ I1. λ itr.
   μ foldRUnique. itr {
   | foldRIn ·R1 -c1 -xs1 ·X1 itrs1 ·I1' -tpeq1 ➔ Λ I2. λ itr2.
-    σ itr2 @(λ x: IndM. λ I2: ★. λ _: FoldR x ·I2. { x ≃ inM xs1 } ➾ TpEq ·I1' ·I2) {
+    μ' itr2 @(λ x: IndM. λ I2: ★. λ _: FoldR x ·I2. { x ≃ inM xs1 } ➾ TpEq ·I1' ·I2) {
     | foldRIn ·R2 -c2 -xs2 ·X2 itrs2 ·I2' -tpeq2 ➔ Λ eq.
       [eq' : { xs2 ≃ xs1 } = ρ eq @x.{ outM x ≃ outM (inM xs1 )} - β]
     - [ih : Π r1: R1. Π r2: R2. { r1 ≃ r2 } ➔ TpEq ·(X1 r1) ·(X2 r2)
@@ -37,7 +37,7 @@ foldRUnique : ∀ x: IndM. ∀ I1: ★. FoldR x ·I1 ➔ ∀ I2: ★. FoldR x ·
 
 foldRResp : ∀ x: IndM. ∀ I1: ★. FoldR x ·I1 ➔ ∀ I2: ★. TpEq ·I1 ·I2 ➾ FoldR x ·I2
 = Λ x. Λ I1. λ itr1.
-  σ itr1 {
+  μ' itr1 {
   | foldRIn ·R -c -xs ·X itrs ·I -tpeq ➔ Λ I2. Λ tpeq'.
     foldRIn ·R -c -xs ·X itrs ·I2
       -(tpEqTrans ·I2 ·I ·(A ·R c ·X xs)
@@ -80,15 +80,42 @@ foldIn
 
 foldREx : Π x: IndM. FoldR x ·(Fold x)
 = inductionM ·(λ x: IndM. FoldR x ·(Fold x))
-    Λ R. Λ c. λ ih. λ xs. foldIn ·R -c ih -xs
+    (Λ R. Λ c. λ ih. λ xs. foldIn ·R -c ih -xs)
 .
 
+
+foldInBeta'
+: ∀ R: ★. ∀ c: Cast ·R ·IndM. ∀ xs: F ·R.
+  TpEq ·(Fold (inM' -c xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
+= Λ R. Λ c. Λ xs.
+  {eq : TpEq ·(Fold (inM' -c xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
+   = foldInEq -c (λ x. foldREx (cast -c x)) -xs}
+- intrTpEq -eq.1 -eq.2 .
 
 foldInBeta : ∀ xs: F ·IndM. TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
 = Λ xs.
   {eq : TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
    = foldInEq -(castRefl ·IndM) foldREx -xs}
 - intrTpEq -eq.1 -eq.2 .
+
+foldExt
+: ∀ H: IndM ➔ ★.
+  (∀ R: ★. ∀ c: Cast ·R ·IndM. Π xs: F ·R.
+  TpEq ·(H (inM' -c xs)) ·(A ·R c ·(λ x: R. H (cast -c x)) xs))
+  ➔ Π x: IndM. TpEq ·(H x) ·(Fold x)
+= Λ H. λ hom.
+  inductionM ·(λ x: IndM. TpEq ·(H x) ·(Fold x))
+    (Λ R. Λ c. λ ih. λ xs.
+    trans ·(H (inM' -c xs)) ·(A ·R c ·(λ x: R. H (cast -c x)) xs) ·(Fold (inM' -c xs))
+      -(hom -c xs)
+      -(sym
+         -(trans ·(Fold (inM' -c xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
+            -(foldInBeta' -c -xs)
+            -(cA -c -c
+               ·(λ x: R. Fold (cast -c x)) ·(λ x: R. H (cast -c x))
+               (λ x1. λ x2. λ xEq. ρ xEq - sym -(ih x2))
+               xs xs β))))
+.
 
 rollFold : ∀ xs: F ·IndM. A ·IndM (castRefl ·IndM) ·Fold xs ➔ Fold (inM xs)
 = Λ xs. (foldInBeta -xs).2.1 .

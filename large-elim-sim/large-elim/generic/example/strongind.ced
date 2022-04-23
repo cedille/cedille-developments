@@ -1,0 +1,85 @@
+import core .
+import lib/data/sigma .
+import nat  .
+
+import ../algty ·NatF .
+import ../encoding ·NatF -monoNatF .
+
+module large-elim/generic/example/strongind (P : Nat ➔ ★) .
+
+StrongIndAlg : 𝒌AlgTy ·Nat
+= λ R: ★. λ c: Cast ·R ·Nat. λ Ih: R ➔ ★. λ xs: NatF ·R.
+  ι _: { xs ≃ zeroF } ➾ P (inM' -c (zeroF ·R))
+     . ∀ n: R. { xs ≃ succF n } ➾
+       Pair ·(P (inM' -c (succF n))) ·(Ih n) .
+
+strongindZ
+: ∀ R: ★. ∀ c: Cast ·R ·Nat. ∀ Ih: R ➔ ★.
+  TpEq ·(StrongIndAlg ·R c ·Ih (zeroF ·R)) ·(P (inM' -c (zeroF ·R)))
+= Λ R. Λ c. Λ Ih.
+  intrTpEq
+   -(intrCast -(λ f. f.1 -β) -(λ _. β))
+   -(intrCast -(λ f. [ Λ _. f , Λ _. Λ abs. botCast -(δ - abs) f ]) -(λ _. β)).
+
+strongindS
+: ∀ R: ★. ∀ c: Cast ·R ·Nat. ∀ Ih: R ➔ ★. ∀ n: R.
+  TpEq ·(StrongIndAlg ·R c ·Ih (succF n))
+       ·(Pair ·(P (inM' -c (succF n))) ·(Ih n))
+= Λ R. Λ c. Λ Ih. Λ n.
+  intrTpEq
+   -(intrCastI -(λ f. [ f.2 -n -β , β{ f }]))
+   -(intrCastI -(λ f.
+       [ [ Λ abs. botCast -(δ - abs) f
+         , Λ n1. Λ eqn.
+           ρ ς (succFInj -n -n1 -eqn)
+         - f ]
+       , β{ f } ])) .
+
+strongindCon : AlgTyCon ·Nat ·StrongIndAlg
+= Λ R1. Λ R2. Λ c1. Λ c2. Λ Ih1. Λ Ih2. λ ihEq. λ xs1. λ xs2. λ xsEq.
+  intrTpEq
+   -(intrCastI -(λ f.
+       μ' xs1
+       @(λ x: NatF ·R1. { x ≃ xs2 } ➾
+         Π f: StrongIndAlg ·R1 c1 ·Ih1 x. ι g: StrongIndAlg ·R2 c2 ·Ih2 xs2. { f ≃ g }) {
+         | zeroF ➔ Λ xs2eq. λ f'.
+           ρ ς xs2eq
+         - [ (strongindZ ·R2 -c2 ·Ih2).2.1
+                ((strongindZ ·R1 -c1 ·Ih1).1.1 f')
+           , β{ f' } ]
+         | succF n ➔ Λ xs2eq. λ f'.
+           ρ ς xs2eq
+         - [ [ Λ abs. botCast -(δ - abs) f'
+             , Λ n'. Λ snEq.
+               [nEq = succFInj -n -n' -snEq]
+             - (pairRespTpEq 
+                 -(  χ (TpEq ·(P (inM' -c1 (succF n))) ·(P (inM' -c2 (succF n'))))
+                   - ρ nEq - tpEqRefl ·(P (inM' -c2 (succF n'))))
+                 -(ihEq n n' nEq)).1.1
+                  ((strongindS -c1 ·Ih1 -n).1.1 f') ]
+           , β{ f' } ]
+         } -xsEq f))
+   -(intrCastI -(λ f.
+       μ' xs2
+       @(λ x: NatF ·R2. { x ≃ xs1 } ➾
+         Π f: StrongIndAlg ·R2 c2 ·Ih2 x.
+         ι g: StrongIndAlg ·R1 c1 ·Ih1 xs1. { f ≃ g }) {
+       | zeroF ➔ Λ xsZeq. λ f.
+         ρ ς xsZeq
+       - [ (strongindZ ·R1 -c1 ·Ih1).2.1
+             ((strongindZ ·R2 -c2 ·Ih2).1.1 f)
+         , β{ f } ]
+       | succF n ➔ Λ xsSeq. λ f.
+         ρ ς xsSeq
+       - [ [ Λ abs. botCast -(δ - abs) f
+           , Λ n1. Λ eqSn.
+             [eqn = succFInj -n -n1 -eqSn]
+           - (pairRespTpEq
+               ·(P (inM' -c1 (succF n1))) ·(Ih1 n1)
+               ·(P (inM' -c2 (succF n)))  ·(Ih2 n)
+               -(ρ eqn - refl ·(P (inM' -c1 (succF n1))))
+               -(ihEq n1 n (ς eqn))).2.1
+               ((strongindS -c2 ·Ih2 -n).1.1 f) ]
+         , β{ f } ]
+       } -(ς xsEq) f))
+.

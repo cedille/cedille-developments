@@ -20,17 +20,17 @@ fin4 : ∀ n: Nat. Fin (add num5 n)
 = Λ n. succFin -(add num4 n) (fin3 -n) .
 
 emptyFin : Fin zero ➔ Bot
-= λ i. σ i @(λ n: Nat. λ x: Fin n. { n ≃ zero } ➾ Bot) {
+= λ i. μ' i @(λ n: Nat. λ x: Fin n. { n ≃ zero } ➾ Bot) {
        | zeroFin -n ➔ Λ abs. δ - abs
        | succFin -n j ➔ Λ abs. δ - abs
        } -β .
 
 uniqueFin1 : Π i: Fin num1. { i ≃ zeroFin }
 = λ i.
-  σ i @(λ n: Nat. λ i: Fin n. { n ≃ num1 } ➾ { i ≃ zeroFin }) {
+  μ' i @(λ n: Nat. λ i: Fin n. { n ≃ num1 } ➾ { i ≃ zeroFin }) {
   | zeroFin -n ➔ Λ _. β
   | succFin -n i' ➔
-    σ i' {
+    μ' i' {
     | zeroFin -n' ➔ Λ abs. δ - abs
     | succFin -n' i'' ➔ Λ abs. δ - abs
     }
@@ -55,15 +55,15 @@ weakenFin : ∀ n: Nat. Cast ·(Fin n) ·(Fin (succ n))
     -(λ n.
       μ weak. n {
       | zeroFin -n' ➔
-        [ zeroFin -(succ n') , β{| zeroFin |} ]
+        [ zeroFin -(succ n') , β{ zeroFin } ]
       | succFin -n' i' ➔
         [ih = weak -n' i']
-      - [ succFin -(succ n') ih.1 , ρ ih.2 - β{| succFin ih |} ]
+      - [ succFin -(succ n') ih.1 , ρ ih.2 - β{ succFin ih } ]
       }) .
 
 predFin : ∀ n: Nat. Fin n ➔ Fin n
 = Λ n. λ i.
-  σ i {
+  μ' i {
   | zeroFin -n' ➔ zeroFin -n'
   | succFin -n' i' ➔ (weakenFin -n').1 i'
   } .
@@ -80,24 +80,24 @@ eqFin : ∀ n: Nat. Π i1: Fin n. Π i2: Fin n. Decision ·{ i1 ≃ i2 }
 = Λ n. λ i1.
   μ eqFin. i1 {
   | zeroFin -n' ➔ λ i2.
-    σ i2 {
+    μ' i2 {
     | zeroFin -n'' ➔
       decYes β
     | succFin -n'' i2' ➔
-      decNo λ abs. δ - abs
+      decNo (λ abs. δ - abs)
     }
   | succFin -n' i1' ➔ λ i2.
-    σ i2 @(λ n: Nat. λ i: Fin n. { n ≃ succ n' } ➾ Decision ·{ succFin i1' ≃ i }) {
+    μ' i2 @(λ n: Nat. λ i: Fin n. { n ≃ succ n' } ➾ Decision ·{ succFin i1' ≃ i }) {
     | zeroFin -n'' ➔ Λ _.
-      decNo λ abs. δ - abs
+      decNo (λ abs. δ - abs)
     | succFin -n'' i2' ➔ Λ eqsn.
       [eqn : { n'' ≃ n' } = succInj n'' n' eqsn]
     - [ih = eqFin -n' i1' (ρ ς eqn - i2')]
-    - σ ih {
+    - μ' ih {
       | decYes y ➔ decYes (ρ y - β)
       | decNo  n ➔
-        decNo λ eq.
-          n (ρ eq @x.{ predFin x ≃ predFin (succFin i2') } - β)
+        decNo (λ eq.
+          n (ρ eq @x.{ predFin x ≃ predFin (succFin i2') } - β))
       }
     } -β
   }
@@ -114,7 +114,7 @@ fvnil : ∀ A: ★. FVec ·A zero
 
 fvcons : ∀ A: ★. ∀ n: Nat. A ➔ FVec ·A n ➔ FVec ·A (succ n)
 = Λ A. Λ n. λ hd. λ tl. λ i.
-  σ i @(λ n: Nat. λ x: Fin n. FVec ·A (pred n) ➔ A) {
+  μ' i @(λ n: Nat. λ x: Fin n. FVec ·A (pred n) ➔ A) {
   | zeroFin -n' ➔ λ _. hd
   | succFin -n' i' ➔ λ tl. tl i'
   } tl .

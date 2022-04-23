@@ -69,18 +69,18 @@ appendIdUnique : ∀ A: ★. Π xs: List ·A. Π ys: List ·A. {xs ≃ append xs
 
 decEqList : ∀ A: ★. (Π x: A. Π y: A. Decision ·{x ≃ y}) ➔ Π xs: List ·A. Π ys: List ·A. Decision ·{ xs ≃ ys }
 = Λ A. λ eq. λ xs. μ decEqList. xs {
-  | nil ➔ λ ys. σ ys {
+  | nil ➔ λ ys. μ' ys {
     | nil ➔ decYes ·{nil ≃ nil} β
     | cons y ys ➔ decNo ·{nil ≃ cons y ys} (λ eq'. δ - eq')
     }
-  | cons x xs ➔ λ ys. σ ys {
+  | cons x xs ➔ λ ys. μ' ys {
     | nil ➔ decNo ·{cons x xs ≃ nil} (λ eq'. δ - eq')
-    | cons y ys ➔ σ (eq x y) {
-      | decYes proof ➔ σ (decEqList xs ys) {
+    | cons y ys ➔ μ' (eq x y) {
+      | decYes proof ➔ μ' (decEqList xs ys) {
       	| decYes proof' ➔ decYes (ρ proof - ρ proof' - β)
-	| decNo proof' ➔ decNo λ e. proof' (consInjTl x y (to/List -isType/decEqList xs) ys e)
+	| decNo proof' ➔ decNo (λ e. proof' (consInjTl x y (to/List -isType/decEqList xs) ys e))
       	}
-      | decNo proof ➔ decNo λ eq'. proof (consInjHd x y (to/List -isType/decEqList xs) ys eq') 
+      | decNo proof ➔ decNo (λ eq'. proof (consInjHd x y (to/List -isType/decEqList xs) ys eq'))
       }
     }
   }.
@@ -131,4 +131,4 @@ nilSuffix : ∀ A: ★. Π xs: List ·A. ListSuffix ·A (nil ·A) xs
        | nil ➔ β
        | cons x xs ➔ ns xs
        }]
-- [ length xs , ρ pf - β{|length xs|} ] .
+- [ length xs , ρ pf - β{length xs} ] .

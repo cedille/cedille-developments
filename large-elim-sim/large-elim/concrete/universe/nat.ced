@@ -32,22 +32,22 @@ indUNat
 : ∀ P: UNat ➔ ★. P uzero ➔ (Π n: UNat. P n ➔ P (usucc n)) ➔ Π n: UNat. P n
 = Λ P. λ z. λ s.
   induction ·P
-    Λ R. Λ c. λ ih. λ xs.
+    (Λ R. Λ c. λ ih. λ xs.
       [c1 = rollSig ·R -num2 -descrNatArgs]
-    - σ (unrollSig -num2 -descrNatArgs xs)
+    - μ' (unrollSig -num2 -descrNatArgs xs)
       @λ x: Sigma ·(Fin num2) ·(λ i: Fin num2. Decode ·R (descrNatArgs i)).
        P (in' -c (c1 x)) {
       | sigma i e ➔
-        σ i
+        μ' i
         @(λ n: Nat. λ x: Fin n. ∀ eq: { n ≃ num2 }.
             [x' : Fin num2 = ρ ς eq - x]
           - Π e: Decode ·R (descrNatArgs x'). P (in' -c (c1 (sigma x' e)))) {
         | zeroFin -n' ➔ Λ eqn. λ e.
-          σ (unrollConst e) @λ x: Unit. P (in' -c (c1 (sigma (zeroFin -num1) (rollConst x)))) {
+          μ' (unrollConst e) @λ x: Unit. P (in' -c (c1 (sigma (zeroFin -num1) (rollConst x)))) {
           | unit ➔ z
           }
         | succFin -n' i' ➔ Λ eqn. λ e.
-          σ i'
+          μ' i'
           @(λ n: Nat. λ x: Fin n. ∀ eq: { n ≃ num1 }.
               [x' : Fin num2 = succFin -num1 (ρ ς eq - x)]
             - Π e: Decode ·R (descrNatArgs x'). P (in' -c (c1 (sigma x' e)))) {
@@ -57,6 +57,6 @@ indUNat
             δ - emptyFin (ρ (succInj zero n'' (ς eqn')) - i'') ·{ zero ≃ num1 }
           } -(succInj n' num1 eqn) e
         } -β e
-      }
+      })
 .
 

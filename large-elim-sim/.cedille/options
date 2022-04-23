@@ -12,7 +12,7 @@ make-rkt-files
   = false.
 
 generate-logs
-  = true.
+  = false.
 
 -- show fully-qualified variables (for debugging)
 show-qualified-vars
@@ -21,4 +21,3 @@ show-qualified-vars
 -- Erase erasable expressions from terms occurring in types (for debugging)
 erase-types = true.
 
-datatype-encoding = "./lib/encodings/mendler.ced".

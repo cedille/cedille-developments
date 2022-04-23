@@ -15,7 +15,7 @@ pairDInj
   { pairD d11 d12 ≃ pairD d21 d22 } ➾ Pair ·{ d11 ≃ d21 } ·{ d12 ≃ d22 }
 = Λ d11. Λ d12. Λ d21. Λ d22. Λ eq.
   [unpairD : Top
-   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD d1 d2 ➔ sigma d1 d2 | sumD _ _ ➔ β | sigD _ _ ➔ β}|}]
+   = β{ λ x. μ' x { idD ➔ β | constD ➔ β | pairD d1 d2 ➔ sigma d1 d2 | sumD _ _ ➔ β | sigD _ _ ➔ β}}]
 - sigma
     ( ρ eq @ x.{ fst (unpairD x) ≃ fst (unpairD (pairD d21 d22))}
     - β)
@@ -28,7 +28,7 @@ sumDInj
   { sumD c1 f1 ≃ sumD c2 f2 } ➾ Pair ·{ c1 ≃ c2 } ·{ f1 ≃ f2 }
 = Λ c1. Λ f1. Λ c2. Λ f2. Λ eq.
   [unsumD : Top
-   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD c f ➔ sigma c f | sigD _ _ ➔ β}|}]
+   = β{ λ x. μ' x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD c f ➔ sigma c f | sigD _ _ ➔ β}}]
 - sigma
     ( ρ eq @ x.{ fst (unsumD x) ≃ fst (unsumD (sumD c2 f2))}
     - β)
@@ -41,7 +41,7 @@ sigDInj
   { sigD n1 f1 ≃ sigD n2 f2 } ➾ Pair ·{ n1 ≃ n2 } ·{ f1 ≃ f2 }
 = Λ n1. Λ f1. Λ n2. Λ f2. Λ eq.
   [unsigD : Top
-   = β{| λ x. σ x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD _ _ ➔ β | sigD n f ➔ sigma n f}|}]
+   = β{ λ x. μ' x { idD ➔ β | constD ➔ β | pairD _ _ ➔ β | sumD _ _ ➔ β | sigD n f ➔ sigma n f}}]
 - sigma
     ( ρ eq @ x.{ fst (unsigD x) ≃ fst (unsigD (sigD n2 f2))}
     - β)

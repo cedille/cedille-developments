@@ -1,0 +1,31 @@
+module everything.
+
+import example-nary.
+
+import concrete/nary as N1.
+import concrete/stlc.
+
+import concrete/universe/decode.
+import concrete/universe/decodeR.
+import concrete/universe/descr.
+import concrete/universe/encoding.
+import concrete/universe/list.
+import concrete/universe/nat.
+import concrete/universe/noconfusion as NC1.
+import concrete/universe/noconfusion2.
+import concrete/universe/noconfusionR as NCR.
+import concrete/universe/udata as Udata.
+
+import concrete/zipwith/fold.
+import concrete/zipwith/foldr.
+import concrete/zipwith/nvecMap.
+import concrete/zipwith/tyvec.
+import concrete/zipwith/tyvecr as TyVecR.
+
+import generic/algty.
+import generic/encoding as Encoding.
+import generic/large.
+
+import generic/example/nary.
+import generic/example/nat.
+import generic/example/strongind.

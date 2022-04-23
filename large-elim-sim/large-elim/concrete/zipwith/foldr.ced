@@ -52,7 +52,7 @@ tvFoldRSubst
   Cast ·(TVFoldR n1 ·L1 ·X) ·(TVFoldR n2 ·L2 ·X)
 = Λ n1. Λ L1. Λ X. Λ n2. Λ L2. Λ tyEq.
   intrCastI
-    -λ fr.
+    -(λ fr.
      μ tvFoldRSubst. fr
        @(λ n1: Nat. λ L1: 𝒌TyVec (succ n1). λ X: ★. λ x: TVFoldR n1 ·L1 ·X.
         ∀ n2: Nat. { n2 ≃ n1 } ➾ ∀ L2: 𝒌TyVec (succ n2).
@@ -65,7 +65,7 @@ tvFoldRSubst
      - Λ L2. λ eqL.
        [ tvFoldRZ ·L2 ·X
            -(trans -eqX -(tvEqHead -zero -eqL))
-       , β{| tvFoldRZ |} ]
+       , β{ tvFoldRZ } ]
      | tvFoldRS -n1' ·L1' ·Y fr' ·X -eqX ➔ Λ n2. Λ eqn.
        ρ eqn
          @x.(∀ L2: 𝒌TyVec (succ x). TVEq' (add num2 n1') ·L1' (succ x) ·L2 ➔
@@ -77,9 +77,9 @@ tvFoldRSubst
             -(rF -(tvEqHead -(succ n1') -eqL) -(refl ·Y))]
      - [ih : ι y: TVFoldR n1' ·(TVTail (succ n1') ·L2) ·Y. { fr' ≃ y }
         = tvFoldRSubst -n1' fr' -n1' -β (tvEqTail -(succ n1') -eqL)]
-     - [ tvFoldRS -n1' ·L2 ·Y (φ ς ih.2 - ih.1 {|fr'|}) ·X -eqX'
-       , β{| tvFoldRS fr' |} ]
-     } -n2 -(ς (succInj n1 n2 (fst tyEq))) ·L2 tyEq
+     - [ tvFoldRS -n1' ·L2 ·Y (φ ς ih.2 - ih.1 {fr'}) ·X -eqX'
+       , β{ tvFoldRS fr' } ]
+     } -n2 -(ς (succInj n1 n2 (fst tyEq))) ·L2 tyEq)
 .
 
 tvFoldRUnique
@@ -89,7 +89,7 @@ tvFoldRUnique
 = Λ n. Λ L. Λ X1. λ fr1.
   μ fn. fr1 {
   | tvFoldRZ ·L1 ·X1' -eqX1 ➔ Λ X2. λ fr2.
-    σ fr2
+    μ' fr2
     @(λ n2: Nat. λ L2: 𝒌TyVec (succ n2). λ X2: ★. λ x: TVFoldR n2 ·L2 ·X2.
       TVEq' num1 ·L1 (succ n2) ·L2 ➔ TpEq ·X1' ·X2){
     | tvFoldRZ ·L2 ·X2' -eqX2 ➔ λ eqL12.
@@ -103,7 +103,7 @@ tvFoldRUnique
     - δ - abs
     } (tvRefl -num1 ·L1)
   | tvFoldRS -n1 ·L1 ·Y1 fr1' ·X1' -eqX1 ➔ Λ X2. λ fr2.
-    σ fr2
+    μ' fr2
     @(λ n2: Nat. λ L2: 𝒌TyVec (succ n2). λ X2: ★. λ x: TVFoldR n2 ·L2 ·X2.
       TVEq' (succ (succ n1)) ·L1 (succ n2) ·L2 ➔ TpEq ·X1' ·X2) {
     | tvFoldRZ ·L2 ·X2' -eqX2 ➔ λ eqL12.
@@ -127,7 +127,7 @@ tvFoldRResp
 : ∀ n: Nat. ∀ L: 𝒌TyVec (succ n). ∀ X1: ★. TVFoldR n ·L ·X1 ➔
   ∀ X2: ★. TpEq ·X1 ·X2 ➾ TVFoldR n ·L ·X2
 = Λ n. Λ L. Λ X1. λ fr.
-  σ fr {
+  μ' fr {
   | tvFoldRZ ·L' ·X1' -eqX1 ➔ Λ X2. Λ eqX12.
     tvFoldRZ ·L' ·X2
       -(trans ·X2 ·X1' ·(TVHead zero ·L') -(sym -eqX12) -eqX1)

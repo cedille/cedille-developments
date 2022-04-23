@@ -12,24 +12,24 @@ data List (A: ★): ★ =
   | cons: A ➔ List ➔ List.
 
 head : ∀ A: ★. List ·A ➔ Option ·A
-= Λ A. λ xs. σ xs { nil ➔ none ·A | cons x xs ➔ some x}.
+= Λ A. λ xs. μ' xs { nil ➔ none ·A | cons x xs ➔ some x}.
 
 isCons : ∀ A: ★. List ·A ➔ Bool
-= Λ A. λ xs. σ xs { nil ➔ ff | cons _ _ ➔ tt}.
+= Λ A. λ xs. μ' xs { nil ➔ ff | cons _ _ ➔ tt}.
 
 isNil = Λ A: ★. λ xs: List ·A. not (isCons xs).
 
 headSafe : ∀ A: ★. Π xs: List ·A. {isCons xs ≃ tt} ➔ A
-= Λ A. λ xs. σ xs {nil ➔ λ eq. δ - eq | cons x xs ➔ λ eq. x}.
+= Λ A. λ xs. μ' xs {nil ➔ λ eq. δ - eq | cons x xs ➔ λ eq. x}.
 
 tailSafe : ∀ A: ★. Π xs: List ·A. { isCons xs ≃ tt} ➔ List ·A
-= Λ A. λ xs. σ xs {
+= Λ A. λ xs. μ' xs {
   | nil ➔ λ eq. δ - eq
   | cons x xs ➔ λ _. xs
   } .
 
 tailCV : ∀ A: ★. ∀ L: ★. Is/List ·A ·L ➾ L ➔ L
-= Λ A. Λ L. Λ is. λ xs. σ<is> xs {nil ➔ xs | cons x xs ➔ xs}.
+= Λ A. Λ L. Λ is. λ xs. μ'<is> xs {nil ➔ xs | cons x xs ➔ xs}.
 
 tail = Λ A: ★. tailCV ·A -(is/List ·A).
 
@@ -57,7 +57,7 @@ append : ∀ A: ★. List ·A ➔ List ·A ➔ List ·A
 lookup : ∀ A: ★. List ·A ➔ Nat ➔ Option ·A
 = Λ A. λ xs. μ l. xs {
   | nil ➔ λ _. none ·A
-  | cons x xs ➔ λ n. σ n {zero ➔ some x | succ n ➔ l xs n}
+  | cons x xs ➔ λ n. μ' n {zero ➔ some x | succ n ➔ l xs n}
   }.
 
 foldl : ∀ A: ★. ∀ B: ★. (A ➔ B ➔ A) ➔ A ➔ List ·B ➔ A
@@ -67,7 +67,7 @@ foldl : ∀ A: ★. ∀ B: ★. (A ➔ B ➔ A) ➔ A ➔ List ·B ➔ A
   }.
 
 foldl1 : ∀ A: ★. (A ➔ A ➔ A) ➔ Π xs: List ·A . Not ·{xs ≃ nil} ➔ A
-= Λ A. λ f. λ xs. σ xs {
+= Λ A. λ f. λ xs. μ' xs {
   | nil ➔ λ neq. neq β ·A
   | cons x xs ➔ λ _. foldl f x xs 
   }.
@@ -93,7 +93,7 @@ filter : ∀ A : ★ . (A ➔ Bool) ➔ List ·A ➔ List ·A
 take : ∀ A: ★. Nat ➔ List ·A ➔ List ·A
 = Λ A. λ n. μ take. n {
   | zero ➔ λ xs. nil ·A
-  | succ n ➔ λ xs. σ xs {
+  | succ n ➔ λ xs. μ' xs {
     | nil ➔ xs
     | cons x xs ➔ cons x (take n xs)
     }
@@ -125,7 +125,7 @@ concat : ∀ A: ★. List ·(List ·A) ➔ List ·A
 eqList : ∀ A: ★. ∀ B : ★ . (A ➔ B ➔ Bool) ➔ List ·A ➔ List ·B ➔ Bool
 = Λ A. Λ B . λ eq. λ xs. μ eqList. xs {
   | nil ➔ λ ys. isNil ys
-  | cons x xs ➔ λ ys. σ ys {
+  | cons x xs ➔ λ ys. μ' ys {
     | nil ➔ ff
     | cons y ys ➔ and (eq x y) (eqList xs ys)
     }
@@ -155,7 +155,7 @@ findFirst : ∀ A : ★ . (A ➔ Bool) ➔ List · A ➔ Option · A =
   Λ A . λ p . λ l .
     μ findOne . l {
       nil ➔ none · A
-    | cons x xs ➔ σ (p x) { tt ➔ some x | ff ➔ findOne xs }}.
+    | cons x xs ➔ μ' (p x) { tt ➔ some x | ff ➔ findOne xs }}.
 
 {- updateFirst p f d l:
 
@@ -166,13 +166,13 @@ updateFirst : ∀ A : ★ . (A ➔ Bool) ➔ (A ➔ A) ➔ A ➔ List · A ➔ L
     μ updateFirst . l {
       nil ➔ singleton (f d)
     | cons x xs ➔
-      σ (p x)
+      μ' (p x)
       { tt ➔ cons (f x) (to/List -isType/updateFirst xs)
       | ff ➔ cons x (updateFirst xs) }}.
 
 select : ∀ A: ★. (A ➔ Bool) ➔ A ➔ Pair ·(List ·A) ·(List ·A) ➔ Pair ·(List ·A) ·(List ·A)
-= Λ A. λ p. λ x. λ tsfs. σ tsfs {
-  | sigma ts fs ➔ σ (p x) {
+= Λ A. λ p. λ x. λ tsfs. μ' tsfs {
+  | sigma ts fs ➔ μ' (p x) {
     | tt ➔ pair (cons x ts) fs
     | ff ➔ pair ts (cons x fs)
     }
@@ -188,7 +188,7 @@ prependToAll : ∀ A: ★. A ➔ List ·A ➔ List ·A
   }.
 
 intersperse : ∀ A: ★. A ➔ List ·A ➔ List ·A
-= Λ A. λ sep. λ xs. σ xs {
+= Λ A. λ sep. λ xs. μ' xs {
   | nil ➔ nil ·A
   | cons x xs ➔ cons x (prependToAll sep xs)
   }.
@@ -199,7 +199,7 @@ intercalate : ∀ A: ★. List ·A ➔ List ·(List ·A) ➔ List ·A
 applyList : ∀ A: ★. ∀ B: ★. List ·(A ➔ B) ➔ List ·A ➔ List ·B
 = Λ A. Λ B. λ fs. μ apply. fs {
   | nil ➔ λ _. nil ·B
-  | cons f fs ➔ λ xs. σ xs {
+  | cons f fs ➔ λ xs. μ' xs {
     | nil ➔ nil ·B
     | cons x xs ➔ cons (f x) (apply fs xs)
     }
@@ -251,7 +251,7 @@ any : ∀ A: ★. (A ➔ Bool) ➔ List ·A ➔ Bool
 isPrefixOf : ∀ A: ★. (A ➔ A ➔ Bool) ➔ List ·A ➔ List ·A ➔ Bool
 = Λ A. λ eq. λ xs. μ isPrefix. xs {
   | nil ➔ λ _. tt
-  | cons x xs ➔ λ ys. σ ys {
+  | cons x xs ➔ λ ys. μ' ys {
     | nil ➔ ff
     | cons y ys ➔ and (eq x y) (isPrefix xs ys)
     }

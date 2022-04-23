@@ -6,7 +6,7 @@ import list-thms.
 cvFromSuffix : ∀ A: ★. ∀ L: ★. ∀ is: Is/List ·A ·L. ∀ xs: L. Π ys: List ·A.
   [xs' = to/List -is xs] - ListSuffix ·A ys xs' ➾ L
 = Λ A. Λ L. Λ is. Λ xs. λ ys. Λ suff.
-  φ (suff.2) - (dropCV -is suff.1 xs) {| ys |} .
+  φ (suff.2) - (dropCV -is suff.1 xs) { ys } .
 
 nilCV : ∀ A: ★. ∀ L: ★. Is/List ·A ·L ➾ L ➾ L
 = Λ A. Λ L. Λ is. Λ xs.

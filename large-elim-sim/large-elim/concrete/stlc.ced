@@ -9,20 +9,20 @@ data StlcTy : ★ =
 
 baseTyProj : StlcTy ➔ Top
 = λ c.
-  β{| σ c {
+  β{ μ' c {
       | baseTy n ➔ n
       | arrowTy _ _ ➔ β
       }
-  |} .
+  } .
 
 arrowTyProj1 : StlcTy ➔ StlcTy
-= λ c. σ c {
+= λ c. μ' c {
   | baseTy n ➔ baseTy n
   | arrowTy u _ ➔ u
   }.
 
 arrowTyProj2 : StlcTy ➔ StlcTy
-= λ c. σ c {
+= λ c. μ' c {
   | baseTy n ➔ baseTy n
   | arrowTy _ v ➔ v
   }.
@@ -46,13 +46,13 @@ Stlc : StlcTy ➔ ★
 
 stlcRUnique : ∀ c:StlcTy. ∀ A1:★. StlcR c ·A1 ➔ ∀ A2:★. StlcR c ·A2 ➔ TpEq ·A1 ·A2
 = Λ c. Λ A1. λ s1. μ rec. s1 {
-  | baseR -n ·X -teq ➔ Λ A2. λ s2. σ s2
+  | baseR -n ·X -teq ➔ Λ A2. λ s2. μ' s2
     @ λ j:StlcTy. λ J:★. λ _:StlcR j·J. {j ≃ baseTy n} ➾ TpEq·X·J {
     | baseR -n' ·Y -teq' ➔ Λ d. [e:{n ≃ n'} = baseTyInj n n' (ς d)]
     - tpEqTrans ·X ·(I n) ·Y -teq -(tpEqSym -(ρ e - teq'))
     | arrowR ·_ -_ ·_ -_ _ _ ·_ -_ ➔ Λ d. δ - d
     } -β
-  | arrowR ·B1 -k1 ·B2 -k2 u v ·X -teq ➔ Λ A2. λ s2. σ s2
+  | arrowR ·B1 -k1 ·B2 -k2 u v ·X -teq ➔ Λ A2. λ s2. μ' s2
     @ λ j:StlcTy. λ J:★. λ _:StlcR j·J. {j ≃ arrowTy k1 k2} ➾ TpEq·X·J {
     | baseR -_ ·_ -_ ➔ Λ d. δ - d
     | arrowR ·C1 -c1 ·C2 -c2 u' v' ·Y -teq' ➔ Λ d.
@@ -78,7 +78,7 @@ stlcRUnique : ∀ c:StlcTy. ∀ A1:★. StlcR c ·A1 ➔ ∀ A2:★. StlcR c ·A
 
 stlcRResp : ∀ c: StlcTy. ∀ A1: ★. StlcR c ·A1 ➔ ∀ A2: ★. TpEq ·A1 ·A2 ➾ StlcR c ·A2
 = Λ c. Λ A1. λ s.
-  σ s {
+  μ' s {
   | baseR -n ·X -eqX ➔ Λ A2. Λ eqA.
     baseR -n ·A2 -(trans -(sym -eqA) -eqX)
   | arrowR ·B1 -c1 ·B2 -c2 dom cod ·X -eqX ➔ Λ A2. Λ eqA.
@@ -165,17 +165,18 @@ unrollArrow : ∀ dom: StlcTy. ∀ cod: StlcTy. Stlc (arrowTy dom cod) ➔ (Stlc
 
 decide : Π t: StlcTy. (∀ n: C. Sum ·(I n) ·(Not ·(I n))) ➔ Sum ·(Stlc t) ·(Not ·(Stlc t))
 = λ t. λ dctx. μ rec. t {
-  | baseTy n ➔ σ (dctx -n) {
+  | baseTy n ➔ μ' (dctx -n) {
     | in1 x ➔ in1 (rollBase -n x)
     | in2 x ➔ in2 (λ d. (x (unrollBase -n d)))
     }
   | arrowTy a b ➔ [aβ = to/StlcTy -isType/rec a]
   - [bβ = to/StlcTy -isType/rec b]
   - [a' = rec a] - [b' = rec b]
-  - σ b' {
+  - μ' b' @ λ i:Sum·(Stlc bβ)·(Not·(Stlc bβ)).
+    Sum·(Stlc (arrowTy aβ bβ))·(Not·(Stlc (arrowTy aβ bβ))) {
   | in1 y ➔ in1 (rollArrow -aβ -bβ (λ _. y))
-  | in2 y ➔ σ a' {
-    | in1 x ➔ in2 λ t'. y ((unrollArrow -aβ -bβ t') x)
+  | in2 y ➔ μ' a' {
+    | in1 x ➔ in2 (λ t'. y ((unrollArrow -aβ -bβ t') x))
     | in2 x ➔ in1 (rollArrow -aβ -bβ (λ z. explode (x z)))
     }
   }

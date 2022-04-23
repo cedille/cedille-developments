@@ -27,7 +27,7 @@ data NoConfusionR : D ➔ D ➔ ★ ➔ ★
 = noConfEqR
   : ∀ i1: Fin n. ∀ i2: Fin n. { i1 ≃ i2} ➾
     ∀ a1: Decode ·D (cs i1). ∀ a2: Decode ·D (cs i2).
-    ∀ X: ★. TpEq ·X ·(∀ P: ★. ({ a1 ≃ a2 } ➔ P) ➔ P) ➾
+    ∀ X: ★. TpEq ·X ·{ a1 ≃ a2 } ➾
     NoConfusionR (inSig i1 a1) (inSig i2 a2) ·X
 | noConfNeqR
   : ∀ i1: Fin n. ∀ i2: Fin n. Not ·{ i1 ≃ i2 } ➾
@@ -40,7 +40,7 @@ data NoConfusionR : D ➔ D ➔ ★ ➔ ★
 noConfusionRResp
 : ∀ d1: D. ∀ d2: D. ∀ T1: ★. NoConfusionR d1 d2 ·T1 ➔ ∀ T2: ★. TpEq ·T1 ·T2 ➾ NoConfusionR d1 d2 ·T2
 = Λ d1. Λ d2. Λ T1. λ ncr.
-  σ ncr {
+  μ' ncr {
   | noConfEqR -i1 -i2 -eq -a1 -a2 ·X -eqX ➔ Λ T2. Λ eqT2.
     noConfEqR -i1 -i2 -eq -a1 -a2 ·T2 -(trans -(sym -eqT2) -eqX)
   | noConfNeqR -i1 -i2 -neq -a1 -a2 ·X -eqX ➔ Λ T2. Λ eqT2.
@@ -48,12 +48,13 @@ noConfusionRResp
 }
 .
 
+-- Uniqueness
 noConfusionRUnique
 : ∀ d1: D. ∀ d2: D. ∀ T1: ★. NoConfusionR d1 d2 ·T1 ➔ ∀ T2: ★. NoConfusionR d1 d2 ·T2 ➔ TpEq ·T1 ·T2
 = Λ d1. Λ d2. Λ T1. λ ncr1.
   μ noConfusionRUnique. ncr1 {
   | noConfEqR -i11 -i12 -eq1 -a11 -a12 ·X1 -eqX1 ➔ Λ T2. λ ncr2.
-    σ ncr2
+    μ' ncr2
     @(λ x1: D. λ x2: D. λ X: ★. λ ncr: NoConfusionR x1 x2 ·X.
       { x1 ≃ inSig i11 a11 } ➾ { x2 ≃ inSig i12 a12 } ➾ TpEq ·X1 ·X) {
     | noConfEqR -i21 -i22 -eq2 -a21 -a22 ·X2 -eqX2 ➔ Λ eqa11. Λ eqa12.
@@ -68,7 +69,7 @@ noConfusionRUnique
          - ς (fst' (inSigInj -i22 -a22 -i12 -a12 -eqa12)))))
     } -β -β
   | noConfNeqR -i11 -i12 -neq1 -a11 -a12 ·X1 -eqX1 ➔ Λ T2. λ ncr2.
-    σ ncr2
+    μ' ncr2
     @(λ x1: D. λ x2: D. λ X: ★. λ ncr: NoConfusionR x1 x2 ·X.
       { x1 ≃ inSig i11 a11 } ➾ { x2 ≃ inSig i12 a12 } ➾ TpEq ·X1 ·X) {
     | noConfEqR -i21 -i22 -eq2 -a21 -a22 ·X2 -eqX2 ➔ Λ eqa11. Λ eqa12.

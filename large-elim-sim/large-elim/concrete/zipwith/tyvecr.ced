@@ -35,16 +35,16 @@ tvConsRUnique
   ∀ A1: ★. TVConsR n ·H ·T i ·A1 ➔ ∀ A2: ★. TVConsR n ·H ·T i ·A2 ➔
   TpEq ·A1 ·A2
 = Λ n. Λ H. Λ T. Λ i. Λ A1. λ tyc1.
-  σ tyc1 {
+  μ' tyc1 {
   | tvConsRZ ·X1 -eqX1 ➔ Λ A2. λ tyc2.
-    σ tyc2 @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X. { x ≃ zeroFin } ➾ TpEq ·X1 ·X) {
+    μ' tyc2 @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X. { x ≃ zeroFin } ➾ TpEq ·X1 ·X) {
     | tvConsRZ ·X2 -eqX2 ➔ Λ _.
       trans -eqX1 -(sym -eqX2)
     | tvConsRS -i2 ·X2 -eqX2 ➔
       Λ abs. δ - abs
     } -β
   | tvConsRS -i1 ·X1 -eqX1 ➔ Λ A2. λ tyc2.
-    σ tyc2 @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X. { x ≃ (succFin i1) } ➾ TpEq ·X1 ·X) {
+    μ' tyc2 @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X. { x ≃ (succFin i1) } ➾ TpEq ·X1 ·X) {
     | tvConsRZ ·X2 -eqX2 ➔ Λ abs.
       δ - abs
     | tvConsRS -i2 ·X2 -eqX2 ➔ Λ eqi.
@@ -58,7 +58,7 @@ tvConsRResp
 : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin (succ n).
   ∀ A1: ★. TVConsR n ·H ·T i ·A1 ➔ ∀ A2: ★. TpEq ·A1 ·A2 ➾ TVConsR n ·H ·T i ·A2
 = Λ n. Λ H. Λ T. Λ i. Λ A1. λ tyc.
-  σ tyc {
+  μ' tyc {
   | tvConsRZ ·X -eqX ➔ Λ A2. Λ eqA.
     tvConsRZ -n ·H ·T ·A2 -(trans -(sym -eqA) -eqX)
   | tvConsRS -i ·X -eqX ➔ Λ A2. Λ eqA.
@@ -109,7 +109,7 @@ tvConsS
 TVConsEx : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n.
            Π i: Fin (succ n). TVConsR n ·H ·T i ·(TVCons n ·H ·T i)
 = Λ n. Λ H. Λ T. λ i.
-  σ i @(λ n': Nat. λ j: Fin n'.
+  μ' i @(λ n': Nat. λ j: Fin n'.
         ∀ eq: { n' ≃ succ n}.
         TVConsR n ·H ·T (convFin -n' -(succ n) -eq j)
           ·(TVCons n ·H ·T (convFin -n' -(succ n) -eq j))) {

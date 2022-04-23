@@ -22,13 +22,13 @@ naryRUnique : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. NaryR n ·A
 = Λ n. Λ A1. λ fn1.
   μ naryRUnique. fn1 {
   | naryRZ ·X1 -eqX1 ➔ Λ A2. λ fn2.
-    σ fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ zero } ➾ TpEq ·X1 ·J) {
+    μ' fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ zero } ➾ TpEq ·X1 ·J) {
     | naryRZ ·X2 -eqX2 ➔ Λ _.
       trans -eqX1 -(sym -eqX2)
     | naryRS ·_ -_ _ ·_ -_ ➔ Λ abs. δ - abs
     } -β
   | naryRS ·Y1 -n fn1 ·X1 -eqX1 ➔ Λ A2. λ fn2.
-    σ fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ succ n } ➾ TpEq ·X1 ·J) {
+    μ' fn2 @(λ j: Nat. λ J: ★. λ _: NaryR j ·J. { j ≃ succ n } ➾ TpEq ·X1 ·J) {
     | naryRZ ·_ -_ ➔ Λ abs. δ - abs
     | naryRS ·Y2 -n' fn2 ·X2 -eqX2 ➔ Λ eq.
       [eq' = succInj n' n eq]
@@ -50,7 +50,7 @@ naryRUnique : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. NaryR n ·A
 -}
 naryRResp : ∀ n: Nat. ∀ A1: ★. NaryR n ·A1 ➔ ∀ A2: ★. TpEq ·A1 ·A2 ➾ NaryR n ·A2
 = Λ n. Λ A1. λ fn.
-  σ fn {
+  μ' fn {
   | naryRZ ·X -eqZ ➔ Λ A2. Λ tpEq.
     naryRZ -(trans -(sym -tpEq) -eqZ)
   | naryRS ·Y -j fn' ·X -eqS ➔ Λ A2. Λ tpEq.
@@ -90,31 +90,44 @@ naryS : ∀ n: Nat. NaryR n ·(Nary n) ➔ NaryR (succ n) ·(Nary (succ n))
 {-
 -- naryREx : Π n: Nat. NaryR n ·(Nary n)
 -- naryREx zero = naryZ
--- naryREx (succ n) = naryS n (naryREx n)
+-- naryREx (succ n) = naryS -n (naryREx n)
 -}
 naryREx : Π n: Nat. NaryR n ·(Nary n)
 = λ n.
   μ naryREx. n {
   | zero ➔ naryZ
-  | succ n' ➔ naryS -(to/Nat -isType/naryREx n') (naryREx n')
+  | succ n' ➔
+    [n'' : Nat = to/Nat -isType/naryREx n']
+  --             ^--------------------^
+  -- Noise introduced by Cedille's type-based termination checking.
+  -- n'' is definitionally equal to n'
+  - [_ : { n' ≃ n'' } = β]
+  -- On with the proof
+  - naryS -n'' (naryREx n')
   } .
 
-naryZC : TpEq ·(Nary zero) ·T
-= naryZEq .
+naryZC : Nary zero ➔ T
+= tpEq1 -naryZEq .
 
-narySC : ∀ n: Nat. TpEq ·(Nary (succ n)) ·(T ➔ Nary n)
-= Λ n. tpEqIrrel -(narySEq -n (naryREx n)) .
+narySC : ∀ n: Nat. Nary (succ n) ➔ T ➔ Nary n
+= Λ n. tpEq1 -(narySEq -n (naryREx n)) .
+
+naryZCId : { naryZC ≃ λ x. x }
+= β .
+
+narySCId : ∀ n: Nat. { narySC -n ≃ λ x. x }
+= Λ n. β .
 
 {-
 -- appN : ∀ n: Nat. Nary n ➔ Vec ·T n ➔ T
--- appN -zero f vnil = tpEq1 -naryZC f
--- appN -(succ n) f (vcons -n x xs) = app n (tpEq1 -(narySC -n) f x) xs
+-- appN -zero f vnil = naryZC f
+-- appN -(succ n) f (vcons -n x xs) = app n (narySC f x) xs
 --
 -}
 appN : ∀ n: Nat. Nary n ➔ Vec ·T n ➔ T
 = Λ n. λ f. λ xs.
   μ app. xs @(λ n: Nat. λ xs: Vec ·T n. Nary n ➔ T) {
-  | vnil ➔ λ x. naryZC.1.1 x
+  | vnil ➔ λ x. naryZC x
   | vcons -n' hd tl ➔ λ f.
-    app -n' tl ((narySC -n').1.1 f hd)
+    app -n' tl (narySC -n' f hd)
   } f .

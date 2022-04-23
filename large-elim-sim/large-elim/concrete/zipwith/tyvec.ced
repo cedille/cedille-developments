@@ -33,17 +33,17 @@ tvEqIrrel'
 : ∀ n1: Nat. ∀ L1: 𝒌TyVec n1. ∀ n2: Nat. ∀ L2: 𝒌TyVec n2.
   TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n1 ·L1 n2 ·L2
 = Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
-  sigma (ρ (fst eqL) - β) λ i. tpEqIrrel -(snd eqL i) .
+  sigma (ρ (fst eqL) - β) (λ i. tpEqIrrel -(snd eqL i)) .
 
 tvRefl : ∀ n: Nat. ∀ L: 𝒌TyVec n. TVEq n ·L ·L
 = Λ n. Λ L.
-  sigma β λ i. refl ·(L i) .
+  sigma β (λ i. refl ·(L i)) .
 
 tvSym'
 : ∀ n1: Nat. ∀ L1: 𝒌TyVec n1. ∀ n2: Nat. ∀ L2: 𝒌TyVec n2.
   TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n2 ·L2 n1 ·L1
 = Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
-  sigma (ρ (fst eqL) - β) λ i. tpEqSym -(snd eqL (ρ (fst eqL) - i)) .
+  sigma (ρ (fst eqL) - β) (λ i. tpEqSym -(snd eqL (ρ (fst eqL) - i))) .
 
 tvSym
 : ∀ n: Nat. ∀ L1: 𝒌TyVec n. ∀ L2: 𝒌TyVec n.
@@ -57,8 +57,8 @@ tvTrans'
   TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n2 ·L2 n3 ·L3 ➾
   TVEq' n1 ·L1 n3 ·L3
 = Λ n1. Λ L1. Λ n2. Λ L2. Λ n3. Λ L3. Λ eqL1. Λ eqL2.
-  sigma (ρ (fst eqL1) - ρ (fst eqL2) - β) λ i.
-    tpEqTrans -(snd eqL1 i) -(snd eqL2 (convFin -n1 -n2 -(fst eqL1) i)) .
+  sigma (ρ (fst eqL1) - ρ (fst eqL2) - β) (λ i.
+    tpEqTrans -(snd eqL1 i) -(snd eqL2 (convFin -n1 -n2 -(fst eqL1) i))) .
 
 tvTrans : ∀ n: Nat. ∀ L1: 𝒌TyVec n. ∀ L2: 𝒌TyVec n. ∀ L3: 𝒌TyVec n.
           TVEq n ·L1 ·L2 ➾ TVEq n ·L2 ·L3 ➾ TVEq n ·L1 ·L3
@@ -83,8 +83,8 @@ tvEqTail'
   TVEq' n1 ·(TVTail n1 ·L1) n2 ·(TVTail n2 ·L2)
 = Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
   tvEqIrrel' -n1 ·(TVTail n1 ·L1) -n2 ·(TVTail n2 ·L2)
-    -(sigma (succInj n1 n2 (fst eqL)) λ i.
-        snd eqL (succFin -n1 i)) .
+    -(sigma (succInj n1 n2 (fst eqL)) (λ i.
+        snd eqL (succFin -n1 i))) .
 
 tvEqTail
 : ∀ n: Nat. ∀ L1: 𝒌TyVec (succ n). ∀ L2: 𝒌TyVec (succ n).
@@ -109,7 +109,7 @@ tvHeadMapC
 tvTailMapC
 : ∀ F: ★ ➔ ★. ∀ n: Nat. ∀ L: 𝒌TyVec (succ n).
   TVEq n ·(TVTail n ·(TVMap ·F (succ n) ·L)) ·(TVMap ·F n ·(TVTail n ·L))
-= Λ F. Λ n. Λ L. sigma β λ i. refl ·(TVTail n ·(TVMap ·F (succ n) ·L) i) .
+= Λ F. Λ n. Λ L. sigma β (λ i. refl ·(TVTail n ·(TVMap ·F (succ n) ·L) i)) .
 
 
 -- map respects type vector equality
@@ -119,7 +119,7 @@ tvMapRespEq
   TVEq n ·L1 ·L2 ➾ TVEq n ·(TVMap ·F n ·L1) ·(TVMap ·F n ·L2)
 = Λ F. Λ rF. Λ n. Λ L1. Λ L2. Λ eqL.
   sigma β
-    λ i. tpEqIrrel -(rF -(snd eqL i))
+    (λ i. tpEqIrrel -(rF -(snd eqL i)))
 .
 
 -- -- eta-expansion

@@ -63,7 +63,7 @@ nvecMap
     [n'' = to/Nat -isType/go n']
   - [fs' = tpEq1 -(vecRespTpEq -m -(tvFoldSC -arrowRespTpEq2 -n'' ·L)) fs ]
   - tpEq2 -(arrTpVecSC -m -n'' ·L)
-      λ a. go n' (vapp -m fs' a)
+      (λ a. go n' (vapp -m fs' a))
   } ·L (vrepeat m f).
 
 
