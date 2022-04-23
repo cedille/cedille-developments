@@ -3,8 +3,8 @@ module large-elim/concrete/universe/decodeR (C: ★) (I: C ➔ ★) (T: ★) .
 import lib .
 import descr ·C ·I.
 
--- we make R a module parameter, rather than a datatype parameter as shown in
--- the paper
+
+
 data DecodeR : Descr ➔ ★ ➔ ★
 = decIdR    : ∀ X: ★. TpEq ·X ·T ➾ DecodeR idD ·X
 | decConstR : ∀ X: ★. TpEq ·X ·Unit ➾ DecodeR constD ·X
