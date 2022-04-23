@@ -1,0 +1,139 @@
+import lib .
+import large-elim/concrete/zipwith/tpvec/base .
+
+module large-elim/concrete/zipwith/tpvec/cons .
+
+data TVConsR {n: Nat} (H: ★) (T: 𝒌TyVec n) : Fin (succ n) ➔ ★ ➔ ★
+= tvConsRZ : ∀ X: ★. TpEq ·X ·H                 ➾ TVConsR (zeroFin -n) ·X
+| tvConsRS : ∀ i: Fin n. ∀ X: ★. TpEq ·X ·(T i) ➾ TVConsR (succFin -n i) ·X
+.
+{-
+-- Since `TyCons` is not recursive, there is a much simpler encoding (see
+-- Marmaduke, A., Jenkins, C., & Stump, A., Zero-Cost Constructor Subtyping)
+-- TyCons : Π n: Nat. ★ ➔ 𝒌TyVec n ➔ 𝒌TyVec (succ n)
+-- = λ n: Nat. λ A: ★. λ L: 𝒌TyVec n. λ i: Fin (succ n).
+--   ι _: { i ≃ zeroFin } ➾ A.
+--        ∀ j: Fin n. { i ≃ succFin j } ➾ L j .
+--
+-- We use the method described in the paper for the ease of the reader
+-}
+
+tvConsRResp
+: ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin (succ n).
+  ∀ A1: ★. TVConsR n ·H ·T i ·A1 ➔ ∀ A2: ★. TpEq ·A1 ·A2 ➾ TVConsR n ·H ·T i ·A2
+= Λ n. Λ H. Λ T. Λ i. Λ A1. λ tyc.
+  μ' tyc {
+  | tvConsRZ ·X -eqX ➔ Λ A2. Λ eqA.
+    tvConsRZ -n ·H ·T ·A2 -(trans -(sym -eqA) -eqX)
+  | tvConsRS -i ·X -eqX ➔ Λ A2. Λ eqA.
+    tvConsRS -n ·H ·T -i ·A2 -(trans -(sym -eqA) -eqX)
+  } .
+
+tvConsRUnique
+: ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin (succ n).
+  ∀ A1: ★. TVConsR n ·H ·T i ·A1 ➔ ∀ A2: ★. TVConsR n ·H ·T i ·A2 ➔
+  TpEq ·A1 ·A2
+= Λ n. Λ H. Λ T. Λ i. Λ A1. λ tyc1.
+  μ' tyc1 {
+  | tvConsRZ ·X1 -eqX1 ➔ Λ A2. λ tyc2.
+    μ' tyc2
+    @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X.
+      { x ≃ zeroFin } ➾ TpEq ·X1 ·X) {
+    | tvConsRZ ·X2 -eqX2 ➔ Λ _.
+      trans -eqX1 -(sym -eqX2)
+    | tvConsRS -i2 ·X2 -eqX2 ➔
+      Λ abs. δ - abs
+    } -β
+  | tvConsRS -i1 ·X1 -eqX1 ➔ Λ A2. λ tyc2.
+    μ' tyc2
+    @(λ x: Fin (succ n). λ X: ★. λ _: TVConsR n ·H ·T x ·X.
+      { x ≃ (succFin i1) } ➾ TpEq ·X1 ·X) {
+    | tvConsRZ ·X2 -eqX2 ➔ Λ abs.
+      δ - abs
+    | tvConsRS -i2 ·X2 -eqX2 ➔ Λ eqi.
+      [eqi' : { i2 ≃ i1 } = succFinInj -n i2 -n i1 -eqi]
+    - trans -eqX1 -(ρ ς eqi' - sym -eqX2)
+    } -β
+  }
+.
+
+TVCons : Π n: Nat. Π H: ★. Π T: 𝒌TyVec n. 𝒌TyVec (succ n)
+= λ n: Nat. λ H: ★. λ T: 𝒌TyVec n. λ i: Fin (succ n).
+  ∀ X: ★. TVConsR n ·H ·T i ·X ➾ X .
+
+tvConsRZ' : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TVConsR n ·H ·T (zeroFin -n) ·H
+= Λ n. Λ H. Λ T. tvConsRZ -n ·H ·T -(refl ·H) .
+
+tvConsZEq : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TpEq ·(TVCons n ·H ·T (zeroFin -n)) ·H
+= Λ n. Λ H. Λ T.
+  intrTpEq
+    -(intrCast -(λ x. x -(tvConsRZ' -n ·H ·T)) -(λ _. β))
+    -(intrCast
+       -(λ x. Λ X. Λ tyc.
+         tpEq1 -(tvConsRUnique -n ·H ·T -(zeroFin -n) (tvConsRZ' -n ·H ·T) tyc) x)
+       -(λ _. β))
+.
+
+tvConsZ : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TVConsR n ·H ·T (zeroFin -n) ·(TVCons n ·H ·T (zeroFin -n))
+= Λ n. Λ H. Λ T.
+  tvConsRResp -n ·H ·T -(zeroFin -n) (tvConsRZ' -n ·H ·T) -(sym -(tvConsZEq -n ·H ·T)) .
+
+tvConsRS' : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n. TVConsR n ·H ·T (succFin -n i) ·(T i)
+= Λ n. Λ H. Λ T. Λ i. tvConsRS -n ·H ·T -i -(refl ·(T i)) .
+
+tvConsSEq : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n. TpEq ·(TVCons n ·H ·T (succFin -n i)) ·(T i)
+= Λ n. Λ H. Λ T. Λ i.
+  intrTpEq
+   -(intrCast -(λ x. x -(tvConsRS' -n ·H ·T -i)) -(λ _. β))
+   -(intrCast
+      -(λ x. Λ X. Λ tyc.
+        tpEq1 -(tvConsRUnique -n ·H ·T -(succFin -n i) (tvConsRS' -n ·H ·T -i) tyc) x)
+      -(λ _. β))
+.
+
+tvConsS
+: ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n.
+  TVConsR n ·H ·T (succFin -n i) ·(TVCons n ·H ·T (succFin -n i))
+= Λ n. Λ H. Λ T. Λ i.
+  tvConsRResp -n ·H ·T -(succFin -n i) (tvConsRS' -n ·H ·T -i) -(sym -(tvConsSEq -n ·H ·T -i)) .
+
+TVConsEx : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n.
+           Π i: Fin (succ n). TVConsR n ·H ·T i ·(TVCons n ·H ·T i)
+= Λ n. Λ H. Λ T. λ i.
+  μ' i @(λ n': Nat. λ j: Fin n'.
+        ∀ eq: { n' ≃ succ n}.
+        TVConsR n ·H ·T (convFin -n' -(succ n) -eq j)
+          ·(TVCons n ·H ·T (convFin -n' -(succ n) -eq j))) {
+  | zeroFin -n' ➔ Λ eqn.
+    tvConsZ -n ·H ·T
+  | succFin -n' j ➔ Λ eqn.
+    tvConsS -n ·H ·T -(convFin -n' -n -(succInj n' n eqn) j)
+  } -β .
+
+tvConsZC : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TpEq ·(TVCons n ·H ·T (zeroFin -n)) ·H
+= tvConsZEq .
+
+unrollTVConsZ : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TVCons n ·H ·T (zeroFin -n) ➔ H
+= Λ n. Λ H. Λ T. tpEq1 -(tvConsZC -n ·H ·T) .
+
+rollTVConsZ : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. H ➔ TVCons n ·H ·T (zeroFin -n)
+= Λ n. Λ H. Λ T. tpEq2 -(tvConsZC -n ·H ·T) .
+
+tvConsSC : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n. TpEq ·(TVCons n ·H ·T (succFin -n i)) ·(T i)
+= tvConsSEq .
+
+unrollTVConsS : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n. TVCons n ·H ·T (succFin -n i) ➔ T i
+= Λ n. Λ H. Λ T. Λ i. tpEq1 -(tvConsSC -n ·H ·T -i) .
+
+rollTVConsS : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. ∀ i: Fin n. T i ➔ TVCons n ·H ·T (succFin -n i)
+= Λ n. Λ H. Λ T. Λ i. tpEq2 -(tvConsSC -n ·H ·T -i) .
+
+-- action of head and tail on cons
+tvHeadConsC : ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TpEq ·(TVHead n ·(TVCons n ·H ·T)) ·H
+= tvConsZC .
+
+tvTailConsC
+: ∀ n: Nat. ∀ H: ★. ∀ T: 𝒌TyVec n. TVEq n ·(TVTail n ·(TVCons n ·H ·T)) ·T
+= Λ n. Λ H. Λ T.
+  sigma β (λ i. tvConsSC -n ·H ·T -i) .
+

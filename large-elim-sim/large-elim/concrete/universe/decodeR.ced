@@ -3,8 +3,6 @@ module large-elim/concrete/universe/decodeR (C: ★) (I: C ➔ ★) (T: ★) .
 import lib .
 import descr ·C ·I.
 
-
-
 data DecodeR : Descr ➔ ★ ➔ ★
 = decIdR    : ∀ X: ★. TpEq ·X ·T ➾ DecodeR idD ·X
 | decConstR : ∀ X: ★. TpEq ·X ·Unit ➾ DecodeR constD ·X

@@ -1,8 +1,10 @@
 import lib .
 
-module large-elim/concrete/zipwith/arrtpr (F: ★ ➔ ★ ➔ ★) {rF : RespTpEq2 ·F}.
+module large-elim/concrete/zipwith/tpvec/foldr (F: ★ ➔ ★ ➔ ★) {rF: RespTpEq2 ·F}.
 
-import tyvec .
+import large-elim/concrete/zipwith/tpvec/base .
+
+-- fold over type vectors
 
 {-
 -- TVFold : Π F: ★ ➔ ★ ➔ ★. Π n: Nat. 𝒌TyVec (succ n) ➔ ★
@@ -31,21 +33,6 @@ tvFoldRS'
 = Λ n. Λ L. Λ Y. λ fr.
   tvFoldRS -n ·L fr -(refl ·(F ·(TVHead (succ n) ·L) ·Y)) .
 
-{-
--- tvFoldRSubst : ∀ F: ★ ➔ ★ ➔ ★. SubstTpEq2 ·F ➾
---                ∀ n: Nat. ∀ X: ★. ∀ L1: 𝒌TyVec (succ n). ∀ L2: 𝒌TyVec (succ n).
---                TyVecEq (succ n) ·L1 ·L2 ➾ TVFoldR n ·L1 ·X ➔ TVFoldR n ·L2 ·X
--- tvFoldRSubst ·F -rF -zero ·X ·L1 ·L2 -eqL (tvFoldRZ ·L1 ·X -eqX) =
---   tvFoldRZ ·L2 ·X -(trans -eqX -(tvEqHead -zero -eqL))
--- tvFoldRSubst ·F -rF -(succ n) ·X ·L1 ·L2 -eqL (tvFoldRS -n ·L1 ·Ih ih ·X -eqX) =
---   tvFoldRS -n ·L2 ·Ih (tvFoldRSubst -rF -n -eqTl ih) ·X -eqX'
---   where
---   eqX' : TpEq ·X ·(HeadTyVec (succ n) ·L2 ➔ Ih)
---   eqX' = trans -eqX -(rF -(tvEqHead -(succ n) -tvEqL) -(refl ·Ih))
---
---   eqTl : TVEq (succ n) ·(TVTail (succ n) ·L1) ·(TVTail (succ n) ·L2)
---   eqTl = tvEqTail -(succ n) -eqL
--}
 tvFoldRSubst
 : ∀ n1: Nat. ∀ L1: 𝒌TyVec (succ n1). ∀ X: ★.
   ∀ n2: Nat. ∀ L2: 𝒌TyVec (succ n2). TVEq' (succ n1) ·L1 (succ n2) ·L2 ➾

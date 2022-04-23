@@ -1,0 +1,13 @@
+import lib .
+
+module large-elim/concrete/zipwith/tpvec .
+
+-- TpVec, TVHead, TVTail, TVMap, TVNil
+import public large-elim/concrete/zipwith/tpvec/base .
+-- TVCons
+import public large-elim/concrete/zipwith/tpvec/cons .
+-- TVFold
+import public large-elim/concrete/zipwith/tpvec/foldr .
+import public large-elim/concrete/zipwith/tpvec/fold .
+
+

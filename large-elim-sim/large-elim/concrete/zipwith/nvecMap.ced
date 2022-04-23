@@ -1,9 +1,7 @@
 import lib .
+import large-elim/concrete/zipwith/tpvec .
 
 module large-elim/concrete/zipwith/nvecMap .
-
-import tyvec .
-import fold .
 
 ArrTp : Π n: Nat. 𝒌TyVec (succ n) ➔ ★
 = λ n: Nat. λ L: 𝒌TyVec (succ n).

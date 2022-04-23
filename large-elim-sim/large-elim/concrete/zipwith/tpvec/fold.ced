@@ -1,10 +1,12 @@
 import lib .
 
-module large-elim/concrete/zipwith/tvfold (F: ★ ➔ ★ ➔ ★) {rF: RespTpEq2 ·F} .
+module large-elim/concrete/zipwith/tpvec/fold (F: ★ ➔ ★ ➔ ★) {rF: RespTpEq2 ·F} .
 
-import tyvec .
-import foldr ·F -rF.
+import large-elim/concrete/zipwith/tpvec/base .
+import large-elim/concrete/zipwith/tpvec/foldr ·F -rF .
+import large-elim/concrete/zipwith/tpvec/cons .
 
+-- folds of type vectors (concluded)
 TVFold : Π n: Nat. 𝒌TyVec (succ n) ➔ ★
 = λ n: Nat. λ L: 𝒌TyVec (succ n). ∀ X: ★. TVFoldR n ·L ·X ➾ X .
 
@@ -68,6 +70,7 @@ tvFoldREx : Π n: Nat. ∀ L: 𝒌TyVec (succ n). TVFoldR n ·L ·(TVFold n ·L)
   - tvFoldS -n'' ·L (mk n' ·(TVTail (succ n'') ·L))
   } .
 
+-- computation laws
 tvFoldZC
 : ∀ L: 𝒌TyVec num1. TpEq ·(TVFold zero ·L) ·(TVHead zero ·L)
 = Λ L. tpEqSym -(tvFoldZEq ·L) .

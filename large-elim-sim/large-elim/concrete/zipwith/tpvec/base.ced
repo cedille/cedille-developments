@@ -1,0 +1,114 @@
+import lib .
+
+module large-elim/concrete/zipwith/tpvec/base .
+
+-- length-indexed lists of types
+𝒌TyVec (n: Nat) = Fin n ➔ ★ .
+
+-- some operations
+TVHead : Π n: Nat. 𝒌TyVec (succ n) ➔ ★
+= λ n: Nat. λ L: 𝒌TyVec (succ n). L (zeroFin -n) .
+
+TVTail : Π n: Nat. 𝒌TyVec (succ n) ➔ 𝒌TyVec n
+= λ n: Nat. λ L: 𝒌TyVec (succ n). λ i: Fin n.
+  L (succFin -n i) .
+
+TVMap : (★ ➔ ★) ➔ Π n: Nat. 𝒌TyVec n ➔ 𝒌TyVec n
+= λ F: ★ ➔ ★. λ n: Nat. λ L: 𝒌TyVec n.
+  λ i: Fin n. F ·(L i) .
+
+-- empty type vector
+TVNil : 𝒌TyVec zero
+= λ i: Fin zero. Bot .
+
+-- equality
+TVEq' : Π m: Nat. 𝒌TyVec m ➔ Π n: Nat. 𝒌TyVec n ➔ ★
+= λ m: Nat. λ L1: 𝒌TyVec m. λ n: Nat. λ L2: 𝒌TyVec n.
+  Sigma ·{ m ≃ n }
+    ·(λ eq: { m ≃ n }. Π i: Fin m. TpEq ·(L1 i) ·(L2 (convFin -m -n -eq i))) .
+
+TVEq : Π m: Nat. 𝒌TyVec m ➔ 𝒌TyVec m ➔ ★
+= λ m: Nat. λ L1: 𝒌TyVec m. λ L2: 𝒌TyVec m.
+  TVEq' m ·L1 m ·L2 .
+
+tvEqIrrel'
+: ∀ n1: Nat. ∀ L1: 𝒌TyVec n1. ∀ n2: Nat. ∀ L2: 𝒌TyVec n2.
+  TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n1 ·L1 n2 ·L2
+= Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
+  sigma (ρ (fst eqL) - β) (λ i. tpEqIrrel -(snd eqL i)) .
+
+tvRefl : ∀ n: Nat. ∀ L: 𝒌TyVec n. TVEq n ·L ·L
+= Λ n. Λ L.
+  sigma β (λ i. refl ·(L i)) .
+
+tvSym'
+: ∀ n1: Nat. ∀ L1: 𝒌TyVec n1. ∀ n2: Nat. ∀ L2: 𝒌TyVec n2.
+  TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n2 ·L2 n1 ·L1
+= Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
+  sigma (ρ (fst eqL) - β) (λ i. tpEqSym -(snd eqL (ρ (fst eqL) - i))) .
+
+tvSym
+: ∀ n: Nat. ∀ L1: 𝒌TyVec n. ∀ L2: 𝒌TyVec n.
+  TVEq n ·L1 ·L2 ➾ TVEq n ·L2 ·L1
+= Λ n. Λ L1. Λ L2. tvSym' -n ·L1 -n ·L2 .
+
+tvTrans'
+: ∀ n1: Nat. ∀ L1: 𝒌TyVec n1.
+  ∀ n2: Nat. ∀ L2: 𝒌TyVec n2.
+  ∀ n3: Nat. ∀ L3: 𝒌TyVec n3.
+  TVEq' n1 ·L1 n2 ·L2 ➾ TVEq' n2 ·L2 n3 ·L3 ➾
+  TVEq' n1 ·L1 n3 ·L3
+= Λ n1. Λ L1. Λ n2. Λ L2. Λ n3. Λ L3. Λ eqL1. Λ eqL2.
+  sigma (ρ (fst eqL1) - ρ (fst eqL2) - β) (λ i.
+    tpEqTrans -(snd eqL1 i) -(snd eqL2 (convFin -n1 -n2 -(fst eqL1) i))) .
+
+tvTrans : ∀ n: Nat. ∀ L1: 𝒌TyVec n. ∀ L2: 𝒌TyVec n. ∀ L3: 𝒌TyVec n.
+          TVEq n ·L1 ·L2 ➾ TVEq n ·L2 ·L3 ➾ TVEq n ·L1 ·L3
+= Λ n. Λ L1. Λ L2. Λ L3. tvTrans' -n ·L1 -n ·L2 -n ·L3 .
+
+-- head, tail, map respect type vector equality
+tvEqHead'
+: ∀ n1: Nat. ∀ L1: 𝒌TyVec (succ n1). ∀ n2: Nat. ∀ L2: 𝒌TyVec (succ n2).
+  TVEq' (succ n1) ·L1 (succ n2) ·L2 ➾
+  TpEq ·(TVHead n1 ·L1) ·(TVHead n2 ·L2)
+= Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
+  tpEqIrrel -(snd eqL (zeroFin -n1)) .
+
+tvEqHead
+: ∀ n: Nat. ∀ L1: 𝒌TyVec (succ n). ∀ L2: 𝒌TyVec (succ n).
+  TVEq (succ n) ·L1 ·L2 ➾ TpEq ·(TVHead n ·L1) ·(TVHead n ·L2)
+= Λ n. Λ L1. Λ L2. tvEqHead' -n ·L1 -n ·L2 .
+
+tvEqTail'
+: ∀ n1: Nat. ∀ L1: 𝒌TyVec (succ n1). ∀ n2: Nat. ∀ L2: 𝒌TyVec (succ n2).
+  TVEq' (succ n1) ·L1 (succ n2) ·L2 ➾
+  TVEq' n1 ·(TVTail n1 ·L1) n2 ·(TVTail n2 ·L2)
+= Λ n1. Λ L1. Λ n2. Λ L2. Λ eqL.
+  tvEqIrrel' -n1 ·(TVTail n1 ·L1) -n2 ·(TVTail n2 ·L2)
+    -(sigma (succInj n1 n2 (fst eqL)) (λ i.
+        snd eqL (succFin -n1 i))) .
+
+tvEqTail
+: ∀ n: Nat. ∀ L1: 𝒌TyVec (succ n). ∀ L2: 𝒌TyVec (succ n).
+  TVEq (succ n) ·L1 ·L2 ➾ TVEq n ·(TVTail n ·L1) ·(TVTail n ·L2)
+= Λ n. Λ L1. Λ L2. tvEqTail' -n ·L1 -n ·L2 .
+
+tvMapRespEq
+: ∀ F: ★ ➔ ★. RespTpEq ·F ➾
+  ∀ n: Nat. ∀ L1: 𝒌TyVec n. ∀ L2: 𝒌TyVec n.
+  TVEq n ·L1 ·L2 ➾ TVEq n ·(TVMap ·F n ·L1) ·(TVMap ·F n ·L2)
+= Λ F. Λ rF. Λ n. Λ L1. Λ L2. Λ eqL.
+  sigma β
+    (λ i. tpEqIrrel -(rF -(snd eqL i)))
+.
+
+-- action of head and tail on map
+tvHeadMapC
+: ∀ F: ★ ➔ ★. ∀ n: Nat. ∀ L: 𝒌TyVec (succ n).
+  TpEq ·(TVHead n ·(TVMap ·F (succ n) ·L)) ·(F ·(TVHead n ·L))
+= Λ F. Λ n. Λ L. refl ·(F ·(TVHead n ·L)) .
+
+tvTailMapC
+: ∀ F: ★ ➔ ★. ∀ n: Nat. ∀ L: 𝒌TyVec (succ n).
+  TVEq n ·(TVTail n ·(TVMap ·F (succ n) ·L)) ·(TVMap ·F n ·(TVTail n ·L))
+= Λ F. Λ n. Λ L. sigma β (λ i. refl ·(TVTail n ·(TVMap ·F (succ n) ·L) i)) .

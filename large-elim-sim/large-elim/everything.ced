@@ -16,16 +16,16 @@ import concrete/universe/noconfusion2.
 import concrete/universe/noconfusionR as NCR.
 import concrete/universe/udata as Udata.
 
-import concrete/zipwith/fold.
-import concrete/zipwith/foldr.
 import concrete/zipwith/nvecMap.
-import concrete/zipwith/tyvec.
-import concrete/zipwith/tyvecr as TyVecR.
+import concrete/zipwith/tpvec.
+
+import example-nary as Nary .
 
 import generic/algty.
 import generic/encoding as Encoding.
-import generic/large.
 
 import generic/example/nary.
 import generic/example/nat.
 import generic/example/strongind.
+
+import generic/large.
