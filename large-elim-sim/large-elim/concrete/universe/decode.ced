@@ -1,8 +1,11 @@
 module large-elim/concrete/universe/decode (C: ★) (I: C ➔ ★) (R: ★) .
 
 import lib .
-import descr ·C ·I.
-import decodeR ·C ·I ·R .
+
+import large-elim/concrete/universe/descr ·C ·I.
+
+-- DecodeR GADT defined here
+import large-elim/concrete/universe/decodeR ·C ·I ·R .
 
 -- Existence
 Decode : Descr ➔ ★

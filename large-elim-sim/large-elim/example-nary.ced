@@ -9,13 +9,13 @@ data NaryR : Nat ➔ ★ ➔ ★
 extr0' : ∀ x: Nat. { x ≃ zero } ➾ ∀ N: ★. NaryR x ·N ➔ N ➔ T
 {-
 -- extr0' : ∀ x: Nat. { x ≃ zero } ➾ ∀ N: ★. NaryR x ·N ➔ N ➔ T
--- extr0' -.zero -eqX ·N naryRZ x = x
--- extr0' -.(succ n) -eqX ·N (naryRS n ·X r) x = δ - eqX
+-- extr0' -zero -eqx ·T naryRZ x = x
+-- extr0' -(succ n) -eqx ·(T ➔ X) (naryRS n ·X r) x = δ - eqX
 -}
 = Λ x. Λ eqx. Λ N. λ r.
   μ' r @λ x: Nat. λ X: ★. λ _: NaryR x ·X. { x ≃ zero } ➾ X ➔ T {
   | naryRZ ➔ Λ _. λ x. x
-  | naryRS -n ·Y r' ➔ Λ abs. δ - abs
+  | naryRS -n ·X r' ➔ Λ eqx. δ - eqx
   } -eqx .
 
 extr0 = extr0' -zero -β .

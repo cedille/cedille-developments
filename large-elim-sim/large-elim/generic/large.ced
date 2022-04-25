@@ -84,7 +84,7 @@ foldREx : Π x: IndM. FoldR x ·(Fold x)
 .
 
 
-foldInBeta'
+foldBeta
 : ∀ R: ★. ∀ c: Cast ·R ·IndM. ∀ xs: F ·R.
   TpEq ·(Fold (inM' -c xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
 = Λ R. Λ c. Λ xs.
@@ -92,17 +92,32 @@ foldInBeta'
    = foldInEq -c (λ x. foldREx (cast -c x)) -xs}
 - intrTpEq -eq.1 -eq.2 .
 
-foldInBeta : ∀ xs: F ·IndM. TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
-= Λ xs.
-  {eq : TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
-   = foldInEq -(castRefl ·IndM) foldREx -xs}
-- intrTpEq -eq.1 -eq.2 .
+foldBeta' : ∀ xs: F ·IndM. TpEq ·(Fold (inM xs)) ·(A ·IndM (castRefl ·IndM) ·Fold xs)
+= foldBeta ·IndM -(castRefl ·IndM) .
+
+{-
+-- The requirement that A satisfies AlgTyResp means that this is equivalent (up
+-- to type equality) to instead instantiate A with µF and apply this to xs after
+-- casting xs to the type F ·µF .
+-}
+_ : ∀ R: ★. ∀ c: Cast ·R ·IndM. ∀ xs: F ·R.
+    TpEq ·(A ·IndM (castRefl ·IndM) ·Fold (cast -(mono -c) xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
+= Λ R. Λ c. Λ xs.
+  tpEqIrrel
+    -(cA ·IndM                 ·R
+         -(castRefl ·IndM)     -c
+         ·Fold                 ·(λ x: R. Fold (cast -c x))
+         (λ x1. λ x2. λ xEq.
+          ρ ς xEq - refl ·(Fold x1))
+         (cast -(mono -c) xs) xs
+         β)
+.
 
 foldExt
 : ∀ H: IndM ➔ ★.
-  (∀ R: ★. ∀ c: Cast ·R ·IndM. Π xs: F ·R.
-  TpEq ·(H (inM' -c xs)) ·(A ·R c ·(λ x: R. H (cast -c x)) xs))
-  ➔ Π x: IndM. TpEq ·(H x) ·(Fold x)
+  Π homH: ∀ R: ★. ∀ c: Cast ·R ·IndM. Π xs: F ·R.
+          TpEq ·(H (inM' -c xs)) ·(A ·R c ·(λ x: R. H (cast -c x)) xs).
+  Π x: IndM. TpEq ·(H x) ·(Fold x)
 = Λ H. λ hom.
   inductionM ·(λ x: IndM. TpEq ·(H x) ·(Fold x))
     (Λ R. Λ c. λ ih. λ xs.
@@ -110,7 +125,7 @@ foldExt
       -(hom -c xs)
       -(sym
          -(trans ·(Fold (inM' -c xs)) ·(A ·R c ·(λ x: R. Fold (cast -c x)) xs)
-            -(foldInBeta' -c -xs)
+            -(foldBeta -c -xs)
             -(cA -c -c
                ·(λ x: R. Fold (cast -c x)) ·(λ x: R. H (cast -c x))
                (λ x1. λ x2. λ xEq. ρ xEq - sym -(ih x2))
@@ -118,7 +133,7 @@ foldExt
 .
 
 rollFold : ∀ xs: F ·IndM. A ·IndM (castRefl ·IndM) ·Fold xs ➔ Fold (inM xs)
-= Λ xs. (foldInBeta -xs).2.1 .
+= Λ xs. (foldBeta' -xs).2.1 .
 
 unrollFold : ∀ xs: F ·IndM. Fold (inM xs) ➔ A ·IndM (castRefl ·IndM) ·Fold xs
-= Λ xs. (foldInBeta -xs).1.1 .
+= Λ xs. (foldBeta' -xs).1.1 .

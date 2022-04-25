@@ -85,13 +85,13 @@ Nary : Nat ➔ ★ = Fold .
 
 naryZC : TpEq ·(Nary zero) ·T
 = tpEqTrans ·(Nary zero) ·(NaryAlgTy ·Nat (castRefl ·Nat) ·Nary (zeroF ·Nat)) ·T
-    -(foldInBeta -(zeroF ·Nat))
+    -(foldBeta' -(zeroF ·Nat))
     -(naryAlgTyZ ·Nat -(castRefl ·Nat) ·Nary)
 .
 
 narySC : ∀ n: Nat. TpEq ·(Nary (succ n)) ·(T ➔ Nary n)
 = Λ n.
   tpEqTrans ·(Nary (succ n)) ·(NaryAlgTy ·Nat (castRefl ·Nat) ·Nary (succF n)) ·(T ➔ Nary n)
-    -(foldInBeta -(succF n))
+    -(foldBeta' -(succF n))
     -(naryAlgTyS ·Nat -(castRefl ·Nat) ·Nary -n)
 .
