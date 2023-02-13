@@ -1,0 +1,234 @@
+
+import ../lib/bot.
+import ../lib/cast.
+import ../lib/idata.
+import ../lib/tuple.
+import ../encoding/prfalg as PrfAlg.
+import ../encoding/idxind as I.
+import mono.
+
+module ind
+  (F: Π X:★. (X ➔ ★) ➔ ★)
+  (G: Π X:★. Π Y:(X ➔ ★). Π alg:F·X·Y ➔ X. X ➔ ★)
+  {mF:MonoF·F·G}
+  {mG:MonoG·F·G}
+.
+
+import shape·F·G -mF -mG.
+import constraint·F·G -mF -mG.
+
+demote : ∀ i:Idx. Cast·(CrtF·Crt i)·(ShapeF·Shape (dfst i))
+= Λ i. intrCast
+  -(λ x. μ' x {
+  | CrtF_Fin xs ➔ [xs' = cast -(mF
+    ·(ι c:Shape f0. Crt (in1 c))
+    ·(Shape f0)
+    ·(λ i:ι c:Shape f0. Crt (in1 c). ι t:Shape f1. Crt (in2 t i.1))
+    ·(λ _:Shape f0. Shape f1)
+    -[λ x. x.1, β]
+    -(Λ _. [λ x. x.1, β]))
+    xs]
+    - ShapeF_Fin xs'
+  | CrtF_Gin·A -mA -k -inj -eq -i xs ➔
+    [Ai : Idx ➔ ★ = λ i:Idx. PrfAlg.IndM·Idx·A mA i]
+    - [inA = PrfAlg.inIndM·Idx·A -mA]
+    - [xs' = cast -(mG
+      ·(ι c:Shape f0. Ai (in1 c))
+      ·(Shape f0)
+      ·(λ i:ι c:Shape f0. Ai (in1 c). ι t:Shape f1. Ai (in2 t i.1))
+      ·(λ _:Shape f0. Shape f1)
+      -(λ x. [x' = inj x] - [s = inShape -f0 x'.1] - [s, inA -(in1 s) x'.2])
+      -(λ x. inShape -f0 (ShapeF_Fin x))
+      -(ρ eq - β)
+      -[λ x. x.1, β]
+      -(Λ _. [λ x. x.1, β])
+      -i)
+      xs]
+    - ShapeF_Gin -mShape -(ShapeF_Fin·Shape) -i.1 xs'
+  })
+  -(λ x. μ' x {
+  | CrtF_Fin _ ➔ β
+  | CrtF_Gin·_ -_ -_ -_ -_ -_ _ ➔ β
+  }).
+
+import ../indind as II n2 ·ShapeF -mShape ·CrtF -mCrt -demote.
+
+i0 : II.Idx = (sigma f0 (cast -(tzβ·Shape).2 unit)).
+
+TypeF : ★ = II.Quotient i0.
+
+forgetF : Cast·TypeF·(Shape f0)
+= intrCast -(λ t. t.1) -(λ _. β).
+
+i1 : TypeF ➔ II.Idx = λ i. sigma f1 (cast -(tsβ·Shape -f0).2
+  (pair (cast -forgetF i) (cast -(tzβ·Shape).2 unit))).
+
+TypeG : TypeF ➔ ★ = λ i:TypeF. II.Quotient (i1 i).
+
+forgetG : ∀ i:TypeF. Cast·(TypeG i)·(Shape f1)
+= Λ i. intrCast -(λ t. t.1) -(λ _. β).
+
+inF :F·TypeF·TypeG ➔ TypeF
+= λ xs. [xs' = cast -(mF
+    ·TypeF
+    ·(Shape f0)
+    ·TypeG
+    ·(λ _:Shape f0. Shape f1)
+    -forgetF
+    -forgetG)
+    xs]
+  - II.in -i0 [ShapeF_Fin xs', CrtF_Fin xs].
+
+inG : ∀ i:TypeF. G·TypeF·TypeG inF i ➔ TypeG i
+= Λ i. λ xs. [xs' = cast -(mG
+    ·TypeF
+    ·(Shape f0)
+    ·TypeG
+    ·(λ _:Shape f0. Shape f1)
+    -inF
+    -(λ x. inShape -f0 (ShapeF_Fin x))
+    -β
+    -forgetF
+    -forgetG
+    -i)
+    xs]
+  - II.in -(i1 i) [ShapeF_Gin -mShape -(ShapeF_Fin·Shape) -(cast -forgetF i) xs',
+    CrtF_Gin·Crt -mCrt
+      -(Λ _. [λ x. x, β])
+      -(λ x. [x1 = cast -(mF
+        ·TypeF
+        ·(Shape f0)
+        ·TypeG
+        ·(λ _:Shape f0. Shape f1)
+        -forgetF
+        -forgetG)
+        x]
+	- [s = inShape -f0 (ShapeF_Fin x1)]
+        - [x2 = CrtF_Fin x] 
+        - [cast -(demote -(in1 s)) x2, x2])
+      -β
+      -i
+      xs].
+
+PrfAlgF : (TypeF ➔ ★) ➔ (Π i:TypeF. TypeG i ➔ ★) ➔ ★ =
+  λ P: TypeF ➔ ★.
+  λ Q: Π i:TypeF. TypeG i ➔ ★.
+  ∀ R: ★.
+  ∀ S: R ➔ ★.
+  ∀ c1: Cast·R·TypeF.
+  ∀ c2: ∀ r:R. Cast·(S r)·(TypeG (cast -c1 r)).
+  Π p: Π r:R. P (cast -c1 r).
+  Π q: ∀ r:R. Π s:S r. Q (cast -c1 r) (cast -(c2 -r) s).
+  Π xs: F·R·S.
+  P (inF (cast -(mF -c1 -c2) xs)).
+
+PrfAlgG : (TypeF ➔ ★) ➔ (Π i:TypeF. TypeG i ➔ ★) ➔ ★ =
+  λ P: TypeF ➔ ★.
+  λ Q: Π i:TypeF. TypeG i ➔ ★.
+  ∀ R: ★.
+  ∀ S: R ➔ ★.
+  ∀ c1: Cast·R·TypeF.
+  ∀ c2: ∀ r:R. Cast·(S r)·(TypeG (cast -c1 r)).
+  Π p: Π r:R. P (cast -c1 r).
+  Π q: ∀ r:R. Π s:S r. Q (cast -c1 r) (cast -(c2 -r) s).
+  ∀ alg: F·R·S ➔ R.
+  ∀ eq: {alg ≃ inF}.
+  ∀ r: R.
+  Π xs: G·R·S alg r.
+  Q (cast -c1 r) (inG -(cast -c1 r) (cast -(mG -alg -inF -eq -c1 -c2 -r) xs)).
+
+CombinePQ : (TypeF ➔ ★) ➔ (Π i:TypeF. TypeG i ➔ ★) ➔ Π i:II.Idx. II.Quotient i ➔ ★ =
+  λ P: TypeF ➔ ★.
+  λ Q: Π i:TypeF. TypeG i ➔ ★.
+  λ i: II.Idx.
+  λ q: II.Quotient i. ι _:
+    ∀ e:{i ≃ i0}. P (ρ ς e - q) .
+    ∀ a:TypeF. ∀ e:{i ≃ i1 a}. Q a (ρ ς e - q)
+.
+
+inductBoth : ∀ P:TypeF ➔ ★. ∀ Q:Π i:TypeF. TypeG i ➔ ★.
+  PrfAlgF·P·Q ➔ PrfAlgG·P·Q ➔ ∀ i:II.Idx. Π q:II.Quotient i. CombinePQ·P·Q i q
+= Λ P. Λ Q. λ algF. λ algG. Λ i. λ x. II.induct·(CombinePQ·P·Q)
+  (Λ R. Λ c. λ ih. Λ j. λ xs. [t = μ' xs.2
+  @ λ k:Idx. λ ys:CrtF·R k.
+    [v = dfst k]
+    - [k2 = cast -(tsβ·Shape -v).1 (dsnd k)]
+    - [s = fst k2]
+    - [k' = snd k2]
+    - [j':II.Idx = sigma v k']
+    - ∀ e:{ys ≃ I.outM s}.
+    [ys':CrtF·Crt k = cast -(mCrt -c -k) ys]
+    - [s':ShapeF·Shape v = cast -(demote -k) ys']
+    - [e2:{II.mkIdx j' (inShape -k s') ≃ k} =
+      ρ e
+      - ρ (I.lambek2 -mShape -v s)
+      - χ ({sigma v (pair s k') ≃ k})
+      - ρ ς (etaPair k2)
+      - ρ ς (etaSigma k)
+      - β]
+    - CombinePQ·P·Q j' (II.in -j' [s', ρ e2 - ys']) {
+  | CrtF_Fin xs ➔ Λ e. [p = algF
+    ·(ι c:Shape f0. R (in1 c))
+    ·(λ i:ι c:Shape f0. R (in1 c). ι t:Shape f1. R (in2 t i.1))
+    -(intrCast
+      -(λ t. [t2 = cast -(c -(in1 t.1)) t.2] - [t.1, t2])
+      -(λ t. β))
+    -(Λ v. intrCast
+      -(λ t. [t2 = cast -(c -(in2 t.1 v.1)) t.2] - [t.1, t2])
+      -(λ t. β))
+    (λ r. [b = ih -i0 r] - b.1 -β)
+    (Λ r. λ s. [r' = cast -(c -(II.mkIdx i0 r.1)) r.2]
+      - [a:TypeF = [r.1, r']]
+      - [b = ih -(i1 a) s]
+      - b.2 -a -β)
+    xs]
+    - [Λ e2. p, Λ k. Λ e2. pe -(δ - e2) β{p}]
+  | CrtF_Gin ·A -mA -k -inj -eq -i xs ➔ Λ e.
+    [Ai:Idx ➔ ★ = λ i:Idx. PrfAlg.IndM·Idx·A mA i]
+    - [inA = PrfAlg.inIndM·Idx·A -mA]
+    - [q = algG
+    ·(ι c:Shape f0. Ai (in1 c))
+    ·(λ i:ι c:Shape f0. Ai (in1 c). ι t:Shape f1. Ai (in2 t i.1))
+    -(intrCast
+      -(λ t. [t2 = cast -(k -(in1 t.1)) t.2]
+        - [t3 = cast -(c -(in1 t.1)) t2]
+	- [t.1, t3])
+      -(λ t. β))
+    -(Λ w. intrCast
+      -(λ t. [t2 = cast -(k -(in2 t.1 w.1)) t.2]
+        - [t3 = cast -(c -(in2 t.1 w.1)) t2]
+	- [t.1, t3])
+      -(λ t. β))
+    (λ r. [r2: ι s:Shape f0. R (in1 s) = [r.1, cast -(k -(in1 r.1)) r.2]]
+      - [b = ih -i0 r2]
+      - b.1 -β)
+    (Λ r. λ s. [r2: ι s:Shape f0. R (in1 s) = [r.1, cast -(k -(in1 r.1)) r.2]]
+      - [s2: ι s:Shape f1. R (in2 s r2.1) = [s.1, cast -(k -(in2 s.1 r2.1)) s.2]]
+      - [r3 = cast -(c -(II.mkIdx i0 r2.1)) r2.2]
+      - [a:TypeF = [r.1, r3]]
+      - [b = ih -(i1 a) s2]
+      - b.2 -a -β)
+    -(λ x. [x2 = inj x] - [s = inShape -f0 x2.1] - [s, inA -(in1 s) x2.2])
+    -(ρ eq - β)
+    -i
+    xs]
+    - [Λ e2. pe -(δ - e2) β{q}, Λ a. Λ e2.
+      [lemma1 : {sigma f1 (pair i unit) ≃ sigma f1 (pair a unit)}
+        = ρ+ e2 - β]
+      - [lemma2 : {pair i unit ≃ pair a unit}
+        = ρ lemma1 @ w. {dsnd w ≃ dsnd (sigma f1 (pair a unit))}
+        - β]
+      - [lemma3 : {i ≃ a} = ρ lemma2 @ w. {fst w ≃ fst (pair a unit)} - β]
+      - ρ ς lemma3 - q]
+  } -(χ({xs ≃ I.outM (PrfAlg.inIndM xs)}) - ρ (I.lambek1 -mShape -(dfst j) xs.1) - β)]
+    - (ρ (etaSigma j) - t))
+  -i
+  x.
+
+inductF : ∀ P:TypeF ➔ ★. ∀ Q:Π i:TypeF. TypeG i ➔ ★.
+  PrfAlgF·P·Q ➔ PrfAlgG·P·Q ➔ Π x:TypeF. P x
+= Λ P. Λ Q. λ algF. λ algG. λ x. (inductBoth·P·Q algF algG -i0 x).1 -β.
+
+inductG : ∀ P:TypeF ➔ ★. ∀ Q:Π i:TypeF. TypeG i ➔ ★.
+  PrfAlgF·P·Q ➔ PrfAlgG·P·Q ➔ ∀ i:TypeF. Π x:TypeG i. Q i x
+= Λ P. Λ Q. λ algF. λ algG. Λ i. λ x. (inductBoth·P·Q algF algG -(i1 i) x).2 -i -β.

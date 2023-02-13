@@ -1,0 +1,117 @@
+import bot.
+import cast.
+import tpeq.
+import idata.
+
+module tuple (n:Nat) (El:Fin n ➔ ★).
+
+data TupleR : PtFin n ➔ ★ ➔ ★ =
+| TupleZeroR : ∀ X:★. TpEq·X·Unit ➾ TupleR (fzero -n) ·X
+| TupleSuccR : ∀ i:Fin n. ∀ T:★. TupleR (cast -(pftof -n) i) ·T ➔
+  ∀ X:★. TpEq·X·(Pair·(El i)·T) ➾
+  TupleR (fsucc -n i) ·X
+.
+
+tupleRUnique : ∀ i:PtFin n. ∀ A:★. TupleR i·A ➔ ∀ B:★. TupleR i·B ➔ TpEq·A·B
+= Λ i. Λ A. λ t1. μ rec. t1 {
+  | TupleZeroR ·X -eq1 ➔ Λ B. λ t1. μ' t1
+    @ λ j:PtFin n. λ J:★. λ _:TupleR j·J. {j ≃ fzero} ➾ TpEq·X·J  {
+    | TupleZeroR ·Y -eq2 ➔ Λ _. [eq3 : TpEq·Unit·Y = tpEqSym -eq2]
+      - tpEqTrans -eq1 -eq3
+    | TupleSuccR -i ·T t ·Y -eq2 ➔ Λ e. δ - e
+    } -β
+  | TupleSuccR -i ·T t ·X -eq1 ➔ Λ B. λ t1. μ' t1
+    @ λ j:PtFin n. λ J:★. λ _:TupleR j·J. {j ≃ fsucc -n i} ➾ TpEq·X·J {
+    | TupleZeroR ·Y -eq2 ➔ Λ e. δ - e
+    | TupleSuccR -j ·S s ·Y -eq2 ➔ Λ e.
+      [e2: {j ≃ i} = ρ e @ x. {fpred x ≃ fpred (fsucc i)} - β]
+      - [eq3: TpEq·T·S = rec -(cast -(pftof -n) i) ·T t ·S (ρ ς e2 - s)]
+      - [eq4: TpEq·(Pair·(El i)·T)·(Pair·(El j)·S) =
+        [c1: Cast·(Pair·(El i)·T)·(Pair·(El j)·S)
+	  = intrCast
+	    -(λ p. ρ e2 - pair (fst p) (cast -eq3.1 (snd p)))
+	    -(λ p. ρ (etaPair p) - β)]
+	- [c2: Cast·(Pair·(El j)·S)·(Pair·(El i)·T)
+	  = intrCast
+	    -(λ p. ρ ς e2 - pair (fst p) (cast -eq3.2 (snd p)))
+	    -(λ p. ρ (etaPair p) - β)]
+        - [[λ x. cast -c1 x, β], [λ x. cast -c2 x, β]]]
+      - [eq5 : TpEq·(Pair·(El j)·S)·Y = tpEqSym -eq2]
+      - [eq6 : TpEq·X·(Pair·(El j)·S) = tpEqTrans -eq1 -eq4]
+      - tpEqTrans -eq6 -eq5
+    } -β
+  }.
+
+tupleRResp : ∀ i:PtFin n. ∀ A:★. TupleR i·A ➔ ∀ B:★. TpEq·A·B ➾ TupleR i·B
+= Λ i. Λ A. λ t. μ' t {
+  | TupleZeroR ·X -eq1 ➔ Λ B. Λ eq2.
+    [eq3: TpEq·B·X = tpEqSym -eq2]
+    - [eq4: TpEq·B·Unit = tpEqTrans -eq3 -eq1]
+    - TupleZeroR ·B -eq4
+  | TupleSuccR -j ·S s ·Y -eq1 ➔ Λ B. Λ eq2.
+    [eq3 = tpEqSym -eq2]
+    - [eq4 = tpEqTrans -eq3 -eq1]
+    - TupleSuccR -j ·S s ·B -eq4
+  }.
+
+Tuple : PtFin n ➔ ★ = λ i:PtFin n. ∀ X:★. TupleR i·X ➾ X.
+
+TupleZeroR' : TupleR (fzero -n) ·Unit
+= TupleZeroR·Unit -(tpEqRefl·Unit).
+
+TupleZeroEq : TpEq·(Tuple (fzero -n))·Unit
+= intrTpEq
+  -(intrCast
+    -(λ x. x -(TupleZeroR'))
+    -(λ x. β))
+  -(intrCast
+    -(λ x. Λ X. Λ t. cast -(tupleRUnique -(fzero -n) TupleZeroR' t).1 x)
+    -(λ x. β)).
+
+TupleZero' : TupleR (fzero -n) ·(Tuple (fzero -n))
+= tupleRResp -(fzero -n) TupleZeroR' ·(Tuple (fzero -n)) -(tpEqSym -TupleZeroEq).
+
+TupleSuccR' : ∀ i:Fin n. TupleR (cast -(pftof -n) i) ·(Tuple (cast -(pftof -n) i)) ➔
+  TupleR (fsucc -n i) ·(Pair·(El i)·(Tuple (cast -(pftof -n) i)))
+= Λ i. λ t. TupleSuccR -i t -(tpEqRefl ·(Pair·(El i)·(Tuple (cast -(pftof -n) i)))).
+
+TupleSuccEq : ∀ i:Fin n. TupleR (cast -(pftof -n) i) ·(Tuple (cast -(pftof -n) i)) ➔
+  TpEq ·(Tuple (fsucc -n i)) ·(Pair·(El i)·(Tuple (cast -(pftof -n) i)))
+= Λ i. λ t. intrTpEq
+  -(intrCast
+    -(λ x. x -(TupleSuccR' -i t))
+    -(λ x. β))
+  -(intrCast
+    -(λ x. Λ X. Λ t'. cast -(tupleRUnique -(fsucc -n i) (TupleSuccR' -i t) t').1 x)
+    -(λ x. β)).
+
+TupleSucc' : ∀ i:Fin n. TupleR (cast -(pftof -n) i) ·(Tuple (cast -(pftof -n) i)) ➔
+  TupleR (fsucc -n i) ·(Tuple (fsucc -n i))
+= Λ i. λ t. tupleRResp -(fsucc -n i) (TupleSuccR' -i t) -(tpEqSym -(TupleSuccEq -i t)).
+
+tupleEx : Π i:PtFin n. TupleR i ·(Tuple i)
+= λ i. μ rec. i.1 @ λ x:Nat. ∀ w:Le x (succ n). ∀ e:{x ≃ w}.
+  [p: PtFin n = [x, φ ς e - w {x}]]
+  - TupleR p ·(Tuple p)
+  {
+  | zero ➔ Λ w. Λ e. TupleZero'
+  | succ x ➔ Λ w. Λ e.
+    [x' = to/Nat -isType/rec x]
+    - [e' : {x' ≃ le_pred2 w} = ρ e @ i. {pred i ≃ le_pred2 w} - β]
+    - [w1 = le_pred2 -x' -n w]
+    - [w2 = cast -(le_succ2 -x' -n) w1]
+    - [r = rec x -w2  -e']
+    - [i: Fin n = [x', φ ς e' - w1 { x' }]]
+    - TupleSucc' -i r
+  } -i.2 -β.
+
+TupleZero : TpEq·(Tuple (fzero -n))·Unit
+= TupleZeroEq.
+
+TupleSucc : ∀ x:Fin n. TpEq
+  ·(Tuple (fsucc -n x))
+  ·(Pair·(El x)·(Tuple (cast -(pftof -n) x)))
+= Λ x. {eq = TupleSuccEq -x (tupleEx (cast -(pftof -n) x))}
+  - [[λ x. cast -eq.1 x, β], [λ x. cast -eq.2 x, β]].
+
+

@@ -1,0 +1,101 @@
+
+import bot.
+import cast.
+
+module idata.
+
+data Unit : ★ = unit : Unit.
+
+unitEta : Π u:Unit. { u ≃ unit }
+= λ u. μ' u { unit ➔ β }.
+
+data Bool : ★ = tt : Bool | ff : Bool.
+
+data Nat : ★ = zero : Nat | succ : Nat ➔ Nat.
+
+pred : Nat ➔ Nat
+= λ n. μ' n { zero ➔ zero | succ x ➔ x }.
+
+n0 = zero.
+n1 = succ n0.
+n2 = succ n1.
+n3 = succ n2.
+n4 = succ n3.
+
+data Pair (A:★) (B:★) : ★ = pair : A ➔ B ➔ Pair.
+
+fst : ∀ A:★. ∀ B:★. Pair·A·B ➔ A
+= Λ A. Λ B. λ p. μ' p { pair a _ ➔ a }.
+
+snd : ∀ A:★. ∀ B:★. Pair·A·B ➔ B
+= Λ A. Λ B. λ p. μ' p { pair _ b ➔ b }.
+
+etaPair : ∀ A:★. ∀ B:★. Π x:Pair·A·B. {x ≃ pair (fst x) (snd x)}
+= Λ A. Λ B. λ x. μ' x { pair _ _ ➔ β }.
+
+fstEq : ∀ A:★. ∀ B:★. Π a:A. Π b:A. Π x:A. Π y:B. {pair a b ≃ pair x y} ➾ {a ≃ x}
+= Λ A. Λ B. λ a. λ b. λ x. λ y. Λ e. ρ e @ i. {fst i ≃ fst (pair x y)} - β.
+
+data Sigma (A:★) (B:A ➔ ★) : ★ = sigma : Π a:A. B a ➔ Sigma.
+
+dfst : ∀ A:★. ∀ B:A ➔ ★. Sigma·A·B ➔ A
+= Λ A. Λ B. λ s. μ' s { sigma a _ ➔ a }.
+
+dsnd : ∀ A:★. ∀ B:A ➔ ★. Π s:Sigma·A·B. B (dfst s)
+= Λ A. Λ B. λ s. μ' s { sigma _ b ➔ b }.
+
+etaSigma : ∀ A:★. ∀ B:A ➔ ★. Π s:Sigma·A·B. {s ≃ sigma (dfst s) (dsnd s)}
+= Λ A. Λ B. λ s. μ' s { sigma a b ➔ β }.
+
+dsndEq : ∀ A:★. ∀ B:A ➔ ★. Π a:A. Π b:B a. Π x:A. Π y:B a. {sigma a b ≃ sigma x y} ➾ {b ≃ y}
+= Λ A. Λ B. λ a. λ b. λ x. λ y. Λ e. ρ e @ i. {dsnd i ≃ dsnd (sigma x y)} - β.
+
+data Ex (A:★) (B:A ➔ ★) : ★ = ex : ∀ a:A. B a ➔ Ex.
+
+data Le : Nat ➔ Nat ➔ ★ =
+| le_zero : ∀ n:Nat. Le zero (succ n)
+| le_succ : ∀ n:Nat. ∀ m:Nat. Le n m ➔ Le (succ n) (succ m).
+
+le_succ2 : ∀ n:Nat. ∀ m:Nat. Cast·(Le n m)·(Le n (succ m))
+= Λ n. Λ m.
+  [f : Le n m ➔ Le n (succ m) = λ x. μ ih. x {
+  | le_zero -i ➔ le_zero -(succ i)
+  | le_succ -i -j y ➔ le_succ -i -(succ j) (ih -i -j y)
+  }] - intrCast -f
+  -(λ x. μ ih. x @ λ i:Nat. λ j:Nat. λ y:Le i j. {f y ≃ y} {
+  | le_zero -i ➔ β
+  | le_succ -i -j y ➔ χ ({le_succ (f y) ≃ le_succ y}) - ρ (ih -i -j y) - β
+  }).
+
+le_pred : ∀ n:Nat. ∀ m:Nat. Le n m ➔ Le (pred n) m
+= Λ n. Λ m. λ x. μ' x {
+  | le_zero -i ➔ le_zero -i
+  | le_succ -i -j y ➔ cast -(le_succ2 -i -j) y
+  }.
+
+le_pred2 : ∀ n:Nat. ∀ m:Nat. Le (succ n) (succ m) ➔ Le n m
+= Λ n. Λ m. λ x. μ' x @ λ i:Nat. λ j:Nat. λ x:Le i j. {i ≃ succ n} ➾ {j ≃ succ m} ➾ Le n m {
+  | le_zero -i ➔ Λ e. pe -(δ - e) β{le_zero}
+  | le_succ -i -j y ➔ Λ e1. Λ e2.
+    [e3 : {i ≃ n} = ρ e1 @ i. {pred i ≃ n} - β]
+    - [e4 : {j ≃ m} = ρ e2 @ i. {pred i ≃ m} - β]
+    - ρ ς e3 - ρ ς e4 - y
+  } -β -β.
+
+Fin : Nat ➔ ★ = λ k:Nat. ι n:Nat. Le n k.
+PtFin : Nat ➔ ★ = λ k:Nat. ι n:Nat. Le n (succ k). 
+
+pftof : ∀ k:Nat. Cast·(Fin k)·(PtFin k)
+= Λ k. intrCast
+  -(λ x. [x.1, cast -(le_succ2 -x.1 -k) x.2])
+  -(λ x. β).
+
+fzero : ∀ k:Nat. PtFin k
+= Λ k. [zero, le_zero -k].
+
+fsucc : ∀ k:Nat. Fin k ➔ PtFin k
+= Λ k. λ n. [succ n.1, le_succ -n.1 -k n.2].
+
+fpred : ∀ k:Nat. PtFin k ➔ PtFin k
+= Λ k. λ x. [pred x.1, le_pred -x.1 -(succ k) x.2].
+

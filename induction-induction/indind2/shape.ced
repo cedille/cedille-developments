@@ -1,0 +1,67 @@
+
+import ../lib/bot.
+import ../lib/cast.
+import ../lib/tpeq.
+import ../lib/idata.
+import ../lib/tuple n2.
+import ../encoding/prfalg.
+import ../encoding/ind.
+import mono.
+
+module shape
+  (F: Π X:★. (X ➔ ★) ➔ ★)
+  (G: Π X:★. Π Y:(X ➔ ★). Π alg:F·X·Y ➔ X. X ➔ ★)
+  {mF:MonoF·F·G}
+  {mG:MonoG·F·G}
+.
+
+tzβ = TupleZero.
+tsβ = TupleSucc.
+
+f0 : Fin n2
+= [zero, le_zero -n1].
+f1 : Fin n2
+= [n1, le_succ -n0 -n1 (le_zero -n0)].
+
+data ShapeF (R:Fin n2 ➔ ★) : Fin n2 ➔ ★ =
+| ShapeF_Fin : F·(R f0)·(λ _:R f0. R f1) ➔ ShapeF f0
+| ShapeF_Gin :
+  ∀ H:(Fin n2 ➔ ★) ➔ Fin n2 ➔ ★.
+  ∀ mH: Monotonic·(Fin n2)·H.
+  [Hi : Fin n2 ➔ ★ = λ i:Fin n2. IndM·(Fin n2)·H mH i] -
+  [Hin = inIndM·(Fin n2)·H -mH -f0] -
+  ∀ inj: F·(Hi f0)·(λ _:Hi f0. Hi f1) ➔ (H·Hi f0).
+  ∀ r:Hi f0.
+  G·(Hi f0)·(λ _:Hi f0. Hi f1)
+    (λ x. Hin (inj x))
+    r
+  ➔ ShapeF f1
+.
+
+mShape : Monotonic·(Fin n2)·ShapeF
+= Λ A. Λ B. Λ c. Λ i. intrCast
+  -(λ x. μ' x {
+  | ShapeF_Fin xs ➔ ShapeF_Fin (cast
+    -(mF
+      ·(A f0)
+      ·(B f0)
+      ·(λ _:A f0. A f1)
+      ·(λ _:B f0. B f1)
+      -(c -f0)
+      -(Λ _. c -f1))
+     xs)
+  | ShapeF_Gin ·H -mH -inj -j xs ➔
+    [Hi : Fin n2 ➔ ★ = λ i:Fin n2. IndM·(Fin n2)·H mH i] -
+    [Hin = inIndM·(Fin n2)·H -mH -f0] -
+    ShapeF_Gin -mH -inj -j xs
+  })
+  -(λ x. μ' x {
+  | ShapeF_Fin _ ➔ β
+  | ShapeF_Gin ·_ -_ -_ -_ _ ➔ β
+  }).
+
+import ../encoding/prfalg as SA·(Fin n2)·ShapeF -mShape.
+
+Shape : Fin n2 ➔ ★ = λ n:Fin n2. SA.IndM n.
+inShape = SA.inIndM.
+

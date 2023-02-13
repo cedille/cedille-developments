@@ -1,0 +1,10 @@
+import top.
+
+module bot.
+
+False : ★ = ∀ X:★. X.
+
+Not : ★ ➔ ★ = λ A:★. A ➾ False.
+
+pe : ∀ X:★. False ➾ Top ➔ X
+= Λ X. Λ f. λ t. φ (f·{f ≃ t}) - (f·X) {t}.

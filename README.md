@@ -17,26 +17,26 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Paper: https://arxiv.org/abs/1803.08150
 
 ## [Monotone Recursive Types and Recursive Data Representations in Cedille](recursive-representation-of-data)
-* Author: Christopher Jenkins and Aaron Stump
+* Authors: Christopher Jenkins and Aaron Stump
 * Venue: Under consideration for publication in the journal of [Mathematical Structures in Computer Science](https://www.cambridge.org/core/journals/mathematical-structures-in-computer-science)
 * Paper: https://arxiv.org/abs/2001.02828
 
 ## [Efficient Mendler Prime](efficient-mendler-prime)
-* Author: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
+* Authors: Larry Diehl, Denis Firsov, Richard Blair, and Aaron Stump
 * Refactored version of the [ITP'18 development](efficient-mendler),
   see the [README](efficient-mendler-prime/README.md)
 
 ## [Quotients by Idempotent Functions in Cedille](idem-quotients)
-* Author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
+* Authors: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
 * Venue: [TFP'19](https://dblp.org/db/conf/sfp/tfp2019.html)
 
 ## [Efficient Lambda Encodings for Mendler-style Coinductive Types in Cedille](efficient-mendler-codata)
-* Author: Christopher Jenkins, Aaron Stump, Larry Diehl
+* Authors: Christopher Jenkins, Aaron Stump, Larry Diehl
 
 ## [Zero-Cost Constructor Subtyping](constructor-subtyping)
-* author: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
-* venue: [ifl'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
-* paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
+* Authors: Andrew Marmaduke, Christopher Jenkins, Aaron Stump
+* Venue: [ifl'20](https://dl.acm.org/doi/abs/10.1145/3462172.3462194)
+* Paper: https://dl.acm.org/doi/abs/10.1145/3462172.3462194
 
 ## [A Weakly Initial Algebra for Higher-Order Abstract Syntax in Cedilled ](lfmtp19)
 * Author: Aaron Stump
@@ -44,4 +44,9 @@ A showcase of interesting code and proof developments in [Cedille](https://githu
 * Paper: http://eptcs.web.cse.unsw.edu.au/paper.cgi?LFMTP2019.6
 
 ## [Simulating Large Eliminations in Cedille](large-elim-sim)
-* author: Christopher Jenkins, Andrew Marmaduke, Aaron Stump
+* Authors: Christopher Jenkins, Andrew Marmaduke, Aaron Stump
+* Venue: [TYPES'21](https://types21.liacs.nl/)
+* Paper: https://drops.dagstuhl.de/opus/volltexte/2022/16778/
+
+## [Impredicative Encodings of Inductive-Inductive Data in Cedille](induction-induction)
+* Authors: Andrew Marmaduke, Larry Diehl, Aaron Stump

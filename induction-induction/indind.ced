@@ -1,0 +1,126 @@
+
+import lib/cast.
+import lib/tpeq.
+import lib/idata.
+import lib/tuple.
+import encoding/prfalg as I.
+
+module indind
+  -- The number of types defined
+  (n: Nat)
+  -- The shape of the mutual inductive data
+  (S: ((Fin n) ➔ ★) ➔ (Fin n) ➔ ★)
+  {mS: Monotonic·(Fin n)·S}
+  -- The dependent constraint on that shape
+  (N: (Sigma·(Fin n)·(λ i:Fin n. Tuple n·(I.IndM·(Fin n)·S mS) (fsucc -n i)) ➔ ★)
+    ➔ Sigma·(Fin n)·(λ i:Fin n. Tuple n ·(I.IndM·(Fin n)·S mS) (fsucc -n i)) ➔ ★)
+  {mN: Monotonic
+    ·(Sigma·(Fin n)·(λ i:Fin n. Tuple n·(I.IndM·(Fin n)·S mS) (fsucc -n i)))
+    ·N}
+  {demote:
+    ∀ i: Sigma·(Fin n)·(λ i:Fin n. Tuple n·(I.IndM·(Fin n)·S mS) (fsucc -n i)).
+    Cast
+      ·(N·(I.IndM
+        ·(Sigma·(Fin n)·(λ i:Fin n. Tuple n·(I.IndM·(Fin n)·S mS) (fsucc -n i)))
+	·N mN) i)
+      ·(S·(I.IndM·(Fin n)·S mS) (dfst i))}
+.
+
+import encoding/prfalg as Shape·(Fin n)·S -mS.
+import encoding/idxind as Shape·(Fin n)·S -mS.
+Shape : Fin n ➔ ★ = Shape.IndM.
+
+IdxN : ★ = Sigma·(Fin n)·(λ i:Fin n. Tuple n·Shape (fsucc -n i)).
+
+import encoding/prfalg as Normal·IdxN·N -mN.
+import encoding/idxind as Normal·IdxN·N -mN.
+Normal : IdxN ➔ ★ = Normal.IndM.
+
+Idx : ★ = Sigma·(Fin n)·(λ i:Fin n. Tuple n·Shape (cast -(pftof -n) i)).
+
+tsβ = TupleSucc n·Shape.
+
+mkIdx : Π i:Idx. Shape (dfst i) ➔ IdxN
+= λ j. λ t. sigma (dfst j)
+  (cast -(tsβ -(dfst j)).2 (pair t (dsnd j))).
+
+promoteIdx : IdxN ➔ Idx
+= λ j. sigma (dfst j)
+  (snd (cast -((tsβ -(dfst j)).1) (dsnd j))).
+
+demote2 : ∀ i:IdxN. Cast·(Normal i)·(Shape (dfst i))
+= Λ i. intrCast
+  -(λ x. [x2 = Normal.outM -i x] - [x3 = cast -(demote -i) x2] - Shape.inIndM -(dfst i) x3)
+  -(λ x. ρ (Normal.lambek2 -i x) - β).
+
+Quotient : Idx ➔ ★ = λ i:Idx.
+  ι s:Shape (dfst i). Normal (mkIdx i s).
+
+Q : (IdxN ➔ ★) ➔ Idx ➔ ★ =
+  λ V:IdxN ➔ ★. λ i:Idx.
+  ι s:S·Shape (dfst i).
+  N·V (mkIdx i (Shape.inIndM -(dfst i) s)).
+
+mQ : ∀ A:IdxN ➔ ★. ∀ B:IdxN ➔ ★.
+  ∀ c:(∀ i:IdxN. Cast·(A i)·(B i)).
+  ∀ i:Idx. Cast·(Q·A i)·(Q·B i)
+= Λ A. Λ B. Λ c. Λ i. intrCast
+  -(λ t. [t.1, cast -(mN -c -(mkIdx i (Shape.inIndM -(dfst i) t.1))) t.2])
+  -(λ t. β).
+
+in : ∀ i:Idx. Q·Normal i ➔ Quotient i
+= Λ i. λ xs. [s = Shape.inIndM -(dfst i) xs.1]
+  - [n = Normal.inIndM -(mkIdx i s) xs.2]
+  - [s, n].
+
+PrfAlg : (Π i:Idx. Quotient i ➔ ★) ➔ ★ = λ P:Π i:Idx. Quotient i ➔ ★.
+  ∀ R: IdxN ➔ ★.
+  ∀ c: ∀ i:IdxN. Cast·(R i)·(Normal i).
+  [k: ∀ i:Idx. Cast·(ι s:Shape (dfst i). R (mkIdx i s))·(Quotient i)
+    = Λ j. intrCast -(λ x. [x.1, cast -(c -(mkIdx j x.1)) x.2]) -(λ x. β)]
+  - Π ih: (∀ i:Idx. Π r:ι s:Shape (dfst i). R (mkIdx i s). P i (cast -(k -i) r)).
+  ∀ i:Idx.
+  Π rs: Q·R i.
+  P i (in -i (cast -(mQ -c -i) rs)).
+
+induct : ∀ P:Π i:Idx. Quotient i ➔ ★. PrfAlg·P ➔ ∀ i:Idx. Π q:Quotient i. P i q
+= Λ P. λ alg. Λ i. λ q. [t = Normal.inductionM
+  ·(λ j:IdxN. λ x:Normal j.
+    [v:Fin n = dfst j]
+    - [j2 = cast -(tsβ -v).1 (dsnd j)]
+    - [s:Shape v = fst j2]
+    - [j' = snd j2]
+    - [i':Idx = sigma v j']
+    - ∀ e:{x ≃ s}.
+    [s':Shape v = cast -(demote2 -j) x]
+    - [e2:{mkIdx i' s' ≃ j} = χ ({sigma v (pair s' j') ≃ j })
+      - ρ e
+      - ρ ς (etaPair j2)
+      - ρ ς (etaSigma j)
+      - β]
+    - P i' [s', ρ e2 - x])
+  (Λ R. Λ c. λ ih. Λ j. λ xs. Λ e.
+    [v = dfst j]
+    - [j2 = cast -(tsβ -v).1 (dsnd j)]
+    - [s = fst j2]
+    - [j' = snd j2]
+    - [i':Idx = sigma v j']
+    - [xs':N·Normal j = cast -(mN -c -j) xs]
+    - [s':S·Shape v = cast -(demote -j) xs']
+    - [xs'':N·R (mkIdx i' (Shape.inIndM -(dfst i') s'))
+      = ρ e - χ (N·R (sigma v (cast -(tsβ -v).2 (pair s j'))))
+        - ρ ς (etaPair j2) - ρ ς (etaSigma j) - xs]
+    - alg·R -c
+    (Λ k. λ r. [h = ih -(mkIdx k r.1) r.2 -β]
+      - [e : { sigma (dfst (mkIdx k r)) (snd (dsnd (mkIdx k r))) ≃ k }
+        = ρ ς (etaSigma k) - β]
+      - ρ ς e - h)
+    -i'
+    [s', xs''])
+  -(mkIdx i q.1)
+  q.2
+  -β]
+  - [e : {sigma (dfst (mkIdx i q)) (snd (dsnd (mkIdx i q))) ≃ i}
+    = ρ ς (etaSigma i) - β]
+  - ρ ς e - t.
+

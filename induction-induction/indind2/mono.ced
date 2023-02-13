@@ -1,0 +1,16 @@
+
+import ../lib/cast.
+
+module mono
+  (F: Π X:★. (X ➔ ★) ➔ ★)
+  (G: Π X:★. Π Y:X ➔ ★. Π alg:F·X·Y ➔ X. X ➔ ★)
+.
+
+MonoF : ★ = ∀ A:★. ∀ B:★. ∀ U:A ➔ ★. ∀ V:B ➔ ★.
+  ∀ c:Cast·A·B. (∀ a:A. Cast·(U a)·(V (cast -c a))) ➾
+  Cast·(F·A·U)·(F·B·V).
+
+MonoG : ★ = ∀ A:★. ∀ B:★. ∀ U:A ➔ ★. ∀ V:B ➔ ★.
+  ∀ algA:F·A·U ➔ A. ∀ algB:F·B·V ➔ B. {algA ≃ algB} ➾
+  ∀ c:Cast·A·B. (∀ a:A. Cast·(U a)·(V (cast -c a))) ➾
+  ∀ a:A. Cast·(G·A·U algA a)·(G·B·V algB (cast -c a)).

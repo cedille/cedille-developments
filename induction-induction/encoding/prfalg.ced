@@ -1,0 +1,34 @@
+
+import ../lib/cast.
+import ../lib/idata.
+
+module prfalg (I:★) (F:(I ➔ ★) ➔ I ➔ ★) {mono: Monotonic·I·F}.
+
+import alg·I·F.
+
+PrfAlgM : Π X:I ➔ ★. (Π i:I. X i ➔ ★) ➔ (Π i:I. F·X i ➔ X i) ➔ ★
+= λ X:I ➔ ★. λ P:Π i:I. X i ➔ ★. λ in:Π i:I. F·X i ➔ X i.
+  ∀ R:I ➔ ★. ∀ c:∀ i:I. Cast·(R i)·(X i). Π ih:(∀ i:I. Π r:R i. P i (cast -(c -i) r)).
+  ∀ i:I. Π rs:F·R i. P i (in i (cast -(mono -c -i) rs)).
+
+InductiveM : Π i:I. FixM i ➔ ★ = λ i:I. λ x:FixM i.
+  ∀ P:Π i:I. FixM i ➔ ★. PrfAlgM·FixM·P (λ i. inM -i) ➔ P i x.
+
+IndM : I ➔ ★ = λ i:I.
+  ι x:FixM i. InductiveM i x.
+
+toFixM : ∀ i:I. Cast·(IndM i)·(FixM i)
+= Λ i. intrCast -(λ x. x.1) -(λ _. β).
+
+inIndM1 : ∀ i:I. F·IndM i ➔ FixM i
+= Λ i. λ xs. inM -i (cast -(mono·IndM·FixM -toFixM -i) xs).
+
+_ : {inIndM1 ≃ inM} = β.
+
+inIndM2 : ∀ i:I. Π xs:F·IndM i. InductiveM i (inIndM1 -i xs)
+= Λ i. λ xs. Λ P. λ alg. alg·IndM -toFixM (Λ i. λ d. d.2 alg) -i xs.
+
+_ : {inIndM2 ≃ inM} = β.
+
+inIndM : ∀ i:I. F·IndM i ➔ IndM i
+= Λ i. λ xs. [inIndM1 -i xs, inIndM2 -i xs].

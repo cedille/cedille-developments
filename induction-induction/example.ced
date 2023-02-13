@@ -1,0 +1,134 @@
+
+import lib/cast.
+import indind2/mono.
+
+module example.
+
+data CtxF (X:★) (Y:X ➔ ★): ★ =
+| nilF : CtxF
+| consF : Π g:X. Y g ➔ CtxF.
+
+data TyF (X:★) (Y:X ➔ ★) (alg:CtxF·X·Y ➔ X) : X ➔ ★ =
+| baseF : ∀ g:X. TyF g
+| arrowF : ∀ g:X. Π a:Y g. Π b:Y (alg (consF g a)). TyF g.
+
+monoCtx : MonoF·CtxF·TyF
+= Λ A. Λ B. Λ U. Λ V. Λ c1. Λ c2.
+  [f: CtxF·A·U ➔ CtxF·B·V = λ x. μ' x {
+  | nilF ➔ nilF·B·V
+  | consF g a ➔ consF (cast -c1 g) (cast -(c2 -g) a)
+  }]
+  - intrCast -f
+  -(λ x. μ' x {
+  | nilF ➔ β
+  | consF a g ➔ β
+  }).
+
+monoTy : MonoG·CtxF·TyF
+= Λ A. Λ B. Λ U. Λ V. Λ alg1. Λ alg2. Λ eq. Λ c1. Λ c2. Λ r.
+  [f: TyF·A·U alg1 r ➔ TyF·B·V alg2 (cast -c1 r) = λ x. μ' x
+  @ λ a:A. λ x: TyF·A·U alg1 a. TyF·B·V alg2 (cast -c1 a) {
+  | baseF -g ➔ baseF·B·V alg2 -(cast -c1 g)
+  | arrowF -g a b ➔ arrowF·B·V alg2
+    -(cast -c1 g)
+    (cast -(c2 -g) a)
+    (ρ ς eq - cast -(c2 -(alg1 (consF g a))) b)
+  }]
+  - intrCast -f -(λ x. μ' x {
+  | baseF -_ ➔ ρ eq - β
+  | arrowF -_ _ _ ➔ ρ eq - β
+  }).
+
+import indind2/ind ·CtxF ·TyF -monoCtx -monoTy.
+
+Ctx : ★ = TypeF.
+Ty : Ctx ➔ ★ = λ g:Ctx. TypeG g.
+
+nil : Ctx
+= inF (nilF·Ctx·Ty).
+
+cons : Π g:Ctx. Ty g ➔ Ctx
+= λ g. λ t. inF (consF g t).
+
+base : ∀ g:Ctx. Ty g
+= Λ g. inG -g (baseF inF -g).
+
+arrow : ∀ g:Ctx. Π a:Ty g. Π b:Ty (cons g a). Ty g
+= Λ g. λ a. λ b. inG -g (arrowF inF -g a b).
+
+inductCtx : ∀ P:Ctx ➔ ★. ∀ Q:Π g:Ctx. Ty g ➔ ★.
+  P nil ➔
+  (∀ g:Ctx. ∀ t:Ty g. P g ➔ P (cons g t)) ➔
+  (∀ g:Ctx. Q g (base -g)) ➔
+  (∀ g:Ctx. ∀ a:Ty g. ∀ b:Ty (cons g a). Q g a ➔ Q (cons g a) b ➔ Q g (arrow -g a b)) ➔
+  Π g:Ctx. P g
+= Λ P. Λ Q. λ nil'. λ cons'. λ base'. λ arrow'. λ g. inductF·P·Q
+  (Λ R. Λ S. Λ c1. Λ c2. λ ih1. λ ih2. λ xs.
+  [c3 : Cast·(CtxF·R·S)·(CtxF·TypeF·TypeG) = intrCast
+    -(λ t. cast -(monoCtx -c1 -c2) t)
+    -(λ t. β)]
+  - μ' xs @ λ g:CtxF·R·S. P (inF (cast -c3 g)) {
+  | nilF ➔ nil'
+  | consF g a ➔ cons' -(cast -c1 g) -(cast -(c2 -g) a) (ih1 g)
+  })
+  (Λ R. Λ S. Λ c1. Λ c2. λ ih1. λ ih2. Λ alg. Λ eq. Λ r. λ xs.
+    [c3 : ∀ r:R. Cast·(TyF·R·S alg r)·(TyF·TypeF·TypeG inF (cast -c1 r)) = Λ w. intrCast
+      -(λ t. cast -(monoTy -alg -inF -eq -c1 -c2 -w) t)
+      -(λ t. β)]
+    - μ' xs @ λ g:R. λ t:TyF·R·S alg g. Q (cast -c1 g) (inG -(cast -c1 g) (cast -(c3 -g) t)) {
+  | baseF -g ➔ ρ eq - base' -(cast -c1 g)
+  | arrowF -g a b ➔ ρ eq -
+    [g' = cast -c1 g]
+    - [a' = cast -(c2 -g) a]
+    - [b1 = cast -(c2 -(alg (consF g a))) b]
+    - [b2: Ty (inF (consF g' a')) = ρ ς eq - b1]
+    - arrow' -g' -a'
+      -(χ (Ty (inF (consF (cast -c1 g) (cast -(c2 -g) a))))
+      - ρ ς eq - χ (Ty (cast -c1 (alg (consF g a))))
+      - b1)
+    (ih2 -g a)
+    (χ (Q (cons g' a') b2)
+      - [x1 = ih2 -(alg (consF g a)) b]
+      - [x2: Q (inF (consF g' a')) b2 = ρ ς eq - x1]
+      - x2)
+  })
+  g.
+
+inductTy : ∀ P:Ctx ➔ ★. ∀ Q:Π g:Ctx. Ty g ➔ ★.
+  P nil ➔
+  (∀ g:Ctx. ∀ t:Ty g. P g ➔ P (cons g t)) ➔
+  (∀ g:Ctx. Q g (base -g)) ➔
+  (∀ g:Ctx. ∀ a:Ty g. ∀ b:Ty (cons g a). Q g a ➔ Q (cons g a) b ➔ Q g (arrow -g a b)) ➔
+  ∀ g:Ctx. Π t:Ty g. Q g t
+= Λ P. Λ Q. λ nil'. λ cons'. λ base'. λ arrow'. Λ i. λ t. inductG·P·Q
+  (Λ R. Λ S. Λ c1. Λ c2. λ ih1. λ ih2. λ xs.
+  [c3 : Cast·(CtxF·R·S)·(CtxF·TypeF·TypeG) = intrCast
+    -(λ t. cast -(monoCtx -c1 -c2) t)
+    -(λ t. β)]
+  - μ' xs @ λ g:CtxF·R·S. P (inF (cast -c3 g)) {
+  | nilF ➔ nil'
+  | consF g a ➔ cons' -(cast -c1 g) -(cast -(c2 -g) a) (ih1 g)
+  })
+  (Λ R. Λ S. Λ c1. Λ c2. λ ih1. λ ih2. Λ alg. Λ eq. Λ r. λ xs.
+    [c3 : ∀ r:R. Cast·(TyF·R·S alg r)·(TyF·TypeF·TypeG inF (cast -c1 r)) = Λ w. intrCast
+      -(λ t. cast -(monoTy -alg -inF -eq -c1 -c2 -w) t)
+      -(λ t. β)]
+    - μ' xs @ λ g:R. λ t:TyF·R·S alg g. Q (cast -c1 g) (inG -(cast -c1 g) (cast -(c3 -g) t)) {
+  | baseF -g ➔ ρ eq - base' -(cast -c1 g)
+  | arrowF -g a b ➔ ρ eq -
+    [g' = cast -c1 g]
+    - [a' = cast -(c2 -g) a]
+    - [b1 = cast -(c2 -(alg (consF g a))) b]
+    - [b2: Ty (inF (consF g' a')) = ρ ς eq - b1]
+    - arrow' -g' -a'
+      -(χ (Ty (inF (consF (cast -c1 g) (cast -(c2 -g) a))))
+      - ρ ς eq - χ (Ty (cast -c1 (alg (consF g a))))
+      - b1)
+    (ih2 -g a)
+    (χ (Q (cons g' a') b2)
+      - [x1 = ih2 -(alg (consF g a)) b]
+      - [x2: Q (inF (consF g' a')) b2 = ρ ς eq - x1]
+      - x2)
+  })
+  -i
+  t.

@@ -1,0 +1,109 @@
+
+import ../lib/bot.
+import ../lib/cast.
+import ../lib/tpeq.
+import ../lib/idata.
+import ../lib/tuple n2.
+import ../encoding/prfalg.
+import ../encoding/ind.
+import mono.
+
+module constraint
+  (F: Π X:★. (X ➔ ★) ➔ ★)
+  (G: Π X:★. Π Y:(X ➔ ★). Π alg:F·X·Y ➔ X. X ➔ ★)
+  {mF:MonoF·F·G}
+  {mG:MonoG·F·G}
+.
+
+import shape·F·G -mF -mG.
+
+Idx : ★ = Sigma·(Fin n2)·(λ i:Fin n2. Tuple·Shape (fsucc -n2 i)).
+
+in1 : Shape f0 ➔ Idx
+= λ x. sigma f0 (cast -(tsβ·Shape -f0).2 (pair x (cast -(tzβ·Shape).2 unit))).
+
+in2 : Shape f1 ➔ Shape f0 ➔ Idx
+= λ x. λ y. sigma f1
+  (cast -(tsβ·Shape -f1).2 (pair x
+    (cast -(tsβ·Shape -f0).2 (pair y
+      (cast -(tzβ·Shape).2 unit))))).
+
+data CrtF (R:Idx ➔ ★) : Idx ➔ ★ =
+| CrtF_Fin :
+  Π xs:F
+    ·(ι c:Shape f0. R (in1 c))
+    ·(λ i:ι c:Shape f0. R (in1 c).
+      ι t:Shape f1. R (in2 t i.1)).
+  CrtF ([xs':F·(Shape f0)·(λ i:Shape f0. Shape f1)
+    = cast -(mF
+      ·(ι c:Shape f0. R (in1 c))
+      ·(Shape f0)
+      ·(λ i:ι c:Shape f0. R (in1 c). ι t:Shape f1. R (in2 t i.1))
+      ·(λ i:Shape f0. Shape f1)
+      -[λ x. x.1, β]
+      -(Λ _. [λ x. x.1, β]))
+      xs]
+    - in1 (inShape -f0 (ShapeF_Fin xs')))
+| CrtF_Gin :
+  ∀ A:(Idx ➔ ★) ➔ Idx ➔ ★.
+  ∀ mA:Monotonic·Idx·A.
+  [Ai : Idx ➔ ★ = λ i:Idx. IndM·Idx·A mA i] -
+  [inA = inIndM·Idx·A -mA] -
+  ∀ k:∀ i:Idx. Cast·(Ai i)·(R i).
+  ∀ inj: F·(ι c:Shape f0. Ai (in1 c))
+    ·(λ i:ι c:Shape f0. Ai (in1 c). ι c:Shape f1. Ai (in2 c i.1))
+    ➔ ι c:ShapeF·Shape f0. A·Ai (in1 (inShape -f0 c)).
+  ∀ eq:{inj ≃ ShapeF_Fin}.
+  ∀ i:ι c:Shape f0. Ai (in1 c).
+  Π xs:G
+    ·(ι c:Shape f0. Ai (in1 c))
+    ·(λ i:ι c:Shape f0. Ai (in1 c).
+      ι t:Shape f1. Ai (in2 t i.1))
+    (λ x. [y = inj x] - [inShape -f0 y.1, inA -(in1 (inShape -f0 y.1)) y.2])
+    i.
+  CrtF (
+    [xs':G·(Shape f0)·(λ _:Shape f0. Shape f1) (λ x. inShape -f0 (ShapeF_Fin x)) i.1 =
+      cast -(mG
+        ·(ι c:Shape f0. Ai (in1 c))
+	·(Shape f0)
+	·(λ i:ι c:Shape f0. Ai (in1 c). ι t:Shape f1. Ai (in2 t i.1))
+	·(λ _:Shape f0. Shape f1)
+	-(λ x. [y = inj x] - [inShape -f0 y.1, inA -(in1 (inShape -f0 y.1)) y.2])
+	-(λ x. inShape -f0 (ShapeF_Fin x))
+	-(ρ eq - β)
+	-[λ x. x.1, β]
+	-(λ _. [λ x. x.1, β])
+	-i)
+      xs]
+    - [x:ShapeF·Shape f1 = ShapeF_Gin -mShape -(ShapeF_Fin·Shape) -i.1 xs']
+    - in2 (inShape -f1 x) i.1)
+.
+
+mCrt : Monotonic·Idx·CrtF
+= Λ A. Λ B. Λ c. Λ i. intrCast
+  -(λ x. μ' x {
+  | CrtF_Fin xs ➔ CrtF_Fin·B (cast
+    -(mF
+      ·(ι s:Shape f0. A (in1 s))
+      ·(ι s:Shape f0. B (in1 s))
+      ·(λ i:ι s:Shape f0. A (in1 s). ι s:Shape f1. A (in2 s i.1))
+      ·(λ i:ι s:Shape f0. B (in1 s). ι s:Shape f1. B (in2 s i.1))
+      -[λ x. [x.1, cast -(c -(in1 x.1)) x.2], β]
+      -(Λ i. [λ x. [x.1, cast -(c -(in2 x.1 i.1)) x.2], β]))
+    xs)
+  | CrtF_Gin·H -mH -k -inj -eq -i xs ➔
+    [Hi : Idx ➔ ★ = λ i:Idx. IndM·Idx·H mH i]
+    - [k' : ∀ i:Idx. Cast·(Hi i)·(B i) = Λ j. intrCast
+      -(λ t. cast -(c -j) (cast -(k -j) t))
+      -(λ t. β)]
+    - CrtF_Gin·B·H -mH -k' -inj -eq -i xs
+  })
+  -(λ x. μ' x {
+  | CrtF_Fin _ ➔ β
+  | CrtF_Gin ·_ -_ -_ -_ -_ -_ _ ➔ β
+  }).
+
+import ../encoding/prfalg as Crt·Idx·CrtF -mCrt.
+
+Crt : Idx ➔ ★ = Crt.IndM.
+inCrt = Crt.inIndM.

@@ -1,0 +1,13 @@
+
+module alg (I:★) (F:(I ➔ ★) ➔ I ➔ ★).
+ 
+AlgM : (I ➔ ★) ➔ ★ = λ X:I ➔ ★.
+  ∀ R:I ➔ ★. (∀ i:I. R i ➔ X i) ➔ ∀ i:I. F·R i ➔ X i.
+
+FixM : I ➔ ★ = λ i:I. ∀ X:I ➔ ★. AlgM·X ➔ X i.
+
+foldM : ∀ X:I ➔ ★. AlgM·X ➔ ∀ i:I. FixM i ➔ X i
+= Λ X. λ alg. Λ i. λ d. d alg.
+
+inM : ∀ i:I. F·FixM i ➔ FixM i
+= Λ i. λ xs. Λ X. λ alg. alg ·FixM (Λ i. foldM·X alg -i) -i xs.

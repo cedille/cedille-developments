@@ -1,0 +1,52 @@
+
+import ../lib/cast.
+import ../lib/idata.
+
+module idxind (I:★) (F:(I ➔ ★) ➔ I ➔ ★) {mono: Monotonic·I·F}.
+
+import alg·I·F.
+import prfalg·I·F -mono.
+
+Lift : (Π i:I. IndM i ➔ ★) ➔ Π i:I. FixM i ➔ ★ = λ P:Π i:I. IndM i ➔ ★. λ i:I. λ x:FixM i.
+  Sigma·(IndM i)·(λ y:IndM i.
+    Sigma·{y ≃ x}·(λ eq:{y ≃ x}. P i (φ eq - y { x }))).
+
+IhPlus : Π R:I ➔ ★. (Π i:I. Cast·(R i)·(FixM i)) ➔ (Π i:I. IndM i ➔ ★) ➔ ★
+= λ R:I ➔ ★. λ c:Π i:I. Cast·(R i)·(FixM i). λ P:Π i:I. IndM i ➔ ★.
+  ∀ i:I. Π r:R i. Lift·P i (cast -(c i) r).
+
+castIhPlus : ∀ R:I ➔ ★. ∀ c:∀ i:I. Cast·(R i)·(FixM i). ∀ P:Π i:I. IndM i ➔ ★.
+  ∀ i:I. IhPlus·R (λ i. c -i)·P ➔ Cast·(R i)·(IndM i)
+= Λ R. Λ c. Λ P. Λ i. λ ih.
+  intrCast -(λ r. dfst (ih -i r)) -(λ r. dfst (dsnd (ih -i r))).
+
+prfIhPlus : ∀ R:I ➔ ★. ∀ c:∀ i:I. Cast·(R i)·(FixM i). ∀ P:Π i:I. IndM i ➔ ★.
+  ∀ i:I. Π ih:IhPlus·R (λ i. c -i)·P. Π r:R i. P i (cast -(castIhPlus -c -i ih) r)
+= Λ R. Λ c. Λ P. Λ i. λ ih. λ r. dsnd (dsnd (ih -i r)).
+
+convAlg : ∀ P:Π i:I. IndM i ➔ ★.
+  PrfAlgM ·IndM ·P (λ i. inIndM -i) ➔
+  PrfAlgM ·FixM ·(Lift·P) (λ i. inM -i)
+= Λ P. λ alg. Λ R. Λ c. λ ih. Λ i. λ xs.
+  [c' = Λ i:I. castIhPlus·R -c ·P -i ih]
+  - [x = inIndM -i (cast -(mono -c' -i) xs)]
+  - [ih' = Λ i:I. prfIhPlus·R -c ·P -i ih]
+  - sigma x (sigma β (alg ·R -c' ih' -i xs)).
+
+inductionM : ∀ P:Π i:I. IndM i ➔ ★. PrfAlgM·IndM·P (λ i. inIndM -i) ➔ ∀ i:I. Π x:IndM i. P i x
+= Λ P. λ alg. Λ i. λ x. dsnd (dsnd (x.2 (convAlg alg))).
+
+outM : ∀ i:I. IndM i ➔ F·IndM i
+= inductionM ·(λ i:I. λ _:IndM i. F·IndM i)
+  (Λ R. Λ c. λ _. Λ i. λ xs. cast -(mono -c -i) xs).
+
+foldIndM : ∀ X:I ➔ ★. AlgM·X ➔ ∀ i:I. IndM i ➔ X i
+= Λ X. λ alg. inductionM·(λ i:I. λ _:IndM i. X i)
+  (Λ R. Λ _. alg·R).
+
+lambek1 : ∀ i:I. Π x:F·IndM i. {outM (inIndM x) ≃ x}
+= Λ i. λ x. β.
+
+lambek2 : ∀ i:I. Π x:IndM i. {inIndM (outM x) ≃ x}
+= Λ i. λ x. inductionM·(λ i:I. λ x:IndM i. {inIndM (outM x) ≃ x})
+  (Λ R. Λ c. λ ih. Λ i. λ xs. β) -i x.
