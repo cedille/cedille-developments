@@ -1,6 +1,6 @@
 * Monotone Recursive Types and Recursive Data Representation in Cedille
 
-  Under consideration for the /Journal of Mathematical Structures in Computer
+  Published in the /Journal of Mathematical Structures in Computer
   Science/
 
   All code can be checked from [[file:everything.ced][everything.ced]].
